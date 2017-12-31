@@ -25,7 +25,7 @@ KolmogorovComplexity::usage = "Not yet implemented. Estimate Kolmogorov complexi
 
 VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, Plus) generates all required types of expressions (Times,Power, Sinh, Sqrt, Pi, etc.) "
 
-RecognizeConstant::usage = "Not yet implemented. Use e.g. RIES instead"
+RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
 RecognizeFunction::usage = "Not yet implemented"
  
@@ -78,6 +78,56 @@ Module[{operatorsCommutative, operatorsNonCommutative},
  Select[op, FreeQ[Attributes[#], Orderless] &]};
 Nest[nextLevel[#,var,fun,operatorsCommutative,operatorsNonCommutative]&, var, depth] /.x->Global`x
 ];
+
+RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi}, 
+  functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
+  OptionsPattern[]] := 
+Module[{i, j, k, n, num, rule, rule2, funs, ops, language, symb, 
+   bestError, digits, code, formula, error, rpnRule, 
+   currentBestFormula, candidates},
+  (* RPN calculator *)
+  funs = If[functions == {}, Null, functions /. List -> Alternatives];
+  ops = binaryOperations /. List -> Alternatives;
+  language = Join[functions, binaryOperations] /. List -> Alternatives;
+  rpnRule[{a : Except[language] ..., b : Except[language], 
+     c : Except[language], op : ops, d___}] := 
+   rpnRule[{a, op[b, c], d}];
+  rpnRule[{a : Except[language] ..., b : Except[ops | funs], f : funs,
+      c___}] := rpnRule[{a, f[b], c}];
+  rpnRule[{rest : Except[language]}] := rest;
+  symb = Join[constants, functions, binaryOperations];
+  num = Length[symb];
+  rule = (# /. List -> Rule &) /@ Transpose[{Range[0, num - 1], symb}];
+  rule2 = (# /. List -> Rule &) /@ 
+    Transpose[{Range[0, num - 1], 
+      Join[Table[1, Length[constants]], Table[0, Length[functions]], 
+       Table[-1, Length[binaryOperations]]]}];
+  bestError = Infinity;
+  i = 0; j = 0;
+  candidates = {};
+  For[n = 1, n <= OptionValue[MaxCodeLength], n++,
+   For[k = 0, k < num^n, k++,
+    i++;
+    digits = IntegerDigits[k, num, n];
+    If[Total[digits /. rule2] != 1, Continue[]];
+    j++;
+    code = digits /. rule;
+    formula = rpnRule[code];
+    error = Abs[target - formula];
+    If[error < bestError, bestError = error; 
+     currentBestFormula = formula;
+     AppendTo[candidates, formula]; 
+     If[OptionValue[WriteToDisk] == True, 
+      Export["candidatesList.m", candidates]];];
+    If[bestError <= OptionValue[PrecisionGoal], 
+     Return[candidates[[-Min[Length[candidates], 
+           OptionValue[Candidates]] ;; -1]]]]
+    ]
+   ];
+  candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]
+];
+  
+Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 6, Candidates -> 1, WriteToDisk -> False};
    
 End[ ]
 
