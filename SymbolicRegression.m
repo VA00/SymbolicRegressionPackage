@@ -27,6 +27,9 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
+Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 6, Candidates -> 1, WriteToDisk -> False};
+  
+
 RecognizeFunction::usage = "Not yet implemented"
  
 		
@@ -127,8 +130,6 @@ Module[{i, j, k, n, num, rule, rule2, funs, ops, language, symb,
   candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]
 ];
   
-Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 6, Candidates -> 1, WriteToDisk -> False};
-   
 End[ ]
 
 EndPackage[ ]
