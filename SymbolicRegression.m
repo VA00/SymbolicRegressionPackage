@@ -27,7 +27,7 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
-Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 6, Candidates -> 1, WriteToDisk -> False};
+Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False};
   
 
 RecognizeFunction::usage = "Not yet implemented"
@@ -85,7 +85,7 @@ Nest[nextLevel[#,var,fun,operatorsCommutative,operatorsNonCommutative]&, var, de
 RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi}, 
   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
   OptionsPattern[]] := 
-Module[{i, j, k, n, num, rule, rule2, funs, ops, language, symb, 
+Module[{k, n, num, rule, rule2, funs, ops, language, symb, 
    bestError, digits, code, formula, error, rpnRule, 
    currentBestFormula, candidates},
   (* RPN calculator *)
@@ -106,27 +106,31 @@ Module[{i, j, k, n, num, rule, rule2, funs, ops, language, symb,
       Join[Table[1, Length[constants]], Table[0, Length[functions]], 
        Table[-1, Length[binaryOperations]]]}];
   bestError = Infinity;
-  i = 0; j = 0;
   candidates = {};
   For[n = 1, n <= OptionValue[MaxCodeLength], n++,
    For[k = 0, k < num^n, k++,
-    i++;
-    digits = IntegerDigits[k, num, n];
-    If[Total[digits /. rule2] != 1, Continue[]];
-    j++;
-    code = digits /. rule;
-    formula = rpnRule[code];
-    error = Abs[target - formula];
-    If[error < bestError, bestError = error; 
-     currentBestFormula = formula;
-     AppendTo[candidates, formula]; 
-     If[OptionValue[WriteToDisk] == True, 
-      Export["candidatesList.m", candidates]];];
-    If[bestError <= OptionValue[PrecisionGoal], 
-     Return[candidates[[-Min[Length[candidates], 
-           OptionValue[Candidates]] ;; -1]]]]
-    ]
-   ];
+    CheckAbort[
+	 digits = IntegerDigits[k, num, n];
+     If[Total[digits /. rule2] != 1, Continue[]];
+     code = digits /. rule;
+     formula = Catch[rpnRule[code],_SystemException,Infinity&];
+	 error=Catch[Check[MemoryConstrained[N[Abs[target-formula]],65536,Infinity],Infinity],_SystemException,Infinity&];
+     If[error < bestError, bestError = error; 
+      currentBestFormula = formula;
+      AppendTo[candidates, formula]; 
+      If[OptionValue[WriteToDisk] == True, 
+       Export["candidatesList.m", candidates];Print[code,"\t",error, "\t", {n,k}, "\t",formula]
+	  ];
+	 ];
+     If[bestError <= OptionValue[PrecisionGoal], 
+      Return[candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]]
+	 ]
+	 ,
+	 Print["Best so far:\t", currentBestFormula,"\t",bestError, "\tTested so far:\t", {n,k}, "\tLast code:\t", code];Abort[];
+	]
+   ]
+   Print["Level\t",n,"\tcompleted..."];
+  ];
   candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]
 ];
   
