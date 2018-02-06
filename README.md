@@ -9,7 +9,7 @@ Package will provides various implementations of typical symbolic regression fun
 - enumerate all possible expressions composed of given basic building blocks
 - tools for testing and verification of methods
 - functions estimating Kolmogorov complexity of the given mathematical formula
-- numeric constant recognition (TODO) 
+- numeric constant recognition (Prototype using RPN implemented with up to 2-argument operations) 
 - numeric function recognition (TODO)
 
 Typical applications are:
