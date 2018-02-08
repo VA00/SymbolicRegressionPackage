@@ -86,7 +86,7 @@ RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi},
   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
   OptionsPattern[]] := 
 Module[{k, n, num, rule, rule2, funs, ops, language, symb, 
-   bestError, digits, code, formula, error, rpnRule, 
+   bestError, digits, code, formula, error, formulaN,errorAbs, errorRe,errorIm, rpnRule, 
    currentBestFormula, candidates},
   (* RPN calculator *)
   funs = If[functions == {}, Null, functions /. List -> Alternatives];
@@ -105,33 +105,53 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
     Transpose[{Range[0, num - 1], 
       Join[Table[1, Length[constants]], Table[0, Length[functions]], 
        Table[-1, Length[binaryOperations]]]}];
+  Internal`$MinExponent = -1024;
+  Internal`$MaxExponent =  1024;
   bestError = Infinity;
   candidates = {};
+  Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code] ];
+  Catch[
   For[n = 1, n <= OptionValue[MaxCodeLength], n++,
-   For[k = 0, k < num^n, k++,
+   For[k = 0,  k < num^n , k++,
     CheckAbort[
-	 digits = IntegerDigits[k, num, n];
-     If[Total[digits /. rule2] != 1, Continue[]];
-     code = digits /. rule;
-     formula = Catch[rpnRule[code],_SystemException,Infinity&];
-	 error=Catch[Check[MemoryConstrained[N[Abs[target-formula]],65536,Infinity],Infinity],_SystemException,Infinity&];
-     If[error < bestError, bestError = error; 
-      currentBestFormula = formula;
-      AppendTo[candidates, formula]; 
-      If[OptionValue[WriteToDisk] == True, 
-       Export["candidatesList.m", candidates];Print[code,"\t",error, "\t", {n,k}, "\t",formula]
+	 (
+	  
+	  digits = IntegerDigits[k, num, n];
+(* Print[digits];*)
+      If[Total[digits /. rule2] != 1, Continue[]];
+      code = digits /. rule;
+(* Print[code];*)
+      (* formula = Catch[MemoryConstrained[rpnRule[code],65536,Infinity],_SystemException,Infinity&];*)
+	  formula = TimeConstrained[MemoryConstrained[Unevaluated[rpnRule[code]],65536,Infinity],12,Infinity];
+(*Print[formula];*)
+	  formulaN   = Catch[Check[MemoryConstrained[N[formula,32],65536,Infinity],Infinity],_SystemException,Infinity&];
+(*Print[formulaN];*)
+	  error = If[Head[formulaN]===Complex, Min[Abs[target-Abs[formulaN]],Abs[target-Re[formulaN]],Abs[target-Im[formulaN]]],Abs[target-formulaN],Infinity];
+	  If[error < bestError, bestError = error; 
+       currentBestFormula = 
+	     If[Head[formulaN]===Complex, 
+		   Which[
+				error==Abs[target-Abs[formulaN]],Abs@formula,
+				error==Abs[target- Re[formulaN]], Re@formula,
+				error==Abs[target- Im[formulaN]], Im@formula
+				]
+		   , formula
+		   ];
+       AppendTo[candidates, currentBestFormula]; 
+       If[OptionValue[WriteToDisk] == True, 
+        Export["candidatesList.m", candidates];Print[code," err=",  error, " n=", n," k=",k, "\t",formula, " = ", formulaN]
+	   ];
 	  ];
-	 ];
-     If[bestError <= OptionValue[PrecisionGoal], 
-      Return[candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]]
+      If[bestError <= OptionValue[PrecisionGoal], 
+       Throw@Return[candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]]
+	  ];
+	  )
+	  ,Print["Best so far:\t", currentBestFormula,"\t",bestError, "\tTested so far:\t", {n,k}, "\tLast code:\t", code];Abort[];];
 	 ]
-	 ,
-	 Print["Best so far:\t", currentBestFormula,"\t",bestError, "\tTested so far:\t", {n,k}, "\tLast code:\t", code];Abort[];
-	]
-   ]
-   Print["Level\t",n,"\tcompleted..."];
+   (*Print["Level\t",n,"\tcompleted..."];*)
   ];
   candidates[[-Min[Length[candidates], OptionValue[Candidates]] ;; -1]]
+  ]
 ];
   
 End[ ]
