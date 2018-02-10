@@ -27,7 +27,7 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
-Options[RecognizeConstant] = {PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False};
+Options[RecognizeConstant] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im} };
   
 
 RecognizeFunction::usage = "Not yet implemented"
@@ -86,7 +86,7 @@ RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi},
   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
   OptionsPattern[]] := 
 Module[{k, n, num, rule, rule2, funs, ops, language, symb, 
-   bestError, digits, code, formula, error, formulaN,errorAbs, errorRe,errorIm, rpnRule, 
+   bestError, digits, code, formula, error, errors, final, formulaN, rpnRule, 
    currentBestFormula, candidates},
   (* RPN calculator *)
   funs = If[functions == {}, Null, functions /. List -> Alternatives];
@@ -126,20 +126,13 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
 (*Print[formula];*)
 	  formulaN   = Catch[Check[MemoryConstrained[N[formula,32],65536,Infinity],Infinity],_SystemException,Infinity&];
 (*Print[formulaN];*)
-	  error = If[Head[formulaN]===Complex, Min[Abs[target-Abs[formulaN]],Abs[target-Re[formulaN]],Abs[target-Im[formulaN]]],Abs[target-formulaN],Infinity];
+	  errors = Table[{Abs[target - final[formulaN]],final}, {final, OptionValue[Finalize]}]//Sort;
+	  error  = errors[[1,1]];
 	  If[error < bestError, bestError = error; 
-       currentBestFormula = 
-	     If[Head[formulaN]===Complex, 
-		   Which[
-				error==Abs[target-Abs[formulaN]],Abs@formula,
-				error==Abs[target- Re[formulaN]], Re@formula,
-				error==Abs[target- Im[formulaN]], Im@formula
-				]
-		   , formula
-		   ];
+       currentBestFormula = errors[[1,2]][formula];
        AppendTo[candidates, currentBestFormula]; 
        If[OptionValue[WriteToDisk] == True, 
-        Export["candidatesList.m", candidates];Print[code," err=",  error, " n=", n," k=",k, "\t",formula, " = ", formulaN]
+        Export["candidatesList.m", candidates];Print[code," err=",  error, " n=", n," k=",k, "\t",currentBestFormula, " = ", formulaN]
 	   ];
 	  ];
       If[bestError <= OptionValue[PrecisionGoal], 
