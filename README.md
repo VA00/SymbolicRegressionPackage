@@ -5,12 +5,12 @@ Basic building blocks for brute-force and random symbolic regression methods in 
 
 Package will provides various implementations of typical symbolic regression functions:
 
+
+- numeric constant recognition (Prototype using RPN implemented with up to 2-argument operations) 
 - random generators for mathematical expressions
 - enumerate all possible expressions composed of given basic building blocks
 - tools for testing and verification of methods
 - functions estimating Kolmogorov complexity of the given mathematical formula
-- numeric constant recognition (Prototype using RPN implemented with up to 2-argument operations) 
-- numeric function recognition (TODO)
 
 Typical applications are:
 - automated generation of new test problems for students, free of ,,aunt Wikipedia and uncle Google'' solutions
@@ -22,9 +22,9 @@ Typical applications are:
 
 Main functions are:
 
+RecognizeConstant[x] - search for ,,analytical'' formula given numeric value in the order of growing Kolmogorov complexity expressions. Any function or constant known to Mathematica can be used, e.g. EllipticE, Root[], Gamma etc. 
 RandomExpression[] - generates random mathematical formula [implemented using random-walk string-rewrite approach]
-EnumerateExpressions[] - lists all expressions [implemented recursively; this limits search to level 4 at most due to memory-hungry functions, stack machine method
-to be implemented soon]
+EnumerateExpressions[] - lists all expressions [implemented recursively; this limits search to level 4 at most due to memory-hungry functions, stack machine methodvto be implemented soon]
 
 Some simple examples and applications are presented in SymbolicRegreessionPackage_Examples.nb notebook. 
 
