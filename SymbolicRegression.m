@@ -112,21 +112,21 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
   Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code] ];
   Catch[
   For[n = OptionValue[StartCodeLength], n <= OptionValue[MaxCodeLength], n++,
-   For[k = OptionValue[StartCodeNumber],  k < 57429 (*num^n*) , k++,
+   For[k = OptionValue[StartCodeNumber],  k < num^n , k++,
     CheckAbort[
 	 (
 	 
-Print["\n\n"];Print[{n,k,num}];	  
+(* Print["\n\n"];Print[{n,k,num}];	  *)
 	  digits = IntegerDigits[k, num, n];
-Print[digits]; 
+(* Print[digits]; *)
       If[Total[digits /. rule2] != 1, Continue[]];
       code = digits /. rule;
-Print[code];   
+(* Print[code];   *)
       formula = TimeConstrained[MemoryConstrained[Check[rpnRule[code],Infinity],OptionValue[MemoryLimit],Infinity],OptionValue[TimeLimit],Infinity];
-Print[formula]; 
+(* Print[formula]; *)
       If[!MachineNumberQ[TimeConstrained[formula//N,OptionValue[TimeLimit]]], Continue[]];
       formulaN   = Catch[Check[MemoryConstrained[N[formula,32],OptionValue[MemoryLimit],Infinity],Infinity],_SystemException, Infinity&];
-Print[formulaN];Print["\n\n"]; 
+(* Print[formulaN];Print["\n\n"]; *)
 	  errors = Table[{Abs[target - final[formulaN]],final}, {final, OptionValue[Finalize]}]//Sort;
 	  error  = errors[[1,1]];
 	  If[error < bestError, bestError = error; 
