@@ -27,7 +27,7 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
-Options[RecognizeConstant] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im} };
+Options[RecognizeConstant] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
   
 
 RecognizeFunction::usage = "Not yet implemented"
@@ -111,21 +111,22 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
   candidates = {};
   Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code] ];
   Catch[
-  For[n = 1, n <= OptionValue[MaxCodeLength], n++,
-   For[k = 0,  k < num^n , k++,
+  For[n = OptionValue[StartCodeLength], n <= OptionValue[MaxCodeLength], n++,
+   For[k = OptionValue[StartCodeNumber],  k < 57429 (*num^n*) , k++,
     CheckAbort[
 	 (
-	  
+	 
+Print["\n\n"];Print[{n,k,num}];	  
 	  digits = IntegerDigits[k, num, n];
-(* Print[digits];*)
+Print[digits]; 
       If[Total[digits /. rule2] != 1, Continue[]];
       code = digits /. rule;
-(* Print[code];*)
-      (* formula = Catch[MemoryConstrained[rpnRule[code],65536,Infinity],_SystemException,Infinity&];*)
-	  formula = TimeConstrained[MemoryConstrained[Unevaluated[rpnRule[code]],65536,Infinity],12,Infinity];
-(*Print[formula];*)
-	  formulaN   = Catch[Check[MemoryConstrained[N[formula,32],65536,Infinity],Infinity],_SystemException,Infinity&];
-(*Print[formulaN];*)
+Print[code];   
+      formula = TimeConstrained[MemoryConstrained[Check[rpnRule[code],Infinity],OptionValue[MemoryLimit],Infinity],OptionValue[TimeLimit],Infinity];
+Print[formula]; 
+      If[!MachineNumberQ[TimeConstrained[formula//N,OptionValue[TimeLimit]]], Continue[]];
+      formulaN   = Catch[Check[MemoryConstrained[N[formula,32],OptionValue[MemoryLimit],Infinity],Infinity],_SystemException, Infinity&];
+Print[formulaN];Print["\n\n"]; 
 	  errors = Table[{Abs[target - final[formulaN]],final}, {final, OptionValue[Finalize]}]//Sort;
 	  error  = errors[[1,1]];
 	  If[error < bestError, bestError = error; 
