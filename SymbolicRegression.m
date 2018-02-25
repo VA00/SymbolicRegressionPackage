@@ -105,8 +105,7 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
     Transpose[{Range[0, num - 1], 
       Join[Table[1, Length[constants]], Table[0, Length[functions]], 
        Table[-1, Length[binaryOperations]]]}];
-  Internal`$MinExponent = -1024;
-  Internal`$MaxExponent =  1024;
+
   bestError = Infinity;
   candidates = {};
   Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code] ];
@@ -122,10 +121,22 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
       If[Total[digits /. rule2] != 1, Continue[]];
       code = digits /. rule;
 (* Print[code];   *)
-      formula = TimeConstrained[MemoryConstrained[Check[rpnRule[code],Infinity],OptionValue[MemoryLimit],Infinity],OptionValue[TimeLimit],Infinity];
+      formula = TimeConstrained[
+	          MemoryConstrained[
+				          Check[
+						  Block[{Internal`$MinExponent = -1024,Internal`$MaxExponent =  1024},rpnRule[code]]
+						  ,Infinity],
+						  OptionValue[MemoryLimit],Infinity],
+						  OptionValue[TimeLimit],Infinity];
 (* Print[formula]; *)
       If[!MachineNumberQ[TimeConstrained[formula//N,OptionValue[TimeLimit]]], Continue[]];
-      formulaN   = Catch[Check[MemoryConstrained[N[formula,32],OptionValue[MemoryLimit],Infinity],Infinity],_SystemException, Infinity&];
+      formulaN   = Catch[
+	               Check[
+	   MemoryConstrained[
+	                      Block[{Internal`$MinExponent = -1024,Internal`$MaxExponent =  1024}, N[formula,32]]
+						 ,OptionValue[MemoryLimit],Infinity]
+						 ,Infinity],
+						 _SystemException, Infinity&];
 (* Print[formulaN];Print["\n\n"]; *)
 	  errors = Table[{Abs[target - final[formulaN]],final}, {final, OptionValue[Finalize]}]//Sort;
 	  error  = errors[[1,1]];
