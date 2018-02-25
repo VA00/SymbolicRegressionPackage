@@ -129,7 +129,7 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
 						  OptionValue[MemoryLimit],Infinity],
 						  OptionValue[TimeLimit],Infinity];
 (* Print[formula]; *)
-      If[!MachineNumberQ[TimeConstrained[formula//N,OptionValue[TimeLimit]]], Continue[]];
+      Catch[If[!MachineNumberQ[TimeConstrained[formula//N,OptionValue[TimeLimit]]], Continue[]],_SystemException,Continue[]&];
       formulaN   = Catch[
 	               Check[
 	   MemoryConstrained[
