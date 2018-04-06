@@ -27,7 +27,7 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
-Options[RecognizeConstant] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 7, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
+Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLength -> 8, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
   
 
 RecognizeFunction::usage = "Not yet implemented"
@@ -82,7 +82,7 @@ Module[{operatorsCommutative, operatorsNonCommutative},
 Nest[nextLevel[#,var,fun,operatorsCommutative,operatorsNonCommutative]&, var, depth] /.x->Global`x
 ];
 
-RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi}, 
+RecognizeConstant[target_?NumericQ, constants_List: {-1, I, E, Pi, 2}, 
   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
   OptionsPattern[]] := 
 Module[{k, n, num, rule, rule2, funs, ops, language, symb, 
@@ -138,13 +138,14 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
 						 ,Infinity],
 						 _SystemException, Infinity&];
 (* Print[formulaN];Print["\n\n"]; *)
-	  errors = Table[{Abs[target - final[formulaN]],final}, {final, OptionValue[Finalize]}]//Sort;
+	  errors = Table[{Abs[target - final[formulaN]],final}, {final, Flatten[{OptionValue[Finalize]}]}]//Sort;
 	  error  = errors[[1,1]];
 	  If[error < bestError, bestError = error; 
        currentBestFormula = errors[[1,2]][formula];
-       AppendTo[candidates, currentBestFormula]; 
+	   AppendTo[code,errors[[1,2]]];
+       AppendTo[candidates, {currentBestFormula,error,code,target}]; 
        If[OptionValue[WriteToDisk] == True, 
-        Export["candidatesList.m", candidates];Print[code," err=",  error, " n=", n," k=",k, "\t",currentBestFormula, " = ", formulaN]
+        Export["candidatesList_"<>DateString[{"_", "Year", "Month", "Day", "_", "Hour", "Minute"}]<>".m", candidates];Print[DateString["ISODateTime"],"\n",code," err=",  error, " n=", n," k=",k, "\t",currentBestFormula, " = ", formulaN]
 	   ];
 	  ];
       If[bestError <= OptionValue[PrecisionGoal], 
