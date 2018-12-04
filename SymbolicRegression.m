@@ -163,10 +163,10 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb, x,
 ];
 
 
-RecognizeFunction[data_?ListQ, constants_List: {x,-1, I, E, Pi, 2}, 
+RecognizeFunction[data_?ListQ, constants_List: {-1, I, E, Pi, 2}, 
   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
   OptionsPattern[]] := 
-Module[{k, n, num, rule, rule2, funs, ops, language, symb, 
+Module[{k, n, ii, num, rule, rule2, funs, ops, language, symb, 
    bestError, digits, code, formula, error, errors, final, formulaN, rpnRule, 
    currentBestFormula, candidates},
   (* RPN calculator *)
@@ -179,12 +179,12 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb,
   rpnRule[{a : Except[language] ..., b : Except[ops | funs], f : funs,
       c___}] := rpnRule[{a, f[b], c}];
   rpnRule[{rest : Except[language]}] := rest;
-  symb = Join[constants, functions, binaryOperations];
+  symb = Join[{x},constants, functions, binaryOperations];
   num = Length[symb];
   rule = (# /. List -> Rule &) /@ Transpose[{Range[0, num - 1], symb}];
   rule2 = (# /. List -> Rule &) /@ 
     Transpose[{Range[0, num - 1], 
-      Join[Table[1, Length[constants]], Table[0, Length[functions]], 
+      Join[Table[1, Length[constants]+1], Table[0, Length[functions]], 
        Table[-1, Length[binaryOperations]]]}];
 
   bestError = Infinity;
