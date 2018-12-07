@@ -27,6 +27,9 @@ VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, P
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
+NextFunction::usage = "TODO"
+
+
 Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLength -> 9, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
 
 Options[RecognizeFunction] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 12, WriteToDisk -> True,  MemoryLimit->4*131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
@@ -36,6 +39,59 @@ RecognizeFunction::usage = "Preliminary prototype implemented. Use at own risk."
  
 		
 Begin["`Private`"]
+
+ValidateCode[numbers_List] := Module[{counter, k},
+  counter = 0;
+  For[k = 1, k <= Length[numbers], k++,
+   If[numbers[[k]] == 1, counter++,
+    If[numbers[[k]] == -1, counter = counter - 2; 
+     If[counter < 0, Return[False], counter++],
+     If[numbers[[k]] == 0, counter = counter - 1; 
+      If[counter < 0, Return[False], counter++]
+      ]
+     ]
+    ]
+   ];
+  If[counter == 1, Return[True], Return[False], Return[False]]
+  ]
+  
+NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {E}, 
+   functions_List: {Log}, binaryOperations_List: {Plus, Times, Power},
+    OptionsPattern[]] := 
+  Module[{k, n, num, rule, rule2, funs, ops, language, symb, digits, 
+    code, formula, numbers},(*RPN calculator*)
+   funs = If[functions == {}, Null, functions /. List -> Alternatives];
+   ops = binaryOperations /. List -> Alternatives;
+   language = 
+    Join[functions, binaryOperations] /. List -> Alternatives;
+   rpnRule[{a : Except[language] ..., b : Except[language], 
+      c : Except[language], op : ops, d___}] := 
+    rpnRule[{a, op[b, c], d}];
+   rpnRule[{a : Except[language] ..., b : Except[ops | funs], 
+      f : funs, c___}] := rpnRule[{a, f[b], c}];
+   rpnRule[{rest : Except[language]}] := rest;
+   symb = Join[{x}, constants, functions, binaryOperations];
+   num = Length[symb];
+   rule = (# /. List -> Rule &) /@ 
+     Transpose[{Range[0, num - 1], symb}];
+   rule2 = (# /. List -> Rule &) /@ 
+     Transpose[{Range[0, num - 1], 
+       Join[Table[1, Length[constants] + 1], 
+        Table[0, Length[functions]], 
+        Table[-1, Length[binaryOperations]]]}];
+   For[n = nOLD, n <= Infinity, n++,
+    For[k = kOLD + 1, k < num^n, k++,
+     digits = IntegerDigits[k, num, n];
+     numbers = digits /. rule2;
+     If[! ValidateCode[numbers], Continue[]];
+     code = digits /. rule;
+     formula = rpnRule[code];
+     Goto[END]
+     ]
+    ];
+   Label[END];
+   {formula, {k, n}}
+   ];
 
 RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:{"System`Log"}, op_List:{"System`Plus","System`Times","System`Power"}] :=
    Module[{vars, funs, ops, lang, i, weights},
