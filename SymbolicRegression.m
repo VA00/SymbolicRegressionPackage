@@ -55,7 +55,7 @@ ValidateCode[numbers_List] := Module[{counter, k},
   If[counter == 1, Return[True], Return[False], Return[False]]
   ]
   
-NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {E}, 
+NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {x,E}, 
    functions_List: {Log}, binaryOperations_List: {Plus, Times, Power},
     OptionsPattern[]] := 
   Module[{k, n, num, rule, rule2, funs, ops, language, symb, digits, 
@@ -70,13 +70,13 @@ NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {E},
    rpnRule[{a : Except[language] ..., b : Except[ops | funs], 
       f : funs, c___}] := rpnRule[{a, f[b], c}];
    rpnRule[{rest : Except[language]}] := rest;
-   symb = Join[{x}, constants, functions, binaryOperations];
+   symb = Join[constants, functions, binaryOperations];
    num = Length[symb];
    rule = (# /. List -> Rule &) /@ 
      Transpose[{Range[0, num - 1], symb}];
    rule2 = (# /. List -> Rule &) /@ 
      Transpose[{Range[0, num - 1], 
-       Join[Table[1, Length[constants] + 1], 
+       Join[Table[1, Length[constants]], 
         Table[0, Length[functions]], 
         Table[-1, Length[binaryOperations]]]}];
    For[n = nOLD, n <= Infinity, n++,
