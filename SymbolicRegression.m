@@ -176,7 +176,7 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb, x,
 (* Print["\n\n"];Print[{n,k,num}];	  *)
 	  digits = IntegerDigits[k, num, n];
 (* Print[digits]; *)
-      If[Total[digits /. rule2] != 1, Continue[]];
+      If[!ValidateCode[digits /. rule2], Continue[]];
       code = digits /. rule;
 (* Print[code];   *)
       formula = TimeConstrained[
@@ -255,7 +255,7 @@ Module[{k, n, ii, num, rule, rule2, funs, ops, language, symb,
 (* Print["\n\n"];Print[{n,k,num}];	  *)
 	  digits = IntegerDigits[k, num, n];
 (* Print[digits]; *)
-      If[Total[digits /. rule2] != 1, Continue[]];
+      If[!ValidateCode[digits /. rule2], Continue[]];
       code = digits /. rule;
 (* Print[code];   *)
       formula = TimeConstrained[
