@@ -90,7 +90,7 @@ NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {x,E},
      ]
     ];
    Label[END];
-   {formula, {k, n}}
+   {formula, code, {k, n}}
    ];
 
 RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:{"System`Log"}, op_List:{"System`Plus","System`Times","System`Power"}] :=
