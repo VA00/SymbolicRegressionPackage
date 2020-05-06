@@ -59,17 +59,21 @@ NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {x,E},
    functions_List: {Log}, binaryOperations_List: {Plus, Times, Power},
     OptionsPattern[]] := 
   Module[{k, n, num, rule, rule2, funs, ops, language, symb, digits, 
-    code, formula, numbers},(*RPN calculator*)
-   funs = If[functions == {}, Null, functions /. List -> Alternatives];
+    code, formula, numbers},
+	
+	(*RPN calculator*)
+   funs = If[functions == {}, Alternatives[], functions /. List -> Alternatives];
+
    ops = binaryOperations /. List -> Alternatives;
-   language = 
-    Join[functions, binaryOperations] /. List -> Alternatives;
-   rpnRule[{a : Except[language] ..., b : Except[language], 
-      c : Except[language], op : ops, d___}] := 
-    rpnRule[{a, op[b, c], d}];
-   rpnRule[{a : Except[language] ..., b : Except[ops | funs], 
-      f : funs, c___}] := rpnRule[{a, f[b], c}];
+
+   language =     Join[funs, ops];
+
+   varconst = Except[language];
+   rpnRule[{a : varconst ..., b : varconst, f : funs, c___}] := rpnRule[{a, f[b], c}];
+   rpnRule[{a : varconst ..., b : varconst, c : varconst, op : ops, d___}] :=  rpnRule[{a, op[b, c], d}];
    rpnRule[{rest : Except[language]}] := rest;
+   
+   
    symb = Join[constants, functions, binaryOperations];
    num = Length[symb];
    rule = (# /. List -> Rule &) /@ 
