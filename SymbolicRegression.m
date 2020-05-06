@@ -58,7 +58,7 @@ ValidateCode[numbers_List] := Module[{counter, k},
 NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {x,E}, 
    functions_List: {Log}, binaryOperations_List: {Plus, Times, Power},
     OptionsPattern[]] := 
-  Module[{k, n, num, rule, rule2, funs, ops, language, symb, digits, 
+  Module[{k, n, num, rpnRule, rule, rule2, funs, ops, language, symb, digits, 
     code, formula, numbers},
 	
 	(*RPN calculator*)
