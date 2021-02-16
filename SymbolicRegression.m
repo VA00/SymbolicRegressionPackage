@@ -201,7 +201,7 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb, x,
 						 _SystemException, Infinity&];
 (* Print[formulaN];Print["\n\n"]; *)
 	  errors = Table[{Abs[target - final[formulaN]],final}, {final, Flatten[{OptionValue[Finalize]}]}]//Sort;
-	  error  = errors[[1,1]];
+	  error  = errors[[1,1]]//Chop;
 	  If[error < bestError, bestError = error; 
        currentBestFormula = errors[[1,2]][formula];
 	   AppendTo[code,errors[[1,2]]];
