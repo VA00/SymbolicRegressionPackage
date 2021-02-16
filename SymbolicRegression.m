@@ -200,14 +200,15 @@ Module[{k, n, num, rule, rule2, funs, ops, language, symb, x,
 						 ,Infinity],
 						 _SystemException, Infinity&];
 (* Print[formulaN];Print["\n\n"]; *)
-	  errors = Table[{Abs[target - final[formulaN]],final}, {final, Flatten[{OptionValue[Finalize]}]}]//Sort;
+	  errors = Table[{Abs[target - final[formulaN]],final}, {final, Flatten[{OptionValue[Finalize]}]}]//NumericalSort;
 	  error  = errors[[1,1]]//Chop;
 	  If[error < bestError, bestError = error; 
        currentBestFormula = errors[[1,2]][formula];
 	   AppendTo[code,errors[[1,2]]];
        AppendTo[candidates, {currentBestFormula,error,code,target}]; 
        If[OptionValue[WriteToDisk] == True, 
-        Export["candidatesList_"<>DateString[{"_", "Year", "Month", "Day", "_", "Hour", "Minute"}]<>".m", candidates];Print[DateString["ISODateTime"],"\n",code," err=",  error, " n=", n," k=",k, "\t",currentBestFormula, " = ", formulaN]
+        Export["candidatesList_"<>DateString[{"_", "Year", "Month", "Day", "_", "Hour", "Minute"}]<>".m", candidates];
+	Print[DateString["ISODateTime"],"\n",code," err=",  error, " n=", n," k=",k, "\t",currentBestFormula, " = ", errors[[1,2]][formulaN]]
 	   ];
 	  ];
       If[bestError <= OptionValue[PrecisionGoal], 
