@@ -128,7 +128,7 @@ ZadanieNOF[depth_Integer:4, var_List:{"Global`x", 2}, fun_List:{"System`Exp","Sy
     lang = Join[vars, funs, ops];
 	weights = Join[Table[1, {i, 1, Length[vars]}], Table[1/2, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
     zadanie=1;
-    While[Simplify@D[zadanie,Global`x]===0 || LeafCount[zadanie]<7,
+    While[Simplify@D[zadanie,{Global`x,2}]===0 || LeafCount[zadanie]<7,
     zadanie = StringReplace[
       FixedPoint[
        StringReplace[#, 
