@@ -119,7 +119,24 @@ RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:
     
    ];
 
-ZadanieNOF[] := RandomExpression[{"Global`x"}, {Exp, Sin, Sqrt}, {Times, Divide, Plus}];
+ZadanieNOF[depth_Integer:6, var_List:{"Global`x"}, fun_List:{"System`Exp"}, op_List:{"System`Plus","System`Times","System`Divide"}] :=
+   Module[{vars, funs, ops, lang, i, weights},
+    vars = ToString /@ var;
+    funs = Table[ToString[fun[[i]]] <> "[left]", {i, 1, Length[fun]}];
+    ops = 
+     Table[ToString[op[[i]]] <> "[left,right]", {i, 1, Length[op]}];
+    lang = Join[vars, funs, ops];
+	weights = Join[Table[1, {i, 1, Length[vars]}], Table[3, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
+    StringReplace[
+      FixedPoint[
+       StringReplace[#, 
+	   {"left" -> RandomChoice[lang], 
+        "right" -> RandomChoice[lang]}] &, 
+		RandomChoice[Join[funs,ops]], 
+       depth], {"left" -> RandomChoice[vars], 
+       "right" -> RandomChoice[vars]}] // ToExpression
+    
+   ];
    
 unorderedTuples[l_?ListQ] := 
  Flatten[Table[Table[{l[[i]], l[[j]]}, {i, 1, j}], {j, 1, Length[l]}],
