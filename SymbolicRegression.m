@@ -119,7 +119,7 @@ RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:
     
    ];
 
-ZadanieNOF[] := RandomExpression[{x}, {Exp, Sin, Sqrt}, {Times, Divide, Plus}];
+ZadanieNOF[] := RandomExpression[{"Global`x"}, {Exp, Sin, Sqrt}, {Times, Divide, Plus}];
    
 unorderedTuples[l_?ListQ] := 
  Flatten[Table[Table[{l[[i]], l[[j]]}, {i, 1, j}], {j, 1, Length[l]}],
