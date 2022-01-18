@@ -9,7 +9,10 @@ RandomExpression::usage =
              		
 		defaults:  n=7, vars_consts = (-1, x, E}, functions = {Log}, operations = {Plus, Times, Power} 
 		"
-
+ZadanieNOF::usage =
+        "
+		Zadanie na kolokwium z NOF 19.01.2022
+		"
 		
 EnumerateExpressions::usage =
         "
@@ -116,7 +119,7 @@ RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:
     
    ];
 
-   
+ZadanieNOF[] := RandomExpression[{x}, {Exp, Sin, Sqrt}, {Times, Divide, Plus}];
    
 unorderedTuples[l_?ListQ] := 
  Flatten[Table[Table[{l[[i]], l[[j]]}, {i, 1, j}], {j, 1, Length[l]}],
