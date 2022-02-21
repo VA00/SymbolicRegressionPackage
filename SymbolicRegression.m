@@ -119,16 +119,16 @@ RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:
     
    ];
 
-ZadanieNOF[depth_Integer:4, var_List:{"Global`x", 2}, fun_List:{"System`Exp","System`Sin","System`Cos"}, op_List:{"System`Plus","System`Times","System`Divide"}] :=
+ZadanieNOF[depth_Integer:3, var_List:{"Global`x", 2}, fun_List:{"System`Exp","System`Sin","System`Cos"}, op_List:{"System`Plus","System`Times","System`Divide"}] :=
    Module[{vars, funs, ops, lang, i, weights, zadanie},
     vars = ToString /@ var;
     funs = Table[ToString[fun[[i]]] <> "[left]", {i, 1, Length[fun]}];
     ops = 
      Table[ToString[op[[i]]] <> "[left,right]", {i, 1, Length[op]}];
     lang = Join[vars, funs, ops];
-	weights = Join[Table[1, {i, 2, Length[vars]}], Table[1/4, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
+	weights = Join[Table[1, {i, 2, Length[vars]}], Table[1/8, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
     zadanie=1;
-    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<7,
+    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<6,
     zadanie = StringReplace[
       FixedPoint[
        StringReplace[#, 
