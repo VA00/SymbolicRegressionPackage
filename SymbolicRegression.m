@@ -14,6 +14,11 @@ ZadanieNOF::usage =
 		Zadanie na kolokwium z NOF 19.01.2022
 		"
 		
+ZadanieNOF2024::usage =
+        "
+		Zadanie na kolokwium z NOF 10.01.2024
+		"
+		
 EnumerateExpressions::usage =
         "
 		EnumerateExpression[] - list of first functions of single variable x
@@ -119,7 +124,7 @@ RandomExpression[depth_Integer:7, var_List:{-1,"Global`x","System`E"}, fun_List:
     
    ];
 
-ZadanieNOF[depth_Integer:4, var_List:{"Global`x", 2}, fun_List:{"System`Exp","System`Sqrt"}, op_List:{"System`Plus","System`Times","System`Divide"}] :=
+ZadanieNOF[depth_Integer:6, var_List:{"Global`x", 2}, fun_List:{"System`Exp","System`Sqrt"}, op_List:{"System`Plus","System`Times","System`Divide"}] :=
    Module[{vars, funs, ops, lang, i, weights, zadanie},
     vars = ToString /@ var;
     funs = Table[ToString[fun[[i]]] <> "[left]", {i, 1, Length[fun]}];
@@ -128,7 +133,7 @@ ZadanieNOF[depth_Integer:4, var_List:{"Global`x", 2}, fun_List:{"System`Exp","Sy
     lang = Join[vars, funs, ops];
 	weights = Join[Table[4, {i, 2, Length[vars]}], Table[1, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
     zadanie=1;
-    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<12,
+    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<24,
     zadanie = StringReplace[
       FixedPoint[
        StringReplace[#, 
@@ -142,6 +147,32 @@ ZadanieNOF[depth_Integer:4, var_List:{"Global`x", 2}, fun_List:{"System`Exp","Sy
     
    ];
    
+Global`leafcounter=12;
+ZadanieNOF2024[depth_Integer:4, var_List:{"Global`x", 1,2,3,4,5,6,7,8,9}, fun_List:{"System`Exp","System`Sqrt","System`Sinh","System`Cosh","System`Minus"}, op_List:{"System`Plus","System`Times","System`Divide","System`Subtract"}] :=
+   Module[{vars, funs, ops, lang, i, weights, zadanie},
+    vars = ToString /@ var;
+    funs = Table[ToString[fun[[i]]] <> "[left]", {i, 1, Length[fun]}];
+    ops = 
+     Table[ToString[op[[i]]] <> "[left,right]", {i, 1, Length[op]}];
+    lang = Join[vars, funs, ops];
+	weights = Join[Table[4, {i, 2, Length[vars]}], Table[1, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
+    zadanie=1;
+    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<Global`leafcounter,
+    zadanie = StringReplace[
+      FixedPoint[
+       StringReplace[#, 
+	   {"left" -> RandomChoice[lang], 
+        "right" -> RandomChoice[lang]}] &, 
+		RandomChoice[Join[funs,ops]], 
+       depth], {"left" -> RandomChoice[vars], 
+       "right" -> RandomChoice[vars]}] // ToExpression // Simplify;
+    ];
+    Global`leafcounter++;
+    Return[zadanie]
+    
+   ];
+
+
 unorderedTuples[l_?ListQ] := 
  Flatten[Table[Table[{l[[i]], l[[j]]}, {i, 1, j}], {j, 1, Length[l]}],
    1];
