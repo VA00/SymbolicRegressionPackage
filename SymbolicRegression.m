@@ -223,7 +223,7 @@ RecognizeConstant[target_?NumericQ,
    
    bestError = Infinity;
    candidates = {};
-   (*Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code]];*)
+   Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code]];
    Catch[
     
     For[n = OptionValue[StartCodeLength], 
