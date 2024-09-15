@@ -41,10 +41,15 @@ NextFunction::usage = "TODO"
 Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLength -> 11, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0};
 
 Options[RecognizeFunction] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 13, WriteToDisk -> True,  MemoryLimit->64*131072, TimeLimit->64, StartCodeLength->1, StartCodeNumber->0};
-  
 
-RecognizeFunction::usage = "Preliminary prototype implemented. Use at own risk."
+Options[RecognizeSequence] = {PrecisionGoal -> 0, MaxCodeLength -> 13,
+    WriteToDisk -> True, MemoryLimit -> 64*131072, TimeLimit -> 1, 
+   StartCodeLength -> 1, StartCodeNumber -> 0};
+
+RecognizeFunction::usage = "RecognizeFunction[{{0,0},{1,1},{2,1.41421}}] - search for univariate function approximating input data."
  
+
+RecognizeSequence::usage = "RecognizeSequence[{1, 4, 27, 256, 3125}]  - search formula for sequence of exactly known numbers (integers, rationals etc.)."
 		
 Begin["`Private`"]
 
@@ -299,6 +304,8 @@ RecognizeConstant[target_?NumericQ,
          OptionValue[Candidates]] ;; -1]]]];
 
 
+(* ---------------------- END OF RecognizeConstant ---------------------- *)
+
 RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2}, 
    functions_List : {Log}, 
    binaryOperations_List : {Plus, Times, Power}, OptionsPattern[]] := 
@@ -396,6 +403,73 @@ RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2},
       ]
      (*Print["Level\t",n,"\tcompleted..."];*)];
     candidates[[-1]]]];
+
+
+(* ---------------------- END OF RecognizeFunction ---------------------- *)
+
+
+RecognizeSequence[seq_?ListQ,constants_List:{1},functions_List:{Prime,Factorial,Fibonacci},binaryOperations_List:{Plus,Subtract,Times,Power},OptionsPattern[]]:=Module[{data,k,K,ii,num,rule,rule3,constANDvars,funs,ops,language,symb,bestError,digits,code,formula,error,errors,final,formulaN,rpnRule,currentVals, currentBestFormula,candidates},
+
+data=If[VectorQ[seq],Transpose[{Range[Length[seq]],seq}],seq,seq];
+Print[data];
+(*RPN calculator*)
+
+funs=If[functions=={},Null,functions/. List->Alternatives];
+ops=binaryOperations/. List->Alternatives;
+language=Join[functions,binaryOperations]/. List->Alternatives;
+rpnRule[{a:Except[language]...,b:Except[language],c:Except[language],op:ops,d___}]:=rpnRule[{a,op[b,c],d}];
+rpnRule[{a:Except[language]...,b:Except[ops|funs],f:funs,c___}]:=rpnRule[{a,f[b],c}];
+rpnRule[{rest:Except[language]}]:=rest;
+symb=Join[{n},constants,functions,binaryOperations];
+constANDvars=Join[{n},constants];
+num=Length[symb];
+rule=(#/. List->Rule&)/@Transpose[{Range[0,num-1],symb}];
+rule3={0->1,1->0,2->-1};
+bestError=Infinity;
+candidates={};
+(*Print["K=",Dynamic[K]," k=",Dynamic[k],"\t",Dynamic[code]];*)
+Catch[For[K=OptionValue[StartCodeLength],K<=OptionValue[MaxCodeLength],K++,
+For[k=OptionValue[StartCodeNumber],k<3^K,k++,
+digits=IntegerDigits[k,3,K];
+
+If[!ValidateCode[digits/. rule3],Continue[]];
+choices=digits/. {0->constANDvars,1->functions,2->ops};
+t=Tuples[choices];
+For[m=1,m<=Length[t],m++,
+CheckAbort[
+(code=t[[m]];
+formula=TimeConstrained[
+MemoryConstrained[Check[Block[{Internal`$MinExponent=-1024,Internal`$MaxExponent=1024},rpnRule[code]],Infinity],OptionValue[MemoryLimit],Infinity],OptionValue[TimeLimit],Infinity];
+
+For[ii=1,ii<=Length[seq],ii++,
+currentVal=
+
+TimeConstrained[
+MemoryConstrained[Check[Block[{Internal`$MinExponent=-1024,Internal`$MaxExponent=1024},formula/.n->data[[ii,1]]],Infinity],OptionValue[MemoryLimit],Infinity
+],OptionValue[TimeLimit],Infinity
+];
+
+If[currentVal!=data[[ii,2]],Break[]];
+
+];
+
+lastOK=If[ii>Length[seq],Length[seq],ii];
+
+error=N[Length[seq]-lastOK+Abs[currentVal-data[[lastOK,2]]]];
+
+If[error<bestError,bestError=error;
+currentBestFormula=formula/. n->"n";
+AppendTo[candidates,{currentBestFormula,error,code/. n->"n"}];
+If[OptionValue[WriteToDisk]==True,Export["candidatesList_"<>DateString[{"_","Year","Month","Day","_","Hour","Minute"}]<>".m",candidates];
+Print[DateString["ISODateTime"],"\n",code/. n->"n"," err=",error," K=",K," k=",k,"\t",currentBestFormula]];];
+If[bestError<=OptionValue[PrecisionGoal],Throw@Return[candidates[[-1]]]];),Print["Best so far:\t",currentBestFormula,"\t",bestError,"\tTested so far:\t",{K,k},"\tLast code:\t",code];
+Abort[];]];];
+Print["Level\t",K,"\tcompleted..."
+];
+];
+candidates[[-1]]]];
+
+(* ---------------------- END OF RecognizeSequence ---------------------- *)
   
 End[ ]
 
