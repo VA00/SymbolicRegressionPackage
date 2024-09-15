@@ -13,8 +13,8 @@ Package will provides various implementations of typical symbolic regression fun
 - functions estimating Kolmogorov complexity of the given mathematical formula
 
 Typical applications are:
-- automated generation of new test problems for students, free of ,,aunt Wikipedia and uncle Google'' solutions
-- exhaustive and random tests of Computer Alegebra Systems (CAS)
+- automated generation of new test problems for students & AI, free of ,,aunt Wikipedia and uncle Google'' solutions
+- exhaustive and random tests of Computer Algebra Systems (CAS)
 - recreational math
 - brute-force search for special solutions of mathematical problems (ODE, PDE, integration, delayed and functional equations etc.)
 - statistical analysis of mathematical formulae (e.g. what fraction of integer coefficient quadratic equations have two distinct real solutions)
@@ -23,12 +23,15 @@ Typical applications are:
 Main functions are:
 
 RecognizeConstant[x] - search for ,,analytical'' formula given numeric value in the order of growing Kolmogorov complexity expressions. Any function or constant known to Mathematica can be used, e.g. EllipticE, Root[], Gamma etc. 
+RecognizeFunction - like previous, but for univariate data with possible errors
+RecognizeSequence - like previous, but for integer sequences or other exact symbolic data
+
 RandomExpression[] - generates random mathematical formula [implemented using random-walk string-rewrite approach]
 EnumerateExpressions[] - lists all expressions [implemented recursively; this limits search to level 4 at most due to memory-hungry functions, stack machine methodvto be implemented soon]
 
 Some simple examples and applications are presented in SymbolicRegreessionPackage_Examples.nb notebook. 
 
-NOTE: constants are also proper functions, random generator do not care what you expect!
+NOTE: constants (constant functions, like f[x_]:=0) are also proper functions, random generator do not care what you expect!
 
 
 
