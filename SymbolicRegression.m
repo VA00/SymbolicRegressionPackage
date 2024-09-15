@@ -299,83 +299,103 @@ RecognizeConstant[target_?NumericQ,
          OptionValue[Candidates]] ;; -1]]]];
 
 
-RecognizeFunction[data_?ListQ, constants_List: {-1, I, E, Pi, 2}, 
-  functions_List: {Log}, binaryOperations_List: {Plus, Times, Power}, 
-  OptionsPattern[]] := 
-Module[{k, n, ii, num, rule, rule2, funs, ops, language, symb, 
-   bestError, digits, code, formula, error, errors, final, formulaN, rpnRule, 
-   currentBestFormula, candidates},
-  (* RPN calculator *)
-  funs = If[functions == {}, Null, functions /. List -> Alternatives];
-  ops = binaryOperations /. List -> Alternatives;
-  language = Join[functions, binaryOperations] /. List -> Alternatives;
-  rpnRule[{a : Except[language] ..., b : Except[language], 
-     c : Except[language], op : ops, d___}] := 
-   rpnRule[{a, op[b, c], d}];
-  rpnRule[{a : Except[language] ..., b : Except[ops | funs], f : funs,
-      c___}] := rpnRule[{a, f[b], c}];
-  rpnRule[{rest : Except[language]}] := rest;
-  symb = Join[{x},constants, functions, binaryOperations];
-  num = Length[symb];
-  rule = (# /. List -> Rule &) /@ Transpose[{Range[0, num - 1], symb}];
-  rule2 = (# /. List -> Rule &) /@ 
-    Transpose[{Range[0, num - 1], 
-      Join[Table[1, Length[constants]+1], Table[0, Length[functions]], 
-       Table[-1, Length[binaryOperations]]]}];
-
-  bestError = Infinity;
-  candidates = {};
-  Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code] ];
-  Catch[
-  For[n = OptionValue[StartCodeLength], n <= OptionValue[MaxCodeLength], n++,
-   For[k = OptionValue[StartCodeNumber],  k < num^n , k++,
-    CheckAbort[
-	 (
-	 
-(* Print["\n\n"];Print[{n,k,num}];	  *)
-	  digits = IntegerDigits[k, num, n];
-(* Print[digits]; *)
-      If[!ValidateCode[digits /. rule2], Continue[]];
-      code = digits /. rule;
-(* Print[code];   *)
-      formula = TimeConstrained[
-	          MemoryConstrained[
-				          Check[
-						  Block[{Internal`$MinExponent = -1024,Internal`$MaxExponent =  1024},rpnRule[code]]
-						  ,Infinity],
-						  OptionValue[MemoryLimit],Infinity],
-						  OptionValue[TimeLimit],Infinity];
-(* Print[formula]; *)
-
-      Catch[If[!MachineNumberQ[TimeConstrained[(formula/.x->data[[1,1]])//N,OptionValue[TimeLimit]]], Continue[]],_SystemException,Continue[]&];
-      formulaN   = Catch[
-	               Check[
-	   MemoryConstrained[
-	                      Block[{Internal`$MinExponent = -1024,Internal`$MaxExponent =  1024}, N[(formula/.x->data[[1,1]]),32]]
-						 ,OptionValue[MemoryLimit],Infinity]
-						 ,Infinity],
-						 _SystemException, Infinity&];
-(* Print[formulaN];Print["\n\n"]; *)
-	  error = NSum[Abs[data[[ii,2]]-(formula/.x->data[[ii,1]])]^2,{ii,1,Length[data]}];
-	  
-	  If[error < bestError, bestError = error; 
-       currentBestFormula = formula /.x->"x";
-	   AppendTo[candidates, {currentBestFormula,error,code /. x->"x"}]; 
-       If[OptionValue[WriteToDisk] == True, 
-        Export["candidatesList_"<>DateString[{"_", "Year", "Month", "Day", "_", "Hour", "Minute"}]<>".m", candidates];Print[DateString["ISODateTime"],"\n",code /. x->"x"," err=",  error, " n=", n," k=",k, "\t",currentBestFormula]
-	   ];
-	  ];
-      If[bestError <= OptionValue[PrecisionGoal], 
-       Throw@Return[candidates[[-1]]]
-	  ];
-	  )
-	  ,Print["Best so far:\t", currentBestFormula,"\t",bestError, "\tTested so far:\t", {n,k}, "\tLast code:\t", code];Abort[];];
-	 ]
-   (*Print["Level\t",n,"\tcompleted..."];*)
-  ];
-  candidates[[-1]]
-  ]
-];
+RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2}, 
+   functions_List : {Log}, 
+   binaryOperations_List : {Plus, Times, Power}, OptionsPattern[]] := 
+  Module[{k, n, ii, num, rule, rule3, constANDvars, funs, ops, 
+    language, symb, bestError, digits, code, formula, error, errors, 
+    final, formulaN, rpnRule, currentBestFormula, 
+    candidates},(*RPN calculator*)
+   funs = If[functions == {}, Null, functions /. List -> Alternatives];
+   ops = binaryOperations /. List -> Alternatives;
+   language = 
+    Join[functions, binaryOperations] /. List -> Alternatives;
+   rpnRule[{a : Except[language] ..., b : Except[language], 
+      c : Except[language], op : ops, d___}] := 
+    rpnRule[{a, op[b, c], d}];
+   rpnRule[{a : Except[language] ..., b : Except[ops | funs], 
+      f : funs, c___}] := rpnRule[{a, f[b], c}];
+   rpnRule[{rest : Except[language]}] := rest;
+   symb = Join[{x}, constants, functions, binaryOperations];
+   constANDvars = Join[{x}, constants];
+   num = Length[symb];
+   rule = (# /. List -> Rule &) /@ 
+     Transpose[{Range[0, num - 1], symb}];
+   rule3 = {0 -> 1, 1 -> 0, 2 -> -1};
+   bestError = Infinity;
+   candidates = {};
+   Print["n=", Dynamic[n], " k=", Dynamic[k], "\t", Dynamic[code]];
+   Catch[
+    For[n = OptionValue[StartCodeLength], 
+     n <= OptionValue[MaxCodeLength], n++,
+     For[k = OptionValue[StartCodeNumber], k < 3^n, k++,
+      digits = IntegerDigits[k, 3, n];
+      (*Print[digits];*)
+      If[! ValidateCode[digits /. rule3], Continue[]];
+      
+      choices = 
+       digits /. {0 -> constANDvars, 1 -> functions, 2 -> ops};
+      
+      t = Tuples[choices];
+      
+      For[m = 1, m <= Length[t], m++,
+       
+       CheckAbort[(
+         
+         code = t[[m]];
+         
+         
+         formula = 
+          TimeConstrained[
+           MemoryConstrained[
+            Check[Block[{Internal`$MinExponent = -1024, 
+               Internal`$MaxExponent = 1024}, rpnRule[code]], 
+             Infinity], OptionValue[MemoryLimit], Infinity], 
+           OptionValue[TimeLimit], Infinity];
+         (*Print[formula];*)
+         Catch[If[! 
+            MachineNumberQ[
+             TimeConstrained[(formula /. x -> data[[1, 1]]) // N, 
+              OptionValue[TimeLimit]]], Continue[]], _SystemException,
+           Continue[] &];
+         
+         formulaN = 
+          Catch[Check[
+            MemoryConstrained[
+             Block[{Internal`$MinExponent = -1024, 
+               Internal`$MaxExponent = 1024}, 
+              N[(formula /. x -> data[[1, 1]]), 32]], 
+             OptionValue[MemoryLimit], Infinity], 
+            Infinity], _SystemException, Infinity &];
+         (*Print[formulaN];Print["\n\n"];*)
+         error = Sum[
+           Abs[data[[ii, 2]] - (formula /. 
+                x -> data[[ii, 1]])]^2, {ii, 1, Length[data]}];
+         If[error < bestError, bestError = error;
+          currentBestFormula = formula /. x -> "x";
+          
+          AppendTo[
+           candidates, {currentBestFormula, error, 
+            code /. x -> "x"}];
+          
+          If[OptionValue[WriteToDisk] == True, 
+           Export["candidatesList_" <> 
+             DateString[{"_", "Year", "Month", "Day", "_", "Hour", 
+               "Minute"}] <> ".m", candidates]; 
+           Print[DateString["ISODateTime"], "\n", code /. x -> "x", 
+            " err=", error, " n=", n, " k=", k, "\t", 
+            currentBestFormula]];];
+         
+         If[bestError <= OptionValue[PrecisionGoal], 
+          Throw@Return[candidates[[-1]]]];), 
+        Print["Best so far:\t", currentBestFormula, "\t", bestError, 
+         "\tTested so far:\t", {n, k}, "\tLast code:\t", code]; 
+        Abort[];
+        ]
+       ];
+      ]
+     (*Print["Level\t",n,"\tcompleted..."];*)];
+    candidates[[-1]]]];
   
 End[ ]
 
