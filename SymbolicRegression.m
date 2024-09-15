@@ -42,9 +42,7 @@ Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLengt
 
 Options[RecognizeFunction] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 13, WriteToDisk -> True,  MemoryLimit->64*131072, TimeLimit->64, StartCodeLength->1, StartCodeNumber->0};
 
-Options[RecognizeSequence] = {PrecisionGoal -> 0, MaxCodeLength -> 13,
-    WriteToDisk -> True, MemoryLimit -> 64*131072, TimeLimit -> 1, 
-   StartCodeLength -> 1, StartCodeNumber -> 0};
+Options[RecognizeSequence] = { PrecisionGoal -> 0, MaxCodeLength -> 13, WriteToDisk -> False, MemoryLimit -> 64*131072, TimeLimit -> 1, StartCodeLength -> 1, StartCodeNumber -> 0};
 
 RecognizeFunction::usage = "RecognizeFunction[{{0,0},{1,1},{2,1.41421}}] - search for univariate function approximating input data."
  
