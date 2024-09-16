@@ -316,7 +316,7 @@ RecognizeConstant[target_?NumericQ,
 RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2}, 
    functions_List : {Log}, 
    binaryOperations_List : {Plus, Times, Power}, OptionsPattern[]] := 
-  Module[{k, n, ii, num, rule, rule3, constANDvars, funs, ops, 
+  Module[{k, n, ii, num, rule, constANDvars, funs, ops, 
     language, symb, bestError, digits, code, formula, error, errors, 
     final, formulaN, rpnRule, currentBestFormula, 
     candidates},(*RPN calculator*)
@@ -415,7 +415,7 @@ RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2},
 (* ---------------------- END OF RecognizeFunction ---------------------- *)
 
 
-RecognizeSequence[seq_?ListQ,constants_List:{1},functions_List:{Prime,Factorial,Fibonacci},binaryOperations_List:{Plus,Subtract,Times,Power},OptionsPattern[]]:=Module[{data,k,K,ii,num,rule,rule3,constANDvars,funs,ops,language,symb,bestError,digits,code,formula,error,errors,final,formulaN,rpnRule,currentVals, currentBestFormula,candidates},
+RecognizeSequence[seq_?ListQ,constants_List:{1},functions_List:{Prime,Factorial,Fibonacci},binaryOperations_List:{Plus,Subtract,Times,Power},OptionsPattern[]]:=Module[{data,k,K,ii,num,rule,constANDvars,funs,ops,language,symb,bestError,digits,code,formula,error,errors,final,formulaN,rpnRule,currentVals, currentBestFormula,candidates},
 
 data=If[VectorQ[seq],Transpose[{Range[Length[seq]],seq}],seq,seq];
 Print[data];
@@ -439,7 +439,7 @@ Catch[For[K=OptionValue[StartCodeLength],K<=OptionValue[MaxCodeLength],K++,
 For[k=OptionValue[StartCodeNumber],k<3^K,k++,
 digits=IntegerDigits[k,3,K];
 
-If[!ValidateCodeGeneralCompiled[digits/. rule3],Continue[]];
+If[!ValidateCodeGeneralCompiled[digits],Continue[]];
 choices=digits/. {0->constANDvars,1->functions,2->ops};
 t=Tuples[choices];
 For[m=1,m<=Length[t],m++,
