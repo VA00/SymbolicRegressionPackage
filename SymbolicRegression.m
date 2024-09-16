@@ -42,7 +42,7 @@ Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLengt
 
 Options[RecognizeFunction] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 13, WriteToDisk -> True,  MemoryLimit->64*131072, TimeLimit->64, StartCodeLength->1, StartCodeNumber->0};
 
-Options[RecognizeSequence] = { PrecisionGoal -> 0, MaxCodeLength -> 13, WriteToDisk -> False, MemoryLimit -> 64*131072, TimeLimit -> 1, StartCodeLength -> 1, StartCodeNumber -> 0};
+Options[RecognizeSequence] = {PrecisionGoal -> 0, MaxCodeLength -> 13, WriteToDisk -> False, MemoryLimit -> 64*131072, TimeLimit -> 1, StartCodeLength -> 1, StartCodeNumber -> 0};
 
 RecognizeFunction::usage = "RecognizeFunction[{{0,0},{1,1},{2,1.41421}}] - search for univariate function approximating input data."
  
@@ -51,21 +51,30 @@ RecognizeSequence::usage = "RecognizeSequence[{1, 4, 27, 256, 3125}]  - search f
 		
 Begin["`Private`"]
 
-ValidateCode[numbers_List] := Module[{counter, k},
-  counter = 0;
-  For[k = 1, k <= Length[numbers], k++,
-   If[numbers[[k]] == 1, counter++,
-    If[numbers[[k]] == -1, counter = counter - 2; 
-     If[counter < 0, Return[False], counter++],
-     If[numbers[[k]] == 0, counter = counter - 1; 
-      If[counter < 0, Return[False], counter++]
-      ]
-     ]
-    ]
-   ];
-  If[counter == 1, Return[True], Return[False], Return[False]]
+ValidateCodeGeneral[digits_List] := 
+ Module[{counter, k, arity}, counter = 0;
+  For[k = 1, k <= Length[digits], k++,
+   arity = digits[[k]];
+   If[arity == 0, counter++;  (*Operand*),
+    counter -= arity;(*Operator consumes `arity` operands*)
+    If[counter < 0, Return[False]];
+    counter++;  (*Operator produces one result*)];];
+  Return[counter == 1];
   ]
-  
+
+
+ValidateCodeGeneralCompiled = 
+  Compile[{{digits, _Integer, 1}}, 
+   Module[{counter = 0, arity, k = 1, len = Length[digits], 
+     valid = True}, While[k <= len && valid, arity = digits[[k]];
+     If[arity == 0, counter++;  (*Operand*), 
+      counter -= arity;(*Operator consumes operands*)
+      If[counter < 0, valid = False];
+      counter++;  (*Operator produces one result*)];
+     k++;];
+    valid && counter == 1](*,CompilationTarget->"C",RuntimeOptions->
+   "Speed"*)];
+
 NextFunction[kOLD_: 0, nOLD_: 1, constants_List: {x,E}, 
    functions_List: {Log}, binaryOperations_List: {Plus, Times, Power},
     OptionsPattern[]] := 
@@ -222,7 +231,7 @@ RecognizeConstant[target_?NumericQ,
    num = Length[symb];
    rule = (# /. List -> Rule &) /@ 
      Transpose[{Range[0, num - 1], symb}];
-   rule3 = {0 -> 1, 1 -> 0, 2 -> -1};
+  
    
    bestError = Infinity;
    candidates = {};
@@ -235,7 +244,7 @@ RecognizeConstant[target_?NumericQ,
       (*Print["\n\n"];Print[{n,k,num}];*)
       digits = IntegerDigits[k, 3, n];
       (*Print[digits];*)
-      If[! ValidateCode[digits /. rule3], Continue[]];
+      If[! ValidateCodeGeneralCompiled[digits], Continue[]];
       
       choices = digits /. {0 -> constants, 1 -> functions, 2 -> ops};
       
@@ -326,7 +335,7 @@ RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2},
    num = Length[symb];
    rule = (# /. List -> Rule &) /@ 
      Transpose[{Range[0, num - 1], symb}];
-   rule3 = {0 -> 1, 1 -> 0, 2 -> -1};
+
    bestError = Infinity;
    candidates = {};
    Print["n=", Dynamic[n], " k=", Dynamic[k], "\t", Dynamic[code]];
@@ -336,7 +345,7 @@ RecognizeFunction[data_?ListQ, constants_List : {-1, I, E, Pi, 2},
      For[k = OptionValue[StartCodeNumber], k < 3^n, k++,
       digits = IntegerDigits[k, 3, n];
       (*Print[digits];*)
-      If[! ValidateCode[digits /. rule3], Continue[]];
+      If[! ValidateCodeGeneralCompiled[digits], Continue[]];
       
       choices = 
        digits /. {0 -> constANDvars, 1 -> functions, 2 -> ops};
@@ -422,7 +431,7 @@ symb=Join[{n},constants,functions,binaryOperations];
 constANDvars=Join[{n},constants];
 num=Length[symb];
 rule=(#/. List->Rule&)/@Transpose[{Range[0,num-1],symb}];
-rule3={0->1,1->0,2->-1};
+
 bestError=Infinity;
 candidates={};
 (*Print["K=",Dynamic[K]," k=",Dynamic[k],"\t",Dynamic[code]];*)
@@ -430,7 +439,7 @@ Catch[For[K=OptionValue[StartCodeLength],K<=OptionValue[MaxCodeLength],K++,
 For[k=OptionValue[StartCodeNumber],k<3^K,k++,
 digits=IntegerDigits[k,3,K];
 
-If[!ValidateCode[digits/. rule3],Continue[]];
+If[!ValidateCodeGeneralCompiled[digits/. rule3],Continue[]];
 choices=digits/. {0->constANDvars,1->functions,2->ops};
 t=Tuples[choices];
 For[m=1,m<=Length[t],m++,
