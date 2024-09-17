@@ -29,6 +29,16 @@ EnumerateExpressions::usage =
 		defaults:  n=1, vars_consts = (-1, x, E}, functions = {Log}, operations = {Plus, Times, Power} 
 		"
 
+EnumerateExpressionsRPN::usage =
+        "
+		EnumerateExpressionRPN[K] - list of first functions obtained from RPN calculator button sequence of length K
+        
+		EnumerateExpression[n,vars_consts,functions,operations]- all expressions composed of symbols 'vars_consts' (terminal symbols)
+		using functions of single variable 'functions' and binary 'operations'
+             		
+		defaults:  K=1, vars_consts = (-1, x, E}, functions = {Log}, operations = {Plus, Times, Power} 
+		"
+
 KolmogorovComplexity::usage = "Not yet implemented. Estimate Kolmogorov complexity of the expression in the language defined by base set, e.g. {-1,x, Log, Power}"
 
 VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, Plus) generates all required types of expressions (Times,Power, Sinh, Sqrt, Pi, etc.) "
@@ -210,6 +220,33 @@ Module[{operatorsCommutative, operatorsNonCommutative},
  Select[op, FreeQ[Attributes[#], Orderless] &]};
 Nest[nextLevel[#,var,fun,operatorsCommutative,operatorsNonCommutative]&, var, depth] /.x->Global`x
 ];
+
+EnumerateExpressionsRPN[K_, constants_List : {-1, I, E, Pi, 2}, 
+   functions_List : {Log}, 
+   binaryOperations_List : {Plus, Times, Power}] := 
+  Module[{k, d, rpnRule, funs, ops, language},
+   (*RPN calculator*)
+   funs = If[functions == {}, Null, functions /. List -> Alternatives];
+   ops = binaryOperations /. List -> Alternatives;
+   language = 
+    Join[functions, binaryOperations] /. List -> Alternatives;
+   rpnRule[{a : Except[language] ..., b : Except[language], 
+      c : Except[language], op : ops, d___}] := 
+    rpnRule[{a, op[b, c], d}];
+   rpnRule[{a : Except[language] ..., b : Except[ops | funs], 
+      f : funs, c___}] := rpnRule[{a, f[b], c}];
+   rpnRule[{rest : Except[language]}] := rest;
+   
+   
+   Table[
+    d = IntegerDigits[k, 3, K];
+    If[ValidateCodeGeneralCompiled[d], 
+     rpnRule /@ 
+      Tuples[d /. {0 -> constants, 1 -> functions, 
+         2 -> binaryOperations}], Nothing]
+    , {k, 0, -1 + 3^K}]
+   
+   ];
 
 RecognizeConstant[target_?NumericQ, 
    constants_List : {-1, I, E, Pi, 2}, functions_List : {Log}, 
