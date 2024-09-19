@@ -41,7 +41,7 @@ EnumerateExpressionsRPN::usage =
 
 KolmogorovComplexity::usage = "Not yet implemented. Estimate Kolmogorov complexity of the expression in the language defined by base set, e.g. {-1,x, Log, Power}"
 
-VerifyBaseSet::usage = "Not yet implemented. Check if base set (e.g. Log, Exp, Plus) generates all required types of expressions (Times,Power, Sinh, Sqrt, Pi, etc.) "
+VerifyBaseSet::usage = "Check if calculator with provided buttons is still fully functional. Default (minimal known) is: VerifyBaseSet[{},{Exp},{Log}]. Check takes 15 minutes."
 
 RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best approximation using default setings"
 
@@ -514,6 +514,164 @@ Print["Level\t",K,"\tcompleted..."
 candidates[[-1]]]];
 
 (* ---------------------- END OF RecognizeSequence ---------------------- *)
+
+
+
+VerifyBaseSet[constants_List : {}, functions_List : {Exp}, 
+  operations_List : {Log}] := Module[
+  {startTime, endTime, CALC3, CALC4, const, fun, op, maxK, K, 
+   newCALC3, ii, jj, newItemFound},
+  (*Define custom functions*)
+  Inv[x_] := 1/x;
+  Sqr[x_] := x^2;
+  Dbl[x_] := 2 x;
+  Half[x_] := x/2;
+  Suc[x_] := x + 1;
+  Pre[x_] := x - 1;
+  Avg[x_, y_] := (x + y)/2;
+  Hypot[x_, y_] := Sqrt[x^2 + y^2];
+  
+  (*Suppress specific warnings*)
+  Off[Power::infy, Power::indet];
+  Off[Infinity::indet];
+  Off[General::ovfl, General::munfl, General::unfl];
+  Off[N::meprec];
+  
+  startTime = Now;
+  
+  (*Set RecognizeConstant options*)
+  SetOptions[RecognizeConstant, TimeLimit -> 1, 
+   Finalize -> {Identity}, DisplayProgress -> False];
+  
+  (*Define initial calculators*)
+  CALC3 = {Join[{Glaisher, EulerGamma}, constants], functions, 
+    operations};
+  
+  CALC4 = {{Glaisher, EulerGamma, Pi, E, I, GoldenRatio, Degree, -1, 
+     0, 1, 2, 3}, {Suc, Pre, Half, Dbl, Minus, Log, Exp, Inv, Sqrt, 
+     Sqr, Cosh, Cos, Sinh, Sin, Tanh, Tan, ArcSinh, ArcTanh, ArcSin, 
+     ArcCos, ArcTan, ArcCosh, Log2, Log10}, {Plus, Times, Subtract, 
+     Divide, Power, Log, Avg, Hypot}};
+  
+  (*Prepare constants,functions,and operations*)
+  const = 
+   Table[{CALC4[[1, jj]], CALC4[[1, jj]]}, {jj, 1, 
+     Length[CALC4[[1]]]}];
+  fun    = 
+   Table[{CALC4[[2, jj]], CALC4[[2, jj]][EulerGamma]}, {jj, 1, 
+     Length[CALC4[[2]]]}];
+  op       = 
+   Table[{CALC4[[3, jj]], CALC4[[3, jj]][EulerGamma, Glaisher]}, {jj, 
+     1, Length[CALC4[[3]]]}];
+  
+  
+  (*Initialize variables*)
+  newCALC3 = CALC3;
+  maxK = 10;  (*Set a maximum value for K to prevent infinite loops*)
+  K = 1;      (*Start with K=1*)
+  
+  (*Main loop*)
+  While[K <= 
+     maxK && (Length[const] > 0 || Length[fun] > 0 || 
+      Length[op] > 0),
+   Print["Testing with K = ", K, "\t", Now];
+   newItemFound = False;
+   
+   (*Recognize operations*)
+   Print["Recognizing operations started\t", Now];
+   ii = 1;
+   While[ii <= Length[op], Module[{res},
+      res = 
+       RecognizeConstant[op[[ii, 2]], newCALC3[[1]], newCALC3[[2]], 
+        newCALC3[[3]], StartCodeLength -> K, MaxCodeLength -> K];
+      If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
+       (*New operation found*)
+       newCALC3[[3]] = Union[newCALC3[[3]], {op[[ii, 1]]}];
+       Print["\nFound new operation: ", op[[ii, 1]], "\t", res, 
+        "\n"];
+       op = Delete[op, ii];
+       newItemFound = True;
+       K = 1;(*Reset K*)Break[];  (*Exit the inner While loop*), ii++];
+      ];
+    ];
+   
+   If[newItemFound,
+    Print["Remaining constants: ", const[[All, 1]]];
+    Print["Remaining functions: ", fun[[All, 1]]];
+    Print["Remaining operations: ", op[[All, 1]]];
+    Print["Current CALC3: ", newCALC3];
+    Continue[]
+    ];
+   
+   
+   (*Recognize constants*)
+   Print["Recognizing constants started\t", Now];
+   ii = 1;
+   While[ii <= Length[const], Module[{res},
+      res = 
+       RecognizeConstant[const[[ii, 2]], newCALC3[[1]], newCALC3[[2]],
+         newCALC3[[3]], StartCodeLength -> K, MaxCodeLength -> K];
+      If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
+       (*New constant found*)
+       newCALC3[[1]] = Union[newCALC3[[1]], {const[[ii, 1]]}];
+       Print["\nFound new constant: ", const[[ii, 1]], "\t", res, 
+        "\n"];
+       const = Delete[const, ii];
+       newItemFound = True;
+       K = 1;(*Reset K*)
+       Break[];  (*Exit the inner While loop*), ii++];
+      ];
+    ];
+   If[newItemFound,
+    Print["Remaining constants: ", const[[All, 1]]];
+    Print["Remaining functions: ", fun[[All, 1]]];
+    Print["Remaining operations: ", op[[All, 1]]];
+    Print["Current CALC3: ", newCALC3];
+    Continue[]];
+   
+   (*Recognize functions*)
+   Print["Recognizing functions started\t", Now];
+   ii = 1;
+   While[ii <= Length[fun], Module[{res},
+      res = 
+       RecognizeConstant[fun[[ii, 2]], newCALC3[[1]], newCALC3[[2]], 
+        newCALC3[[3]], StartCodeLength -> K, MaxCodeLength -> K];
+      If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
+       (*New function found*)
+       newCALC3[[2]] = Union[newCALC3[[2]], {fun[[ii, 1]]}];
+       Print["\nFound new function: ", fun[[ii, 1]], "\t", res, 
+        "\n"];
+       fun = Delete[fun, ii];
+       newItemFound = True;
+       K = 1;(*Reset K*)Break[];  (*Exit the inner While loop*), 
+       ii++];];
+    ];
+   If[newItemFound,
+    Print["Remaining constants: ", const[[All, 1]]];
+    Print["Remaining functions: ", fun[[All, 1]]];
+    Print["Remaining operations: ", op[[All, 1]]];
+    Print["Current CALC3: ", newCALC3];
+    Continue[]];
+   
+   
+   (*If no new items found at this K,increment K*)
+   If[Not[newItemFound],
+    Print["No new items found at K = ", K];
+    K++;];
+   ];
+  
+  (*Final results*)
+  Print["Final newCALC3: ", newCALC3];
+  endTime = Now;
+  Print[DateDifference[startTime, endTime, "Minutes"]];
+  If[Length[const] == 0 && Length[fun] == 0 && Length[op] == 0, 
+   Print["All items recognized! Calculator is still fully functional..."];,
+   Print["Remaining constants: ", const[[All, 1]]];
+   Print["Remaining functions: ", fun[[All, 1]]];
+   Print["Remaining operations: ", op[[All, 1]]];];
+  ]
+
+
   
 End[ ]
 
