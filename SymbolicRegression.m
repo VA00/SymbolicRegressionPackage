@@ -530,12 +530,22 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
   Pre[x_] := x - 1;
   Avg[x_, y_] := (x + y)/2;
   Hypot[x_, y_] := Sqrt[x^2 + y^2];
+  rename={SymbolicRegression`Private`Inv->"Inv", 
+          SymbolicRegression`Private`Sqr->"Sqr", 
+          SymbolicRegression`Private`Dbl->"Dbl", 
+          SymbolicRegression`Private`Half->"Half", 
+          SymbolicRegression`Private`Suc->"Suc", 
+          SymbolicRegression`Private`Pre->"Pre", 
+          SymbolicRegression`Private`Avg->"Avg", 
+          SymbolicRegression`Private`Hypot->"Hypot" 
+         };
   
   (*Suppress specific warnings*)
   Off[Power::infy, Power::indet];
   Off[Infinity::indet];
   Off[General::ovfl, General::munfl, General::unfl];
   Off[N::meprec];
+  Off[Divide::indet, Divide::infy];
   
   startTime = Now;
   
@@ -547,10 +557,10 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
   CALC3 = {Join[{Glaisher, EulerGamma}, constants], functions, 
     operations};
   
-  CALC4 = {{Glaisher, EulerGamma, Pi, E, I, GoldenRatio, Degree, -1, 
+  CALC4 = {{Glaisher, EulerGamma, Pi, E, I, GoldenRatio, -1, 
      0, 1, 2, 3}, {Suc, Pre, Half, Dbl, Minus, Log, Exp, Inv, Sqrt, 
      Sqr, Cosh, Cos, Sinh, Sin, Tanh, Tan, ArcSinh, ArcTanh, ArcSin, 
-     ArcCos, ArcTan, ArcCosh, Log2, Log10}, {Plus, Times, Subtract, 
+     ArcCos, ArcTan, ArcCosh}, {Plus, Times, Subtract, 
      Divide, Power, Log, Avg, Hypot}};
   
   (*Prepare constants,functions,and operations*)
@@ -587,7 +597,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
       If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
        (*New operation found*)
        newCALC3[[3]] = Union[newCALC3[[3]], {op[[ii, 1]]}];
-       Print["\nFound new operation: ", op[[ii, 1]], "\t", res, 
+       Print["\nFound new operation: ", op[[ii, 1]] /. rename, "\t", res, 
         "\n"];
        op = Delete[op, ii];
        newItemFound = True;
@@ -596,10 +606,10 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
     ];
    
    If[newItemFound,
-    Print["Remaining constants: ", const[[All, 1]]];
-    Print["Remaining functions: ", fun[[All, 1]]];
-    Print["Remaining operations: ", op[[All, 1]]];
-    Print["Current CALC3: ", newCALC3];
+    Print["Remaining constants: ", const[[All, 1]] /. rename];
+    Print["Remaining functions: ",   fun[[All, 1]] /. rename];
+    Print["Remaining operations: ",   op[[All, 1]] /. rename];
+    Print["Current CALC3: ", newCALC3 /. rename]; 
     Continue[]
     ];
    
@@ -613,8 +623,8 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
          newCALC3[[3]], StartCodeLength -> K, MaxCodeLength -> K];
       If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
        (*New constant found*)
-       newCALC3[[1]] = Union[newCALC3[[1]], {const[[ii, 1]]}];
-       Print["\nFound new constant: ", const[[ii, 1]], "\t", res, 
+       newCALC3[[1]] = Union[newCALC3[[1]], {const[[ii, 1]]}] // Sort //Reverse;
+       Print["\nFound new constant: ", const[[ii, 1]], "\t", res /. rename, 
         "\n"];
        const = Delete[const, ii];
        newItemFound = True;
@@ -623,10 +633,10 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
       ];
     ];
    If[newItemFound,
-    Print["Remaining constants: ", const[[All, 1]]];
-    Print["Remaining functions: ", fun[[All, 1]]];
-    Print["Remaining operations: ", op[[All, 1]]];
-    Print["Current CALC3: ", newCALC3];
+    Print["Remaining constants: ", const[[All, 1]] /. rename];
+    Print["Remaining functions: ",   fun[[All, 1]] /. rename];
+    Print["Remaining operations: ",   op[[All, 1]] /. rename];
+    Print["Current CALC3: ", newCALC3 /. rename]; 
     Continue[]];
    
    (*Recognize functions*)
@@ -639,7 +649,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
       If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
        (*New function found*)
        newCALC3[[2]] = Union[newCALC3[[2]], {fun[[ii, 1]]}];
-       Print["\nFound new function: ", fun[[ii, 1]], "\t", res, 
+       Print["\nFound new function: ", fun[[ii, 1]] /. rename, "\t", res /. rename , 
         "\n"];
        fun = Delete[fun, ii];
        newItemFound = True;
@@ -647,10 +657,10 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
        ii++];];
     ];
    If[newItemFound,
-    Print["Remaining constants: ", const[[All, 1]]];
-    Print["Remaining functions: ", fun[[All, 1]]];
-    Print["Remaining operations: ", op[[All, 1]]];
-    Print["Current CALC3: ", newCALC3];
+    Print["Remaining constants: ", const[[All, 1]] /. rename];
+    Print["Remaining functions: ",   fun[[All, 1]] /. rename];
+    Print["Remaining operations: ",   op[[All, 1]] /. rename];
+    Print["Current CALC3: ", newCALC3 /. rename]; 
     Continue[]];
    
    
@@ -661,7 +671,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
    ];
   
   (*Final results*)
-  Print["Final newCALC3: ", newCALC3];
+  Print["Final newCALC3: ", newCALC3  /. rename];
   endTime = Now;
   Print[DateDifference[startTime, endTime, "Minutes"]];
   If[Length[const] == 0 && Length[fun] == 0 && Length[op] == 0, 
