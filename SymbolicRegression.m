@@ -530,6 +530,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
   Pre[x_] := x - 1;
   Avg[x_, y_] := (x + y)/2;
   Hypot[x_, y_] := Sqrt[x^2 + y^2];
+
   rename={SymbolicRegression`Private`Inv->"Inv", 
           SymbolicRegression`Private`Sqr->"Sqr", 
           SymbolicRegression`Private`Dbl->"Dbl", 
@@ -558,7 +559,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
     operations};
   
   CALC4 = {{Glaisher, EulerGamma, Pi, E, I, GoldenRatio, -1, 
-     0, 1, 2, 3}, {Suc, Pre, Half, Dbl, Minus, Log, Exp, Inv, Sqrt, 
+     2}, {Half, Minus, Log, Exp, Inv, Sqrt, 
      Sqr, Cosh, Cos, Sinh, Sin, Tanh, Tan, ArcSinh, ArcTanh, ArcSin, 
      ArcCos, ArcTan, ArcCosh}, {Plus, Times, Subtract, 
      Divide, Power, Log, Avg, Hypot}};
@@ -597,11 +598,13 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
       If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
        (*New operation found*)
        newCALC3[[3]] = Union[newCALC3[[3]], {op[[ii, 1]]}];
-       Print["\nFound new operation: ", op[[ii, 1]] /. rename, "\t", res, 
+       Print["\nFound new operation: ", op[[ii, 1]] /. rename, "\t", res /. rename, 
         "\n"];
        op = Delete[op, ii];
        newItemFound = True;
-       K = 1;(*Reset K*)Break[];  (*Exit the inner While loop*), ii++];
+       K = 1;(*Reset K*)Break[];  (*Exit the inner While loop*), 
+       ii++
+       ];
       ];
     ];
    
@@ -623,7 +626,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
          newCALC3[[3]], StartCodeLength -> K, MaxCodeLength -> K];
       If[Length[res] > 0 && res[[1, 2]] <= 16 $MachineEpsilon,
        (*New constant found*)
-       newCALC3[[1]] = Union[newCALC3[[1]], {const[[ii, 1]]}] // Sort //Reverse;
+       newCALC3[[1]] = Union[newCALC3[[1]], {const[[ii, 1]]}] // Sort // Reverse;
        Print["\nFound new constant: ", const[[ii, 1]], "\t", res /. rename, 
         "\n"];
        const = Delete[const, ii];
