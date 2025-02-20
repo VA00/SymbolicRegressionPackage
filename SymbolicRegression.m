@@ -198,7 +198,7 @@ ZadanieNOF2024[depth_Integer:4, var_List:{"Global`x", 1,2,3,4,5,6,7,8,9}, fun_Li
     
    ];
 
-ZadanieNOF2025[depth_Integer:4, var_List:{"Global`x", -1,-2,1,2,3,"System`Pi","System`E"}, fun_List:{"System`Sqrt","System`Minus"}, op_List:{"System`Plus","System`Times","System`Divide","System`Subtract"}] :=
+ZadanieNOF2025[depth_Integer:4, var_List:{"Global`x", 1,2,3,"System`Pi","System`E"}, fun_List:{"System`Sqrt","System`Minus"}, op_List:{"System`Plus","System`Times","System`Divide","System`Subtract"}] :=
    Module[{vars, funs, ops, lang, i, weights, zadanie},
     vars = ToString /@ var;
     funs = Table[ToString[fun[[i]]] <> "[left]", {i, 1, Length[fun]}];
