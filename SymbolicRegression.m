@@ -207,7 +207,7 @@ ZadanieNOF2025[depth_Integer:4, var_List:{"Global`x", 1,2,3,"System`Pi","System`
     lang = Join[vars, funs, ops];
 	weights = Join[Table[4, {i, 2, Length[vars]}], Table[1, {i, 1, Length[funs]}], Table[2, {i, 1, Length[ops]}]];
     zadanie=1;
-    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<Global`leafcounter,
+    While[Simplify@D[zadanie,{Global`x,2}]===0 || Simplify@D[1/zadanie,{Global`x,2}]===0 ||LeafCount[zadanie]<Global`leafcounter|| Im[N[zadanie /. Global`x -> Glaisher]] != 0,
     zadanie = StringReplace[
       FixedPoint[
        StringReplace[#, 
