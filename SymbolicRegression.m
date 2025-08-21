@@ -586,10 +586,10 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
   CALC3 = {Join[{Glaisher, EulerGamma}, constants], functions, 
     operations};
   
-  CALC4 = {{Glaisher, EulerGamma, Pi, E, I, GoldenRatio, -1, 
+  CALC4 = {{Glaisher, EulerGamma, Pi, E, I, 1, -1, 
      2}, {Half, Minus, Log, Exp, Inv, Sqrt, 
      Sqr, Cosh, Cos, Sinh, Sin, Tanh, Tan, ArcSinh, ArcTanh, ArcSin, 
-     ArcCos, ArcTan, ArcCosh}, {Plus, Times, Subtract, 
+     ArcCos, ArcTan, ArcCosh, LogisticSigmoid}, {Plus, Times, Subtract, 
      Divide, Power, Log, Avg, Hypot}};
   
   (*Prepare constants,functions,and operations*)
@@ -717,3 +717,4 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
 End[ ]
 
 EndPackage[ ]
+
