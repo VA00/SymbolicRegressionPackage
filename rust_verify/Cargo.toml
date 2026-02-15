@@ -1,0 +1,6 @@
+[package]
+name = "verify_base_set_rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
