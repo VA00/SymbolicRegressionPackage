@@ -35,3 +35,28 @@ NOTE: constants (constant functions, like f[x_]:=0) are also proper functions, r
 
 
 
+
+## Rust prototype for fast VerifyBaseSet-style checks
+
+A parallel Rust prototype is available in `rust_verify/`.
+
+Run the benchmark equivalent of:
+
+`VerifyBaseSet[{Pi}, {Exp, Log, Minus}, {Plus}]`
+
+with:
+
+```bash
+cd rust_verify
+cargo run --release -- --constants Pi --functions Exp,Log,Minus --operations Plus --max-k 10
+```
+
+This implementation uses a deduplicated bottom-up value search with aggressive pruning and fast native execution.
+
+
+The prototype now uses the full Mathematica CALC4 operator list in complex-domain numeric mode:
+- constants: `Glaisher, EulerGamma, Pi, E, I, 1, -1, 2`
+- unary functions: `Half, Minus, Log, Exp, Inv, Sqrt, Sqr, Cosh, Cos, Sinh, Sin, Tanh, Tan, ArcSinh, ArcTanh, ArcSin, ArcCos, ArcTan, ArcCosh, LogisticSigmoid`
+- binary operations: `Plus, Times, Subtract, Divide, Power, Log, Avg, Hypot`
+
+`I` is now part of the active complex-domain search space, so imaginary/trigonometric branches are reachable.
