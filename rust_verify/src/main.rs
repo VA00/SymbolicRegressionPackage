@@ -2,6 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::f64::consts::{FRAC_PI_2, PI};
 use std::process;
+use std::process::Command;
+use std::sync::Arc;
 use std::time::Instant;
 
 const GLAISHER: f64 = 1.282_427_129_100_622_6;
@@ -40,6 +42,13 @@ struct Args {
     explain: bool,
     equiv: EquivCfg,
     domain: DomainMode,
+    check_involution: Option<String>,
+    involution_samples: usize,
+    scan_family: bool,
+    scan_g: String,
+    scan_h: String,
+    scan_params: String,
+    scan_top: usize,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -50,7 +59,7 @@ struct C {
 
 #[derive(Clone)]
 struct Unary {
-    f: fn(C) -> Option<C>,
+    f: Arc<dyn Fn(C) -> Option<C> + Send + Sync>,
 }
 
 #[derive(Clone)]
@@ -62,6 +71,13 @@ struct Binary {
 #[derive(Clone)]
 struct Ternary {
     f: fn(C, C, C) -> Option<C>,
+}
+
+fn unary<F>(f: F) -> Unary
+where
+    F: Fn(C) -> Option<C> + Send + Sync + 'static,
+{
+    Unary { f: Arc::new(f) }
 }
 
 impl C {
@@ -249,97 +265,202 @@ fn parse_args() -> Args {
             ulp_tol: 4,
         },
         domain: DomainMode::Complex,
+        check_involution: None,
+        involution_samples: 24,
+        scan_family: false,
+        scan_g: "Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid".to_string(),
+        scan_h: "reflect,recip,mobius,powlog".to_string(),
+        scan_params: "-1,0,1,2,E,Pi,I".to_string(),
+        scan_top: 20,
     };
 
-    let mut it = env::args().skip(1);
-    while let Some(flag) = it.next() {
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut i = 0usize;
+    while i < argv.len() {
+        let flag = argv[i].clone();
+        i += 1;
         match flag.as_str() {
             "--constants" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.constants = v;
+                } else {
+                    eprintln!("Error: --constants expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--functions" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.functions = v;
+                } else {
+                    eprintln!("Error: --functions expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--operations" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.operations = v;
+                } else {
+                    eprintln!("Error: --operations expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--ternary" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.ternary = v;
+                } else {
+                    eprintln!("Error: --ternary expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--target-constants" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.target_constants = Some(v);
+                } else {
+                    eprintln!("Error: --target-constants expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--target-functions" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.target_functions = Some(v);
+                } else {
+                    eprintln!("Error: --target-functions expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--target-operations" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.target_operations = Some(v);
+                } else {
+                    eprintln!("Error: --target-operations expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--target-ternary" => {
-                if let Some(v) = it.next() {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.target_ternary = Some(v);
+                } else {
+                    eprintln!("Error: --target-ternary expects at least one value.");
+                    process::exit(2);
                 }
             }
             "--max-k" => {
-                if let Some(v) = it.next() {
-                    if let Ok(n) = v.parse::<usize>() {
+                if i < argv.len() {
+                    if let Ok(n) = argv[i].parse::<usize>() {
                         args.max_k = n;
                     }
+                    i += 1;
                 }
             }
             "--eps" => {
-                if let Some(v) = it.next() {
-                    if let Ok(x) = v.parse::<f64>() {
+                if i < argv.len() {
+                    if let Ok(x) = argv[i].parse::<f64>() {
                         if x.is_finite() && x >= 0.0 {
                             args.equiv.eps = x;
                         }
                     }
+                    i += 1;
                 }
             }
             "--equiv" => {
-                if let Some(v) = it.next() {
-                    args.equiv.mode = match v.as_str() {
+                if i < argv.len() {
+                    args.equiv.mode = match argv[i].as_str() {
                         "ulp" | "ULP" => EquivMode::Ulp,
                         _ => EquivMode::Rel,
                     };
+                    i += 1;
                 }
             }
             "--ulp" => {
-                if let Some(v) = it.next() {
-                    if let Ok(x) = v.parse::<u64>() {
+                if i < argv.len() {
+                    if let Ok(x) = argv[i].parse::<u64>() {
                         args.equiv.ulp_tol = x;
                     }
+                    i += 1;
                 }
             }
             "--domain" => {
-                if let Some(v) = it.next() {
-                    args.domain = match v.as_str() {
+                if i < argv.len() {
+                    args.domain = match argv[i].as_str() {
                         "real" | "REAL" => DomainMode::Real,
                         _ => DomainMode::Complex,
                     };
+                    i += 1;
                 }
             }
             "--explain" => {
                 args.explain = true;
             }
-            _ => {}
+            "--check-involution" => {
+                if i < argv.len() {
+                    args.check_involution = Some(argv[i].clone());
+                    i += 1;
+                }
+            }
+            "--involution-samples" => {
+                if i < argv.len() {
+                    if let Ok(n) = argv[i].parse::<usize>() {
+                        if n >= 1 {
+                            args.involution_samples = n;
+                        }
+                    }
+                    i += 1;
+                }
+            }
+            "--scan-family" => {
+                args.scan_family = true;
+            }
+            "--scan-g" => {
+                if i < argv.len() {
+                    args.scan_g = argv[i].clone();
+                    i += 1;
+                }
+            }
+            "--scan-h" => {
+                if i < argv.len() {
+                    args.scan_h = argv[i].clone();
+                    i += 1;
+                }
+            }
+            "--scan-params" => {
+                if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
+                    args.scan_params = v;
+                }
+            }
+            "--scan-top" => {
+                if i < argv.len() {
+                    if let Ok(n) = argv[i].parse::<usize>() {
+                        if n >= 1 {
+                            args.scan_top = n;
+                        }
+                    }
+                    i += 1;
+                }
+            }
+            _ => {
+                eprintln!("Error: unrecognized argument: {flag}");
+                process::exit(2);
+            }
         }
     }
     args
+}
+
+fn collect_csv_flag_values(argv: &[String], i: &mut usize) -> Option<String> {
+    let mut joined = String::new();
+    let mut consumed = 0usize;
+    while *i < argv.len() && !argv[*i].starts_with("--") {
+        if !joined.is_empty() {
+            joined.push(',');
+        }
+        joined.push_str(argv[*i].trim());
+        *i += 1;
+        consumed += 1;
+    }
+    if consumed == 0 {
+        return None;
+    }
+    Some(parse_csv(&joined).join(","))
 }
 
 fn qkey(v: C) -> (i64, i64) {
@@ -393,86 +514,316 @@ fn logistic_sigmoid(z: C) -> Option<C> {
     C::real(1.0).div(C::real(1.0).add(z.neg().exp()))
 }
 
-fn unary_catalog() -> HashMap<&'static str, Unary> {
-    [
+fn involution_log_reflect(x: C, c: C) -> Option<C> {
+    let y = x.ln()?;
+    Some(c.sub(y).exp())
+}
+
+fn involution_log_recip(x: C, c: C) -> Option<C> {
+    let y = x.ln()?;
+    let den = y.sub(c);
+    let frac = C::real(1.0).div(den)?;
+    Some(c.add(frac).exp())
+}
+
+fn unary_catalog() -> HashMap<String, Unary> {
+    let mut out: HashMap<String, Unary> = [
+        ("Half".to_string(), unary(|x| Some(x.mul(C::real(0.5))))),
+        ("Minus".to_string(), unary(|x| Some(x.neg()))),
+        ("Log".to_string(), unary(|x| x.ln())),
+        ("Exp".to_string(), unary(|x| Some(x.exp()))),
+        ("Inv".to_string(), unary(|x| C::real(1.0).div(x))),
+        ("Sqrt".to_string(), unary(|x| Some(x.sqrt()))),
+        ("Sqr".to_string(), unary(|x| Some(x.mul(x)))),
+        ("Cosh".to_string(), unary(|x| Some(x.cosh()))),
+        ("Cos".to_string(), unary(|x| Some(x.cos()))),
+        ("Sinh".to_string(), unary(|x| Some(x.sinh()))),
+        ("Sin".to_string(), unary(|x| Some(x.sin()))),
+        ("Tanh".to_string(), unary(|x| x.tanh())),
+        ("Tan".to_string(), unary(|x| x.tan())),
+        ("ArcSinh".to_string(), unary(|x| x.asinh())),
+        ("ArcTanh".to_string(), unary(|x| x.atanh())),
+        ("ArcSin".to_string(), unary(|x| x.asin())),
+        ("ArcCos".to_string(), unary(|x| x.acos())),
+        ("ArcTan".to_string(), unary(|x| x.atan())),
+        ("ArcCosh".to_string(), unary(|x| x.acosh())),
+        ("LogisticSigmoid".to_string(), unary(logistic_sigmoid)),
+        ("LogReflect1".to_string(), unary(|x| involution_log_reflect(x, C::real(1.0)))),
+        ("LogReflect0".to_string(), unary(|x| involution_log_reflect(x, C::real(0.0)))),
+        ("LogReflectNeg1".to_string(), unary(|x| involution_log_reflect(x, C::real(-1.0)))),
+        ("LogReflect2".to_string(), unary(|x| involution_log_reflect(x, C::real(2.0)))),
         (
-            "Half",
-            Unary {
-                f: |x| Some(x.mul(C::real(0.5))),
-            },
+            "LogReflectE".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(std::f64::consts::E))),
         ),
+        ("LogReflectPi".to_string(), unary(|x| involution_log_reflect(x, C::real(PI)))),
+        ("LogReflectI".to_string(), unary(|x| involution_log_reflect(x, C::i()))),
+        ("LogRecip".to_string(), unary(|x| involution_log_recip(x, C::real(0.0)))),
         (
-            "Minus",
-            Unary {
-                f: |x| Some(x.neg()),
-            },
+            "LogNegRecip".to_string(),
+            unary(|x| {
+                let y = x.ln()?;
+                let frac = C::real(-1.0).div(y)?;
+                Some(frac.exp())
+            }),
         ),
-        ("Log", Unary { f: |x| x.ln() }),
+        ("LogRecipShift1".to_string(), unary(|x| involution_log_recip(x, C::real(1.0)))),
+        ("LogRecipShift0".to_string(), unary(|x| involution_log_recip(x, C::real(0.0)))),
         (
-            "Exp",
-            Unary {
-                f: |x| Some(x.exp()),
-            },
+            "LogRecipShiftNeg1".to_string(),
+            unary(|x| involution_log_recip(x, C::real(-1.0))),
         ),
+        ("LogRecipShift2".to_string(), unary(|x| involution_log_recip(x, C::real(2.0)))),
         (
-            "Inv",
-            Unary {
-                f: |x| C::real(1.0).div(x),
-            },
+            "LogRecipShiftE".to_string(),
+            unary(|x| involution_log_recip(x, C::real(std::f64::consts::E))),
         ),
+        ("LogRecipShiftPi".to_string(), unary(|x| involution_log_recip(x, C::real(PI)))),
+        ("LogRecipShiftI".to_string(), unary(|x| involution_log_recip(x, C::i()))),
+        ("AcosReflect1".to_string(), unary(|x| Some(C::real(1.0).sub(x.acos()?).cos()))),
         (
-            "Sqrt",
-            Unary {
-                f: |x| Some(x.sqrt()),
-            },
+            "AcosReflectPi3".to_string(),
+            unary(|x| Some(C::real(PI / 3.0).sub(x.acos()?).cos())),
         ),
-        (
-            "Sqr",
-            Unary {
-                f: |x| Some(x.mul(x)),
-            },
-        ),
-        (
-            "Cosh",
-            Unary {
-                f: |x| Some(x.cosh()),
-            },
-        ),
-        (
-            "Cos",
-            Unary {
-                f: |x| Some(x.cos()),
-            },
-        ),
-        (
-            "Sinh",
-            Unary {
-                f: |x| Some(x.sinh()),
-            },
-        ),
-        (
-            "Sin",
-            Unary {
-                f: |x| Some(x.sin()),
-            },
-        ),
-        ("Tanh", Unary { f: |x| x.tanh() }),
-        ("Tan", Unary { f: |x| x.tan() }),
-        ("ArcSinh", Unary { f: |x| x.asinh() }),
-        ("ArcTanh", Unary { f: |x| x.atanh() }),
-        ("ArcSin", Unary { f: |x| x.asin() }),
-        ("ArcCos", Unary { f: |x| x.acos() }),
-        ("ArcTan", Unary { f: |x| x.atan() }),
-        ("ArcCosh", Unary { f: |x| x.acosh() }),
-        (
-            "LogisticSigmoid",
-            Unary {
-                f: |x| logistic_sigmoid(x),
-            },
-        ),
+        ("AcosReflectI".to_string(), unary(|x| Some(C::i().sub(x.acos()?).cos()))),
+        ("AsinhRecip1".to_string(), unary(|x| Some(C::real(1.0).div(x.asinh()?)?.sinh()))),
+        ("AsinhRecipI".to_string(), unary(|x| Some(C::i().div(x.asinh()?)?.sinh()))),
+        ("AcoshReflect1".to_string(), unary(|x| Some(C::real(1.0).sub(x.acosh()?).cosh()))),
+        ("AcoshReflectI".to_string(), unary(|x| Some(C::i().sub(x.acosh()?).cosh()))),
+        ("AcoshRecip1".to_string(), unary(|x| Some(C::real(1.0).div(x.acosh()?)?.cosh()))),
+        ("AcoshRecipI".to_string(), unary(|x| Some(C::i().div(x.acosh()?)?.cosh()))),
+        ("AtanhReflect1".to_string(), unary(|x| C::real(1.0).sub(x.atanh()?).tanh())),
+        ("AtanhRecip1".to_string(), unary(|x| C::real(1.0).div(x.atanh()?)?.tanh())),
     ]
     .into_iter()
-    .collect()
+    .collect();
+
+    for candidate in generated_candidates_default() {
+        out.insert(candidate.name, candidate.unary);
+    }
+    out
+}
+
+#[derive(Clone)]
+struct GeneratedCandidate {
+    name: String,
+    formula: String,
+    unary: Unary,
+}
+
+fn parse_param_token(tok: &str) -> Option<C> {
+    match tok {
+        "-1" => Some(C::real(-1.0)),
+        "0" => Some(C::real(0.0)),
+        "1" => Some(C::real(1.0)),
+        "2" => Some(C::real(2.0)),
+        "E" | "e" => Some(C::real(std::f64::consts::E)),
+        "Pi" | "PI" | "pi" => Some(C::real(PI)),
+        "I" | "i" => Some(C::i()),
+        _ => tok.parse::<f64>().ok().map(C::real),
+    }
+}
+
+fn encode_param_token(tok: &str) -> String {
+    tok.replace('-', "Neg").replace('.', "_")
+}
+
+fn apply_g(g: &str, x: C) -> Option<C> {
+    match g {
+        "Half" => Some(x.mul(C::real(0.5))),
+        "Minus" => Some(x.neg()),
+        "Log" => x.ln(),
+        "Exp" => Some(x.exp()),
+        "Inv" => C::real(1.0).div(x),
+        "Sqrt" => Some(x.sqrt()),
+        "Sqr" => Some(x.mul(x)),
+        "Cosh" => Some(x.cosh()),
+        "Cos" => Some(x.cos()),
+        "Sinh" => Some(x.sinh()),
+        "Sin" => Some(x.sin()),
+        "Tanh" => x.tanh(),
+        "Tan" => x.tan(),
+        "ArcCos" => x.acos(),
+        "ArcSinh" => x.asinh(),
+        "ArcCosh" => x.acosh(),
+        "ArcTanh" => x.atanh(),
+        "ArcSin" => x.asin(),
+        "ArcTan" => x.atan(),
+        "LogisticSigmoid" => logistic_sigmoid(x),
+        _ => None,
+    }
+}
+
+fn apply_g_inv(g: &str, y: C) -> Option<C> {
+    match g {
+        "Half" => Some(y.mul(C::real(2.0))),
+        "Minus" => Some(y.neg()),
+        "Log" => Some(y.exp()),
+        "Exp" => y.ln(),
+        "Inv" => C::real(1.0).div(y),
+        "Sqrt" => Some(y.mul(y)),
+        "Sqr" => Some(y.sqrt()),
+        "Cosh" => y.acosh(),
+        "Cos" => y.acos(),
+        "Sinh" => y.asinh(),
+        "Sin" => y.asin(),
+        "Tanh" => y.atanh(),
+        "Tan" => y.atan(),
+        "ArcCos" => Some(y.cos()),
+        "ArcSinh" => Some(y.sinh()),
+        "ArcCosh" => Some(y.cosh()),
+        "ArcTanh" => y.tanh(),
+        "ArcSin" => Some(y.sin()),
+        "ArcTan" => y.tan(),
+        "LogisticSigmoid" => {
+            let one = C::real(1.0);
+            let den = one.sub(y);
+            let frac = y.div(den)?;
+            frac.ln()
+        }
+        _ => None,
+    }
+}
+
+fn apply_h(h: &str, u: C, c: C) -> Option<C> {
+    match h {
+        "reflect" => Some(c.sub(u)),
+        "recip" => c.div(u),
+        "mobius" => {
+            let frac = C::real(1.0).div(u.sub(c))?;
+            Some(c.add(frac))
+        }
+        "powlog" => {
+            let log_c = c.ln()?;
+            let log_u = u.ln()?;
+            let expnt = log_c.div(log_u)?;
+            c.pow(expnt)
+        }
+        _ => None,
+    }
+}
+
+fn generated_candidates_default() -> Vec<GeneratedCandidate> {
+    generated_candidates(
+        "Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid",
+        "reflect,recip,mobius,powlog",
+        "-1,0,1,2,E,Pi,I",
+    )
+}
+
+fn generated_candidates(scan_g: &str, scan_h: &str, scan_params: &str) -> Vec<GeneratedCandidate> {
+    let gs = parse_csv(scan_g);
+    let hs = parse_csv(scan_h);
+    let params = parse_csv(scan_params);
+    let mut out = Vec::new();
+    for g in gs {
+        for h in &hs {
+            for p in &params {
+                let Some(cval) = parse_param_token(p) else {
+                    continue;
+                };
+                let g_name = g.clone();
+                let h_name = h.clone();
+                let c_tok = p.clone();
+                let name = format!("Gen{}_{}{}", g_name, h_name, encode_param_token(&c_tok));
+                let formula = format!("{g_name}^-1({h_name}({g_name}(x);{c_tok}))");
+                let unary_fn = unary({
+                    let g_name = g_name.clone();
+                    let h_name = h_name.clone();
+                    move |x: C| {
+                        let u = apply_g(&g_name, x)?;
+                        let v = apply_h(&h_name, u, cval)?;
+                        apply_g_inv(&g_name, v)
+                    }
+                });
+                out.push(GeneratedCandidate {
+                    name,
+                    formula,
+                    unary: unary_fn,
+                });
+            }
+        }
+    }
+    out
+}
+
+fn involution_samples(limit: usize) -> Vec<C> {
+    let base = [
+        C::real(0.2),
+        C::real(0.5),
+        C::real(0.9),
+        C::real(1.3),
+        C::real(2.0),
+        C::real(3.0),
+        C::new(0.8, 0.2),
+        C::new(1.2, -0.3),
+        C::new(2.0, 0.5),
+        C::new(0.4, 1.1),
+        C::new(-0.7, 0.6),
+        C::new(-1.3, -0.4),
+    ];
+    if limit <= base.len() {
+        return base[..limit].to_vec();
+    }
+    let mut out = base.to_vec();
+    while out.len() < limit {
+        let n = out.len() as f64 + 1.0;
+        out.push(C::new((0.17 * n).cos() + 1.1, (0.23 * n).sin() * 0.9));
+    }
+    out
+}
+
+fn run_involution_check(
+    name: &str,
+    unary_all: &HashMap<String, Unary>,
+    equiv: EquivCfg,
+    samples_n: usize,
+) -> i32 {
+    let Some(f) = unary_all.get(name).cloned() else {
+        eprintln!("Error: unknown function for involution check: {name}");
+        return 2;
+    };
+    let mut tested = 0usize;
+    let mut passed = 0usize;
+    let mut skipped = 0usize;
+    let mut worst = 0.0f64;
+    let mut worst_input = C::real(0.0);
+    let mut worst_output = C::real(0.0);
+
+    for x in involution_samples(samples_n) {
+        let Some(y) = (f.f)(x) else {
+            skipped += 1;
+            continue;
+        };
+        let Some(z) = (f.f)(y) else {
+            skipped += 1;
+            continue;
+        };
+        tested += 1;
+        let err = z.sub(x).abs();
+        if err > worst {
+            worst = err;
+            worst_input = x;
+            worst_output = z;
+        }
+        if near(x, z, equiv) {
+            passed += 1;
+        }
+    }
+
+    println!("Involution check for: {name}");
+    println!("tested={tested}, passed={passed}, skipped={skipped}");
+    println!(
+        "worst_abs_error={worst:.6e} at input=({:.6},{:.6}) -> ({:.6},{:.6})",
+        worst_input.re, worst_input.im, worst_output.re, worst_output.im
+    );
+    if tested > 0 && passed == tested {
+        println!("Result: PASS (all tested points satisfy f(f(x)) ~= x)");
+        0
+    } else {
+        println!("Result: FAIL (some tested points violate involution criterion)");
+        1
+    }
 }
 
 fn binary_catalog() -> HashMap<&'static str, Binary> {
@@ -597,7 +948,7 @@ fn validate_symbols(
     operations: &[String],
     ternary: &[String],
     const_all: &HashMap<&'static str, C>,
-    unary_all: &HashMap<&'static str, Unary>,
+    unary_all: &HashMap<String, Unary>,
     binary_all: &HashMap<&'static str, Binary>,
     ternary_all: &HashMap<&'static str, Ternary>,
 ) {
@@ -706,6 +1057,23 @@ fn parse_csv(s: &str) -> Vec<String> {
         .filter(|x| !x.is_empty())
         .map(ToOwned::to_owned)
         .collect()
+}
+
+fn parse_remaining_count(line: &str) -> Option<usize> {
+    let l = line.trim();
+    if !l.starts_with("Remaining ") {
+        return None;
+    }
+    let open = l.find('[')?;
+    let close = l.rfind(']')?;
+    if close <= open {
+        return None;
+    }
+    let body = l[(open + 1)..close].trim();
+    if body.is_empty() {
+        return Some(0);
+    }
+    Some(body.split(',').count())
 }
 
 fn can_represent(
@@ -927,10 +1295,129 @@ fn main() {
     let args = parse_args();
     let start = Instant::now();
 
-    let unary_all = unary_catalog();
+    let mut unary_all = unary_catalog();
     let binary_all = binary_catalog();
     let ternary_all = ternary_catalog();
     let const_all = constant_catalog();
+    let scan_candidates = generated_candidates(&args.scan_g, &args.scan_h, &args.scan_params);
+    for candidate in &scan_candidates {
+        unary_all
+            .entry(candidate.name.clone())
+            .or_insert_with(|| candidate.unary.clone());
+    }
+
+    if let Some(name) = args.check_involution.as_deref() {
+        let code = run_involution_check(name, &unary_all, args.equiv, args.involution_samples);
+        process::exit(code);
+    }
+
+    if args.scan_family {
+        let Ok(exe_path) = env::current_exe() else {
+            eprintln!("Error: unable to locate current executable for scan mode.");
+            process::exit(2);
+        };
+        println!(
+            "Scan mode: {} generated candidates (g={}, h={}, params={})",
+            scan_candidates.len(),
+            args.scan_g,
+            args.scan_h,
+            args.scan_params
+        );
+
+        let mut rows: Vec<(usize, usize, usize, usize, f64, f64, String, String)> = Vec::new();
+        for candidate in &scan_candidates {
+            let Some(f) = unary_all.get(&candidate.name).cloned() else {
+                continue;
+            };
+            let samples = involution_samples(args.involution_samples);
+            let mut tested = 0usize;
+            let mut passed = 0usize;
+            for x in samples {
+                let Some(y) = (f.f)(x) else {
+                    continue;
+                };
+                let Some(z) = (f.f)(y) else {
+                    continue;
+                };
+                tested += 1;
+                if near(x, z, args.equiv) {
+                    passed += 1;
+                }
+            }
+            let inv_rate = if tested == 0 {
+                0.0
+            } else {
+                passed as f64 / tested as f64
+            };
+            let valid_rate = tested as f64 / args.involution_samples as f64;
+
+            let mut cmd = Command::new(&exe_path);
+            cmd.arg("--constants")
+                .arg("")
+                .arg("--functions")
+                .arg(&candidate.name)
+                .arg("--operations")
+                .arg("Plus,Times,Subtract")
+                .arg("--max-k")
+                .arg(args.max_k.to_string())
+                .arg("--scan-g")
+                .arg(&args.scan_g)
+                .arg("--scan-h")
+                .arg(&args.scan_h)
+                .arg("--scan-params")
+                .arg(&args.scan_params);
+            if matches!(args.domain, DomainMode::Real) {
+                cmd.arg("--domain").arg("real");
+            }
+            let output = match cmd.output() {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let mut rc = 999usize;
+            let mut ru = 999usize;
+            let mut rb = 999usize;
+            for line in stdout.lines() {
+                if line.starts_with("Remaining constants:") {
+                    rc = parse_remaining_count(line).unwrap_or(999);
+                } else if line.starts_with("Remaining unary:") {
+                    ru = parse_remaining_count(line).unwrap_or(999);
+                } else if line.starts_with("Remaining binary:") {
+                    rb = parse_remaining_count(line).unwrap_or(999);
+                }
+            }
+            let total = rc.saturating_add(ru).saturating_add(rb);
+            rows.push((
+                total,
+                rc,
+                ru,
+                rb,
+                inv_rate,
+                valid_rate,
+                candidate.name.clone(),
+                candidate.formula.clone(),
+            ));
+            println!(
+                "scan {}: rem=({}, {}, {}) inv_rate={:.2} valid_rate={:.2}",
+                candidate.name, rc, ru, rb, inv_rate, valid_rate
+            );
+        }
+
+        rows.sort_by(|a, b| {
+            a.0.cmp(&b.0)
+                .then_with(|| a.2.cmp(&b.2))
+                .then_with(|| b.4.partial_cmp(&a.4).unwrap_or(std::cmp::Ordering::Equal))
+        });
+        println!("Top {} candidates:", args.scan_top.min(rows.len()));
+        for row in rows.iter().take(args.scan_top) {
+            println!(
+                "{:<28} rem_total={:<3} rem(c/u/b)=({},{},{}) inv_rate={:.2} valid_rate={:.2} formula={}",
+                row.6, row.0, row.1, row.2, row.3, row.4, row.5, row.7
+            );
+        }
+        println!("Elapsed: {:.2?}", start.elapsed());
+        return;
+    }
 
     let mut known_constants: Vec<String> = vec!["Glaisher".to_string(), "EulerGamma".to_string()];
     known_constants.extend(parse_csv(&args.constants));
@@ -1008,6 +1495,10 @@ fn main() {
     let mut todo_ternary = target_ternary.clone();
     todo_ternary.retain(|op| !known_ternary.contains(op));
 
+    println!("Loaded base constants: {known_constants:?}");
+    println!("Loaded base unary functions: {known_unary:?}");
+    println!("Loaded base binary operations: {known_binary:?}");
+    println!("Loaded base ternary operations: {known_ternary:?}");
     println!("Target constants: {target_constants:?}");
     println!("Target unary functions: {target_unary:?}");
     println!("Target binary operations: {target_binary:?}");
