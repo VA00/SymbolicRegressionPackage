@@ -606,7 +606,7 @@ VerifyBaseSet[constants_List : {}, functions_List : {Exp},
   
   (*Initialize variables*)
   newCALC3 = CALC3;
-  maxK = 10;  (*Set a maximum value for K to prevent infinite loops*)
+  maxK = 13;  (*Set a maximum value for K to prevent infinite loops*)
   K = 1;      (*Start with K=1*)
   
   (*Main loop*)
