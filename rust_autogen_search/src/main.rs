@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use std::f64::consts::{FRAC_PI_2, PI};
 use std::sync::Arc;
 use std::time::Instant;
@@ -144,6 +145,14 @@ struct GenOutput {
     pool: Vec<Cand>,
     discarded_by_cap: usize,
     total_unique_all_deps: usize,
+}
+
+fn empty_gen_output() -> GenOutput {
+    GenOutput {
+        pool: Vec::new(),
+        discarded_by_cap: 0,
+        total_unique_all_deps: 0,
+    }
 }
 
 #[derive(Clone)]
@@ -591,29 +600,118 @@ fn satisfies_any_family(constants: &[C], unary: &[Unary], binary: &[Binary], ter
     None
 }
 
+#[derive(Clone, Copy)]
+struct RunProfiles {
+    p0: bool,
+    pa: bool,
+    pb: bool,
+    pc: bool,
+}
+
+impl RunProfiles {
+    fn all() -> Self {
+        Self {
+            p0: true,
+            pa: true,
+            pb: true,
+            pc: true,
+        }
+    }
+}
+
+fn parse_profiles() -> RunProfiles {
+    let mut selected: Vec<String> = Vec::new();
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut i = 0usize;
+    while i < argv.len() {
+        match argv[i].as_str() {
+            "--profile" => {
+                i += 1;
+                if i < argv.len() {
+                    selected.push(argv[i].clone());
+                    i += 1;
+                }
+            }
+            "--profiles" => {
+                i += 1;
+                if i < argv.len() {
+                    selected.extend(
+                        argv[i]
+                            .split(',')
+                            .map(str::trim)
+                            .filter(|s| !s.is_empty())
+                            .map(ToOwned::to_owned),
+                    );
+                    i += 1;
+                }
+            }
+            _ => {
+                i += 1;
+            }
+        }
+    }
+
+    if selected.is_empty() {
+        return RunProfiles::all();
+    }
+
+    let mut out = RunProfiles {
+        p0: false,
+        pa: false,
+        pb: false,
+        pc: false,
+    };
+    for s in selected {
+        match s.as_str() {
+            "0" | "P0" | "p0" => out.p0 = true,
+            "A" | "a" | "PA" | "pa" => out.pa = true,
+            "B" | "b" | "PB" | "pb" => out.pb = true,
+            "C" | "c" | "PC" | "pc" => out.pc = true,
+            _ => {}
+        }
+    }
+    out
+}
+
 fn main() {
     let start = Instant::now();
-    let gen_k = 5usize;
-    let verify_k = 13usize;
-    let max_keep_per_level = 10_000_000usize;
+    let gen_k = 7usize;
+    let verify_k = 6usize;
+    let max_keep_per_level = 100_000_000usize;
     //Profile 0: 0 const, 1 unary, 1 binary
     let profile0_unary_take = 1usize;
     let profile0_binary_take = 1usize;
     //Profile A: 1 const, 0 unary, 1 binary
-    let profile_a_const_take = usize::MAX;
+    let profile_a_const_take = 128usize;
     //let profile_a_binary_take = 120usize;
-    let profile_a_binary_take = usize::MAX;
+    let profile_a_binary_take = 128usize;
     //Profile B: 0 const, 0 unary, 1 binary
     let profile_b_binary_take = 200usize;
     //Profile C: 0 const, 0 unary, 0 binary, 1 ternary
-    let profile_c_ternary_take = 120usize;
-    
+    let profile_c_ternary_take = usize::MAX;
+    let run = parse_profiles();
 
     println!("Generating unnamed primitives...");
-    let const_out   = generate_candidates(0, 1,     max_keep_per_level);
-    let unary_out   = generate_candidates(1, gen_k, max_keep_per_level);
-    let binary_out  = generate_candidates(2, gen_k, max_keep_per_level);
-    let ternary_out = generate_candidates(3, gen_k, max_keep_per_level);
+    let const_out = if run.pa {
+        generate_candidates(0, 1, max_keep_per_level)
+    } else {
+        empty_gen_output()
+    };
+    let unary_out = if run.p0 {
+        generate_candidates(1, gen_k, max_keep_per_level)
+    } else {
+        empty_gen_output()
+    };
+    let binary_out = if run.p0 || run.pa || run.pb {
+        generate_candidates(2, gen_k, max_keep_per_level)
+    } else {
+        empty_gen_output()
+    };
+    let ternary_out = if run.pc {
+        generate_candidates(3, gen_k, max_keep_per_level)
+    } else {
+        empty_gen_output()
+    };
     let const_pool = const_out.pool;
     let unary_pool = unary_out.pool;
     let binary_pool = binary_out.pool;
@@ -649,6 +747,10 @@ fn main() {
         binary_out.total_unique_all_deps,
         ternary_out.total_unique_all_deps
     );
+    println!(
+        "Enabled profiles: 0={} A={} B={} C={}",
+        run.p0, run.pa, run.pb, run.pc
+    );
 
     let placeholder_constants = vec![C::real(EULER_GAMMA), C::real(GLAISHER)];
     let mut hits = 0usize;
@@ -657,82 +759,113 @@ fn main() {
     let mut hits_pb = 0usize;
     let mut hits_pc = 0usize;
 
-    println!("Profile 0: 0 const, 1 unary, 1 binary");
-    let p0_u_n = unary_pool.len().min(profile0_unary_take);
-    let p0_b_n = binary_pool.len().min(profile0_binary_take);
-    println!(
-        "Profile 0 coverage: unary {} of {}, binary {} of {}, tested pairs {} of {}",
-        p0_u_n,
-        unary_pool.len(),
-        p0_b_n,
-        binary_pool.len(),
-        p0_u_n.saturating_mul(p0_b_n),
-        unary_pool.len().saturating_mul(binary_pool.len())
-    );
-    let has_exp = unary_pool.iter().any(|u| u.expr == "Exp(v0)");
-    let has_log = binary_pool.iter().any(|b| b.expr == "Log(v0, v1)");
-    if has_exp && has_log {
-        let constants = vec![placeholder_constants[0], placeholder_constants[1]];
-        let unary = vec![Unary {
-            f: Arc::new(|x| Some(x.exp())),
-        }];
-        let binary = vec![Binary {
-            f: Arc::new(|base, x| x.ln()?.div(base.ln()?)),
-            commutative: false,
-        }];
-        if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
-            hits += 1;
-            println!("ASSERTION HIT[{name}] unary=Exp(v0) | binary=Log(v0, v1)");
-        } else {
-            println!("ASSERTION FAILED: Exp(v0)+Log(v0,v1) not recognized");
-        }
-    } else {
+    if run.p0 {
+        println!("Profile 0: 0 const, 1 unary, 1 binary");
+        let p0_u_n = unary_pool.len().min(profile0_unary_take);
+        let p0_b_n = binary_pool.len().min(profile0_binary_take);
         println!(
-            "ASSERTION SKIPPED: missing generated primitive(s): has Exp(v0)={}, has Log(v0,v1)={}",
-            has_exp, has_log
+            "Profile 0 coverage: unary {} of {}, binary {} of {}, tested pairs {} of {}",
+            p0_u_n,
+            unary_pool.len(),
+            p0_b_n,
+            binary_pool.len(),
+            p0_u_n.saturating_mul(p0_b_n),
+            unary_pool.len().saturating_mul(binary_pool.len())
         );
-    }
-    for u in unary_pool.iter().take(profile0_unary_take) {
-        for b in binary_pool.iter().take(profile0_binary_take) {
+        let has_exp = unary_pool.iter().any(|u| u.expr == "Exp(v0)");
+        let has_log = binary_pool.iter().any(|b| b.expr == "Log(v0, v1)");
+        if has_exp && has_log {
             let constants = vec![placeholder_constants[0], placeholder_constants[1]];
             let unary = vec![Unary {
-                f: Arc::new({
-                    let f = u.f.clone();
-                    move |x| f(&[x])
-                }),
+                f: Arc::new(|x| Some(x.exp())),
             }];
             let binary = vec![Binary {
-                f: Arc::new({
-                    let f = b.f.clone();
-                    move |x, y| f(&[x, y])
-                }),
+                f: Arc::new(|base, x| x.ln()?.div(base.ln()?)),
                 commutative: false,
             }];
             if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
                 hits += 1;
-                hits_p0 += 1;
-                println!("HIT[{name}] unary={} | binary={}", u.expr, b.expr);
+                println!("ASSERTION HIT[{name}] unary=Exp(v0) | binary=Log(v0, v1)");
+            } else {
+                println!("ASSERTION FAILED: Exp(v0)+Log(v0,v1) not recognized");
+            }
+        } else {
+            println!(
+                "ASSERTION SKIPPED: missing generated primitive(s): has Exp(v0)={}, has Log(v0,v1)={}",
+                has_exp, has_log
+            );
+        }
+        for u in unary_pool.iter().take(profile0_unary_take) {
+            for b in binary_pool.iter().take(profile0_binary_take) {
+                let constants = vec![placeholder_constants[0], placeholder_constants[1]];
+                let unary = vec![Unary {
+                    f: Arc::new({
+                        let f = u.f.clone();
+                        move |x| f(&[x])
+                    }),
+                }];
+                let binary = vec![Binary {
+                    f: Arc::new({
+                        let f = b.f.clone();
+                        move |x, y| f(&[x, y])
+                    }),
+                    commutative: false,
+                }];
+                if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+                    hits += 1;
+                    hits_p0 += 1;
+                    println!("HIT[{name}] unary={} | binary={}", u.expr, b.expr);
+                }
             }
         }
+        println!("Profile 0 hits: {hits_p0}");
     }
-    println!("Profile 0 hits: {hits_p0}");
 
-    println!("Profile A: 1 const, 0 unary, 1 binary");
-    let pa_c_n = const_pool.len().min(profile_a_const_take);
-    let pa_b_n = binary_pool.len().min(profile_a_binary_take);
-    println!(
-        "Profile A coverage: const {} of {}, binary {} of {}, tested pairs {} of {}",
-        pa_c_n,
-        const_pool.len(),
-        pa_b_n,
-        binary_pool.len(),
-        pa_c_n.saturating_mul(pa_b_n),
-        const_pool.len().saturating_mul(binary_pool.len())
-    );
-    for c in const_pool.iter().take(profile_a_const_take) {
-        let Some(cv) = (c.f)(&[]) else { continue };
-        for b in binary_pool.iter().take(profile_a_binary_take) {
-            let constants = vec![placeholder_constants[0], placeholder_constants[1], cv];
+    if run.pa {
+        println!("Profile A: 1 const, 0 unary, 1 binary");
+        let pa_c_n = const_pool.len().min(profile_a_const_take);
+        let pa_b_n = binary_pool.len().min(profile_a_binary_take);
+        println!(
+            "Profile A coverage: const {} of {}, binary {} of {}, tested pairs {} of {}",
+            pa_c_n,
+            const_pool.len(),
+            pa_b_n,
+            binary_pool.len(),
+            pa_c_n.saturating_mul(pa_b_n),
+            const_pool.len().saturating_mul(binary_pool.len())
+        );
+        for c in const_pool.iter().take(profile_a_const_take) {
+            let Some(cv) = (c.f)(&[]) else { continue };
+            for b in binary_pool.iter().take(profile_a_binary_take) {
+                let constants = vec![placeholder_constants[0], placeholder_constants[1], cv];
+                let unary = vec![];
+                let binary = vec![Binary {
+                    f: Arc::new({
+                        let f = b.f.clone();
+                        move |x, y| f(&[x, y])
+                    }),
+                    commutative: false,
+                }];
+                if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+                    hits += 1;
+                    hits_pa += 1;
+                    println!("HIT[{name}] const={} | binary={}", c.expr, b.expr);
+                }
+            }
+        }
+        println!("Profile A hits: {hits_pa}");
+    }
+
+    if run.pb {
+        println!("Profile B: 0 const, 0 unary, 1 binary");
+        let pb_b_n = binary_pool.len().min(profile_b_binary_take);
+        println!(
+            "Profile B coverage: binary {} of {}",
+            pb_b_n,
+            binary_pool.len()
+        );
+        for b in binary_pool.iter().take(profile_b_binary_take) {
+            let constants = vec![placeholder_constants[0], placeholder_constants[1]];
             let unary = vec![];
             let binary = vec![Binary {
                 f: Arc::new({
@@ -743,60 +876,37 @@ fn main() {
             }];
             if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
                 hits += 1;
-                hits_pa += 1;
-                println!("HIT[{name}] const={} | binary={}", c.expr, b.expr);
+                hits_pb += 1;
+                println!("HIT[{name}] binary={}", b.expr);
             }
         }
+        println!("Profile B hits: {hits_pb}");
     }
-    println!("Profile A hits: {hits_pa}");
 
-    println!("Profile B: 0 const, 0 unary, 1 binary");
-    let pb_b_n = binary_pool.len().min(profile_b_binary_take);
-    println!(
-        "Profile B coverage: binary {} of {}",
-        pb_b_n,
-        binary_pool.len()
-    );
-    for b in binary_pool.iter().take(profile_b_binary_take) {
-        let constants = vec![placeholder_constants[0], placeholder_constants[1]];
-        let unary = vec![];
-        let binary = vec![Binary {
-            f: Arc::new({
-                let f = b.f.clone();
-                move |x, y| f(&[x, y])
-            }),
-            commutative: false,
-        }];
-        if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
-            hits += 1;
-            hits_pb += 1;
-            println!("HIT[{name}] binary={}", b.expr);
+    if run.pc {
+        println!("Profile C: 0 const, 0 unary, 0 binary, 1 ternary");
+        let pc_t_n = ternary_pool.len().min(profile_c_ternary_take);
+        println!(
+            "Profile C coverage: ternary {} of {}",
+            pc_t_n,
+            ternary_pool.len()
+        );
+        for t in ternary_pool.iter().take(profile_c_ternary_take) {
+            let constants = vec![placeholder_constants[0], placeholder_constants[1]];
+            let ternary = vec![Ternary {
+                f: Arc::new({
+                    let f = t.f.clone();
+                    move |a, b, c| f(&[a, b, c])
+                }),
+            }];
+            if let Some(name) = satisfies_any_family(&constants, &[], &[], &ternary, verify_k) {
+                hits += 1;
+                hits_pc += 1;
+                println!("HIT[{name}] ternary={}", t.expr);
+            }
         }
+        println!("Profile C hits: {hits_pc}");
     }
-    println!("Profile B hits: {hits_pb}");
-
-    println!("Profile C: 0 const, 0 unary, 0 binary, 1 ternary");
-    let pc_t_n = ternary_pool.len().min(profile_c_ternary_take);
-    println!(
-        "Profile C coverage: ternary {} of {}",
-        pc_t_n,
-        ternary_pool.len()
-    );
-    for t in ternary_pool.iter().take(profile_c_ternary_take) {
-        let constants = vec![placeholder_constants[0], placeholder_constants[1]];
-        let ternary = vec![Ternary {
-            f: Arc::new({
-                let f = t.f.clone();
-                move |a, b, c| f(&[a, b, c])
-            }),
-        }];
-        if let Some(name) = satisfies_any_family(&constants, &[], &[], &ternary, verify_k) {
-            hits += 1;
-            hits_pc += 1;
-            println!("HIT[{name}] ternary={}", t.expr);
-        }
-    }
-    println!("Profile C hits: {hits_pc}");
 
     println!("Done. hits={hits}, elapsed={:.2?}", start.elapsed());
     println!("This is a starter project; tune gen_k/max_keep/profile loops for deeper search.");
