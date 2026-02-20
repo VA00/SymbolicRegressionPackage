@@ -6,8 +6,11 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-const GLAISHER: f64 = 1.282_427_129_100_622_6;
+
 const EULER_GAMMA: f64 = 0.577_215_664_901_532_9;
+const CATALAN:     f64 = 0.915_965_594_177_219_0;
+const GLAISHER:    f64 = 1.282_427_129_100_622_6;
+const KHINCHIN:    f64 = 2.685_452_001_065_306_4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum EquivMode {
@@ -44,6 +47,7 @@ struct Args {
     domain: DomainMode,
     check_involution: Option<String>,
     involution_samples: usize,
+    validate_witness: bool,
     scan_family: bool,
     scan_g: String,
     scan_h: String,
@@ -267,6 +271,7 @@ fn parse_args() -> Args {
         domain: DomainMode::Complex,
         check_involution: None,
         involution_samples: 24,
+        validate_witness: true,
         scan_family: false,
         scan_g: "Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid".to_string(),
         scan_h: "reflect,recip,mobius,powlog".to_string(),
@@ -406,6 +411,9 @@ fn parse_args() -> Args {
                     }
                     i += 1;
                 }
+            }
+            "--no-validate-witness" => {
+                args.validate_witness = false;
             }
             "--scan-family" => {
                 args.scan_family = true;
@@ -894,6 +902,8 @@ fn constant_catalog() -> HashMap<&'static str, C> {
         ("0", C::real(0.0)),
         ("Glaisher", C::real(GLAISHER)),
         ("EulerGamma", C::real(EULER_GAMMA)),
+        ("Catalan", C::real(CATALAN)),
+        ("Khinchin", C::real(KHINCHIN)),
         ("Pi", C::real(PI)),
         ("E", C::real(std::f64::consts::E)),
         ("I", C::i()),
@@ -907,6 +917,13 @@ fn constant_catalog() -> HashMap<&'static str, C> {
 
 fn ternary_catalog() -> HashMap<&'static str, Ternary> {
     [
+        (
+            "TExpLog",
+            Ternary {
+                // TExpLog[a,b,c] = Exp[a] * Log[b,c]
+                f: |a, b, c| Some(a.exp().mul(c.ln()?.div(b.ln()?)?)),
+            },
+        ),
         (
             "FMA",
             Ternary {
@@ -1076,6 +1093,402 @@ fn parse_remaining_count(line: &str) -> Option<usize> {
     Some(body.split(',').count())
 }
 
+#[derive(Clone, Debug)]
+enum Expr {
+    Atom(String),
+    Call(String, Vec<Expr>),
+}
+
+fn parse_expr(s: &str) -> Option<Expr> {
+    fn skip_ws(bs: &[u8], i: &mut usize) {
+        while *i < bs.len() && bs[*i].is_ascii_whitespace() {
+            *i += 1;
+        }
+    }
+    fn parse_ident(bs: &[u8], i: &mut usize) -> Option<String> {
+        skip_ws(bs, i);
+        let start = *i;
+        while *i < bs.len() {
+            let c = bs[*i] as char;
+            if c == '[' || c == ']' || c == ',' || c.is_whitespace() {
+                break;
+            }
+            *i += 1;
+        }
+        if *i == start {
+            return None;
+        }
+        Some(String::from_utf8_lossy(&bs[start..*i]).to_string())
+    }
+    fn parse_rec(bs: &[u8], i: &mut usize) -> Option<Expr> {
+        let name = parse_ident(bs, i)?;
+        skip_ws(bs, i);
+        if *i < bs.len() && bs[*i] == b'[' {
+            *i += 1;
+            let mut args = Vec::new();
+            loop {
+                skip_ws(bs, i);
+                if *i < bs.len() && bs[*i] == b']' {
+                    *i += 1;
+                    break;
+                }
+                let e = parse_rec(bs, i)?;
+                args.push(e);
+                skip_ws(bs, i);
+                if *i < bs.len() && bs[*i] == b',' {
+                    *i += 1;
+                    continue;
+                }
+                if *i < bs.len() && bs[*i] == b']' {
+                    *i += 1;
+                    break;
+                }
+                return None;
+            }
+            Some(Expr::Call(name, args))
+        } else {
+            Some(Expr::Atom(name))
+        }
+    }
+    let bs = s.as_bytes();
+    let mut i = 0usize;
+    let expr = parse_rec(bs, &mut i)?;
+    while i < bs.len() && bs[i].is_ascii_whitespace() {
+        i += 1;
+    }
+    if i == bs.len() {
+        Some(expr)
+    } else {
+        None
+    }
+}
+
+fn eval_expr_c(
+    e: &Expr,
+    env: &HashMap<String, C>,
+    unary_all: &HashMap<String, Unary>,
+    binary_all: &HashMap<&'static str, Binary>,
+    ternary_all: &HashMap<&'static str, Ternary>,
+    const_all: &HashMap<&'static str, C>,
+) -> Option<C> {
+    match e {
+        Expr::Atom(name) => {
+            if let Some(v) = env.get(name) {
+                return Some(*v);
+            }
+            const_all.get(name.as_str()).copied()
+        }
+        Expr::Call(name, args) => match args.len() {
+            1 => {
+                let x = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
+                let u = unary_all.get(name)?;
+                (u.f)(x)
+            }
+            2 => {
+                let a = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
+                let b = eval_expr_c(&args[1], env, unary_all, binary_all, ternary_all, const_all)?;
+                let op = binary_all.get(name.as_str())?;
+                (op.f)(a, b)
+            }
+            3 => {
+                let a = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
+                let b = eval_expr_c(&args[1], env, unary_all, binary_all, ternary_all, const_all)?;
+                let c = eval_expr_c(&args[2], env, unary_all, binary_all, ternary_all, const_all)?;
+                let op = ternary_all.get(name.as_str())?;
+                (op.f)(a, b, c)
+            }
+            _ => None,
+        },
+    }
+}
+
+fn validate_witness_highprec_python(witness_expr: &str, target_expr: &str, kind: &str) -> bool {
+    let script = r#"
+import sys
+try:
+    import mpmath as mp
+except Exception:
+    sys.exit(3)
+
+mp.mp.dps = 90
+witness, target, kind = sys.argv[1], sys.argv[2], sys.argv[3]
+
+def parse_expr(s):
+    i = 0
+    n = len(s)
+    def skip():
+        nonlocal i
+        while i < n and s[i].isspace():
+            i += 1
+    def ident():
+        nonlocal i
+        skip()
+        j = i
+        while i < n and s[i] not in '[],' and not s[i].isspace():
+            i += 1
+        if i == j:
+            return None
+        return s[j:i]
+    def rec():
+        nonlocal i
+        name = ident()
+        if name is None:
+            return None
+        skip()
+        if i < n and s[i] == '[':
+            i += 1
+            args = []
+            while True:
+                skip()
+                if i < n and s[i] == ']':
+                    i += 1
+                    break
+                a = rec()
+                if a is None:
+                    return None
+                args.append(a)
+                skip()
+                if i < n and s[i] == ',':
+                    i += 1
+                    continue
+                if i < n and s[i] == ']':
+                    i += 1
+                    break
+                return None
+            return ('call', name, args)
+        return ('atom', name)
+    out = rec()
+    skip()
+    return out if i == n else None
+
+def const(name):
+    tbl = {
+      'EulerGamma': mp.mpf('0.5772156649015328606'),
+      'Glaisher': mp.mpf('1.2824271291006226369'),
+      'Catalan': mp.mpf('0.91596559417721901505'),
+      'Khinchin': mp.mpf('2.6854520010653064453'),
+      'Pi': mp.pi,
+      'E': mp.e,
+      '1': mp.mpf(1),
+      '-1': mp.mpf(-1),
+      '2': mp.mpf(2),
+      '0': mp.mpf(0),
+    }
+    return tbl.get(name)
+
+def apply1(n, x):
+    if n == 'Half': return x/2
+    if n == 'Minus': return -x
+    if n == 'Log': return mp.log(x) if x > 0 else None
+    if n == 'Exp': return mp.exp(x)
+    if n == 'Inv': return 1/x if x != 0 else None
+    if n == 'Sqrt': return mp.sqrt(x) if x >= 0 else None
+    if n == 'Sqr': return x*x
+    if n == 'Cosh': return mp.cosh(x)
+    if n == 'Cos': return mp.cos(x)
+    if n == 'Sinh': return mp.sinh(x)
+    if n == 'Sin': return mp.sin(x)
+    if n == 'Tanh': return mp.tanh(x)
+    if n == 'Tan': return mp.tan(x)
+    if n == 'ArcSinh': return mp.asinh(x)
+    if n == 'ArcTanh': return mp.atanh(x) if abs(x) < 1 else None
+    if n == 'ArcSin': return mp.asin(x) if -1 <= x <= 1 else None
+    if n == 'ArcCos': return mp.acos(x) if -1 <= x <= 1 else None
+    if n == 'ArcTan': return mp.atan(x)
+    if n == 'ArcCosh': return mp.acosh(x) if x >= 1 else None
+    if n == 'LogisticSigmoid': return 1/(1+mp.e**(-x))
+    return None
+
+def apply2(n,a,b):
+    if n == 'Plus': return a+b
+    if n == 'Times': return a*b
+    if n == 'Subtract': return a-b
+    if n == 'Divide': return a/b if b != 0 else None
+    if n == 'Power': return mp.e**(b*mp.log(a)) if a > 0 else None
+    if n == 'Log': return mp.log(b)/mp.log(a) if (a > 0 and a != 1 and b > 0) else None
+    if n == 'Avg': return (a+b)/2
+    if n == 'Hypot': return mp.sqrt(a*a+b*b)
+    return None
+
+def apply3(n,a,b,c):
+    if n == 'FMA': return a*b+c
+    if n == 'FMS': return a*b-c
+    if n == 'FNMA': return -(a*b)+c
+    if n == 'FNMS': return -(a*b)-c
+    if n == 'FSD': return (a-b)/c if c != 0 else None
+    if n == 'TExpLog': return mp.exp(a)*(mp.log(c)/mp.log(b)) if (b > 0 and b != 1 and c > 0) else None
+    return None
+
+def eval_expr(e, env):
+    if e[0] == 'atom':
+        return env.get(e[1], const(e[1]))
+    _, name, args = e
+    vals = [eval_expr(a, env) for a in args]
+    if any(v is None for v in vals):
+        return None
+    if len(vals) == 1: return apply1(name, vals[0])
+    if len(vals) == 2: return apply2(name, vals[0], vals[1])
+    if len(vals) == 3: return apply3(name, vals[0], vals[1], vals[2])
+    return None
+
+we = parse_expr(witness)
+te = parse_expr(target)
+if we is None or te is None:
+    sys.exit(1)
+
+pairs = [
+  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369')),
+  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453')),
+  (mp.mpf('1.3'), mp.mpf('2.1')),
+  (mp.mpf('2.3'), mp.mpf('3.7')),
+]
+triples = [
+  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369'), mp.pi),
+  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453'), mp.mpf('2.7')),
+  (mp.mpf('1.3'), mp.mpf('2.1'), mp.mpf('3.7')),
+]
+tol = mp.mpf('1e-60')
+
+for x,y in pairs:
+    env = {'EulerGamma': x, 'Glaisher': y, 'Catalan': pairs[1][0], 'Khinchin': pairs[1][1]}
+    wv = eval_expr(we, env)
+    tv = eval_expr(te, env)
+    if wv is None or tv is None:
+        # domain not supported in this real-only high-precision evaluator
+        sys.exit(4)
+    if not mp.isfinite(wv) or not mp.isfinite(tv) or abs(wv-tv) > tol:
+        sys.exit(1)
+
+if kind == 'ternary':
+    for x,y,z in triples:
+        env = {'EulerGamma': x, 'Glaisher': y, 'Pi': z}
+        wv = eval_expr(we, env)
+        tv = eval_expr(te, env)
+        if wv is None or tv is None:
+            # domain not supported in this real-only high-precision evaluator
+            sys.exit(4)
+        if not mp.isfinite(wv) or not mp.isfinite(tv) or abs(wv-tv) > tol:
+            sys.exit(1)
+sys.exit(0)
+"#;
+    let Ok(out) = Command::new("python")
+        .arg("-c")
+        .arg(script)
+        .arg(witness_expr)
+        .arg(target_expr)
+        .arg(kind)
+        .output()
+    else {
+        // if python is unavailable, skip high-precision stage
+        return true;
+    };
+    match out.status.code() {
+        Some(0) => true,
+        Some(4) => true, // complex-domain witness: skip real-only high-precision stage
+        _ => false,      // genuine high-precision mismatch
+    }
+}
+
+enum WitnessKind {
+    Constant(String),
+    Unary(String),
+    Binary(String),
+    Ternary(String),
+}
+
+fn validate_witness(
+    kind: WitnessKind,
+    witness_expr: &str,
+    equiv: EquivCfg,
+    unary_all: &HashMap<String, Unary>,
+    binary_all: &HashMap<&'static str, Binary>,
+    ternary_all: &HashMap<&'static str, Ternary>,
+    const_all: &HashMap<&'static str, C>,
+) -> bool {
+    let target_expr = match &kind {
+        WitnessKind::Constant(name) => name.clone(),
+        WitnessKind::Unary(name) => format!("{name}[EulerGamma]"),
+        WitnessKind::Binary(name) => format!("{name}[EulerGamma, Glaisher]"),
+        WitnessKind::Ternary(name) => format!("{name}[EulerGamma, Glaisher, Pi]"),
+    };
+    let Some(w_ast) = parse_expr(witness_expr) else {
+        return false;
+    };
+    let Some(t_ast) = parse_expr(&target_expr) else {
+        return false;
+    };
+
+    // Keep validation points in a branch-stable real region around the main anchors.
+    // This avoids false negatives from branch-cut jumps in complex identities.
+    let sample_pairs: Vec<(f64, f64)> = vec![
+        (EULER_GAMMA, GLAISHER),
+        (CATALAN, KHINCHIN),
+        (0.62, 1.73),
+        (0.84, 2.31),
+    ];
+    let sample_triples: Vec<(f64, f64, f64)> = vec![
+        (EULER_GAMMA, GLAISHER, PI),
+        (CATALAN, KHINCHIN, 2.7),
+        (0.72, 1.51, 2.2),
+    ];
+
+    let mut real_only = true;
+    for (x, y) in &sample_pairs {
+        let mut env_c: HashMap<String, C> = HashMap::new();
+        env_c.insert("EulerGamma".to_string(), C::real(*x));
+        env_c.insert("Glaisher".to_string(), C::real(*y));
+        env_c.insert("Catalan".to_string(), C::real(CATALAN));
+        env_c.insert("Khinchin".to_string(), C::real(KHINCHIN));
+        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            return false;
+        };
+        let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            return false;
+        };
+        if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
+            return false;
+        }
+        if !imag_is_zero(wv, equiv) || !imag_is_zero(tv, equiv) {
+            real_only = false;
+        }
+    }
+    for (x, y, z) in &sample_triples {
+        if !matches!(kind, WitnessKind::Ternary(_)) {
+            break;
+        }
+        let mut env_c: HashMap<String, C> = HashMap::new();
+        env_c.insert("EulerGamma".to_string(), C::real(*x));
+        env_c.insert("Glaisher".to_string(), C::real(*y));
+        env_c.insert("Pi".to_string(), C::real(*z));
+        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            return false;
+        };
+        let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            return false;
+        };
+        if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
+            return false;
+        }
+        if !imag_is_zero(wv, equiv) || !imag_is_zero(tv, equiv) {
+            real_only = false;
+        }
+    }
+
+    // Complex witnesses are accepted/rejected by multi-point complex checks only.
+    if !real_only {
+        return true;
+    }
+
+    // Real-only witnesses get strict high-precision confirmation using Python/mpmath.
+    let kind_tag = match kind {
+        WitnessKind::Constant(_) => "constant",
+        WitnessKind::Unary(_) => "unary",
+        WitnessKind::Binary(_) => "binary",
+        WitnessKind::Ternary(_) => "ternary",
+    };
+    validate_witness_highprec_python(witness_expr, &target_expr, kind_tag)
+}
+
 fn can_represent(
     target: C,
     constants: &[C],
@@ -1191,6 +1604,30 @@ fn find_representation(
     equiv: EquivCfg,
     domain: DomainMode,
 ) -> Option<(String, usize)> {
+    find_representation_with_skip(
+        target,
+        constants,
+        unary,
+        binary,
+        ternary,
+        max_k,
+        equiv,
+        domain,
+        &HashSet::new(),
+    )
+}
+
+fn find_representation_with_skip(
+    target: C,
+    constants: &[(String, C)],
+    unary: &[(String, Unary)],
+    binary: &[(String, Binary)],
+    ternary: &[(String, Ternary)],
+    max_k: usize,
+    equiv: EquivCfg,
+    domain: DomainMode,
+    skip_expr: &HashSet<String>,
+) -> Option<(String, usize)> {
     let mut levels: Vec<Vec<(C, String)>> = vec![vec![]; max_k + 1];
     let mut seen: HashSet<(i64, i64)> = HashSet::new();
 
@@ -1201,7 +1638,7 @@ fn find_representation(
         let key = qkey(c);
         if seen.insert(key) {
             levels[1].push((c, name.clone()));
-            if near(c, target, equiv) {
+            if near(c, target, equiv) && !skip_expr.contains(name) {
                 return Some((name.clone(), 1));
             }
         }
@@ -1217,7 +1654,7 @@ fn find_representation(
                         let key = qkey(y);
                         if seen.insert(key) {
                                     let expr = format!("{u_name}[{x_expr}]");
-                            if near(y, target, equiv) {
+                            if near(y, target, equiv) && !skip_expr.contains(&expr) {
                                 return Some((expr, k));
                             }
                             next.push((y, expr));
@@ -1240,7 +1677,7 @@ fn find_representation(
                                 let key = qkey(y);
                                 if seen.insert(key) {
                                     let expr = format!("{b_name}[{a_expr}, {bb_expr}]");
-                                    if near(y, target, equiv) {
+                                    if near(y, target, equiv) && !skip_expr.contains(&expr) {
                                         return Some((expr, k));
                                     }
                                     next.push((y, expr));
@@ -1270,7 +1707,9 @@ fn find_representation(
                                                 let expr = format!(
                                                     "{t_name}[{a_expr}, {b_expr}, {c_expr}]"
                                                 );
-                                                if near(y, target, equiv) {
+                                                if near(y, target, equiv)
+                                                    && !skip_expr.contains(&expr)
+                                                {
                                                     return Some((expr, k));
                                                 }
                                                 next.push((y, expr));
@@ -1566,18 +2005,43 @@ fn main() {
             let op = binary_all.get(op_name.as_str()).unwrap();
             let target = (op.f)(C::real(EULER_GAMMA), C::real(GLAISHER)).unwrap();
             if args.explain {
-                if let Some(witness) = find_representation(
-                    target,
-                    &named_constants,
-                    &named_unary,
-                    &named_binary,
-                    &named_ternary,
-                    k,
-                    args.equiv,
-                    args.domain,
-                ) {
-                    found_binary = Some((idx, Some(witness)));
-                    break;
+                let mut rejected: HashSet<String> = HashSet::new();
+                loop {
+                    let Some(witness) = find_representation_with_skip(
+                        target,
+                        &named_constants,
+                        &named_unary,
+                        &named_binary,
+                        &named_ternary,
+                        k,
+                        args.equiv,
+                        args.domain,
+                        &rejected,
+                    ) else {
+                        break;
+                    };
+                    let valid = if args.validate_witness {
+                        validate_witness(
+                            WitnessKind::Binary(op_name.clone()),
+                            &witness.0,
+                            args.equiv,
+                            &unary_all,
+                            &binary_all,
+                            &ternary_all,
+                            &const_all,
+                        )
+                    } else {
+                        true
+                    };
+                    if valid {
+                        found_binary = Some((idx, Some(witness)));
+                        break;
+                    }
+                    println!(
+                        "Rejected flaky witness for binary operation: {op_name} at k={} -> {}",
+                        witness.1, witness.0
+                    );
+                    rejected.insert(witness.0);
                 }
             } else if can_represent(
                 target,
@@ -1621,18 +2085,43 @@ fn main() {
             )
             .unwrap();
             if args.explain {
-                if let Some(witness) = find_representation(
-                    target,
-                    &named_constants,
-                    &named_unary,
-                    &named_binary,
-                    &named_ternary,
-                    k,
-                    args.equiv,
-                    args.domain,
-                ) {
-                    found_ternary = Some((idx, Some(witness)));
-                    break;
+                let mut rejected: HashSet<String> = HashSet::new();
+                loop {
+                    let Some(witness) = find_representation_with_skip(
+                        target,
+                        &named_constants,
+                        &named_unary,
+                        &named_binary,
+                        &named_ternary,
+                        k,
+                        args.equiv,
+                        args.domain,
+                        &rejected,
+                    ) else {
+                        break;
+                    };
+                    let valid = if args.validate_witness {
+                        validate_witness(
+                            WitnessKind::Ternary(op_name.clone()),
+                            &witness.0,
+                            args.equiv,
+                            &unary_all,
+                            &binary_all,
+                            &ternary_all,
+                            &const_all,
+                        )
+                    } else {
+                        true
+                    };
+                    if valid {
+                        found_ternary = Some((idx, Some(witness)));
+                        break;
+                    }
+                    println!(
+                        "Rejected flaky witness for ternary operation: {op_name} at k={} -> {}",
+                        witness.1, witness.0
+                    );
+                    rejected.insert(witness.0);
                 }
             } else if can_represent(
                 target,
@@ -1670,18 +2159,43 @@ fn main() {
         for (idx, c_name) in todo_constants.iter().enumerate() {
             let target = *const_all.get(c_name.as_str()).unwrap();
             if args.explain {
-                if let Some(witness) = find_representation(
-                    target,
-                    &named_constants,
-                    &named_unary,
-                    &named_binary,
-                    &named_ternary,
-                    k,
-                    args.equiv,
-                    args.domain,
-                ) {
-                    found_constant = Some((idx, Some(witness)));
-                    break;
+                let mut rejected: HashSet<String> = HashSet::new();
+                loop {
+                    let Some(witness) = find_representation_with_skip(
+                        target,
+                        &named_constants,
+                        &named_unary,
+                        &named_binary,
+                        &named_ternary,
+                        k,
+                        args.equiv,
+                        args.domain,
+                        &rejected,
+                    ) else {
+                        break;
+                    };
+                    let valid = if args.validate_witness {
+                        validate_witness(
+                            WitnessKind::Constant(c_name.clone()),
+                            &witness.0,
+                            args.equiv,
+                            &unary_all,
+                            &binary_all,
+                            &ternary_all,
+                            &const_all,
+                        )
+                    } else {
+                        true
+                    };
+                    if valid {
+                        found_constant = Some((idx, Some(witness)));
+                        break;
+                    }
+                    println!(
+                        "Rejected flaky witness for constant: {c_name} at k={} -> {}",
+                        witness.1, witness.0
+                    );
+                    rejected.insert(witness.0);
                 }
             } else if can_represent(
                 target,
@@ -1722,18 +2236,43 @@ fn main() {
                 continue;
             };
             if args.explain {
-                if let Some(witness) = find_representation(
-                    target,
-                    &named_constants,
-                    &named_unary,
-                    &named_binary,
-                    &named_ternary,
-                    k,
-                    args.equiv,
-                    args.domain,
-                ) {
-                    found_unary = Some((idx, Some(witness)));
-                    break;
+                let mut rejected: HashSet<String> = HashSet::new();
+                loop {
+                    let Some(witness) = find_representation_with_skip(
+                        target,
+                        &named_constants,
+                        &named_unary,
+                        &named_binary,
+                        &named_ternary,
+                        k,
+                        args.equiv,
+                        args.domain,
+                        &rejected,
+                    ) else {
+                        break;
+                    };
+                    let valid = if args.validate_witness {
+                        validate_witness(
+                            WitnessKind::Unary(f_name.clone()),
+                            &witness.0,
+                            args.equiv,
+                            &unary_all,
+                            &binary_all,
+                            &ternary_all,
+                            &const_all,
+                        )
+                    } else {
+                        true
+                    };
+                    if valid {
+                        found_unary = Some((idx, Some(witness)));
+                        break;
+                    }
+                    println!(
+                        "Rejected flaky witness for unary function: {f_name} at k={} -> {}",
+                        witness.1, witness.0
+                    );
+                    rejected.insert(witness.0);
                 }
             } else if can_represent(
                 target,
