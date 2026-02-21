@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::f64::consts::{FRAC_PI_2, PI};
+use std::process;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -263,7 +264,12 @@ fn generation_seed_constants() -> Vec<(&'static str, C)> {
     ]
 }
 
-fn generate_candidates(arity: usize, gen_k: usize, max_keep: usize) -> GenOutput {
+fn generate_candidates(
+    arity: usize,
+    gen_k: usize,
+    max_keep: usize,
+    require_full_deps: bool,
+) -> GenOutput {
     let mut levels: Vec<Vec<Cand>> = vec![vec![]; gen_k + 1];
     let mut seen: HashMap<Vec<(i64, i64)>, Cand> = HashMap::new();
     let mut discarded_by_cap = 0usize;
@@ -388,10 +394,11 @@ fn generate_candidates(arity: usize, gen_k: usize, max_keep: usize) -> GenOutput
 
     let need = if arity == 0 { 0 } else { (1u8 << arity) - 1 };
     let total_unique_all_deps = seen.len();
-    let mut out: Vec<Cand> = seen
-        .into_values()
-        .filter(|c| c.deps == need)
-        .collect();
+    let mut out: Vec<Cand> = if require_full_deps {
+        seen.into_values().filter(|c| c.deps == need).collect()
+    } else {
+        seen.into_values().collect()
+    };
     out.sort_by(|a, b| a.expr.len().cmp(&b.expr.len()).then_with(|| a.expr.cmp(&b.expr)));
     GenOutput {
         pool: out,
@@ -555,14 +562,42 @@ fn completeness_families() -> Vec<Family> {
                 commutative: false,
             }],
         },
+        Family {
+            name: "Wolfram_Mathematica",
+            const_targets: vec![C::i()],
+            unary_targets: vec![Unary {
+                f: Arc::new(|x| x.ln()),
+            }],
+            binary_targets: vec![
+                Binary {
+                    f: Arc::new(|a, b| Some(a.add(b))),
+                    commutative: true,
+                },
+                Binary {
+                    f: Arc::new(|a, b| Some(a.mul(b))),
+                    commutative: true,
+                },
+                Binary {
+                    f: Arc::new(|a, b| a.pow(b)),
+                    commutative: false,
+                },
+            ],
+        },
     ]
 }
 
-fn satisfies_any_family(constants: &[C], unary: &[Unary], binary: &[Binary], ternary: &[Ternary], k: usize) -> Option<&'static str> {
-    for fam in completeness_families() {
+fn satisfies_any_family(
+    constants: &[C],
+    unary: &[Unary],
+    binary: &[Binary],
+    ternary: &[Ternary],
+    families: &[Family],
+    k: usize,
+) -> Option<&'static str> {
+    for fam in families {
         let mut ok = true;
-        for c in fam.const_targets {
-            if !can_represent(c, constants, unary, binary, ternary, k) {
+        for c in &fam.const_targets {
+            if !can_represent(*c, constants, unary, binary, ternary, k) {
                 ok = false;
                 break;
             }
@@ -673,42 +708,156 @@ fn parse_profiles() -> RunProfiles {
     out
 }
 
+fn parse_usize_flag(flag: &str, default_value: usize) -> usize {
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut i = 0usize;
+    while i < argv.len() {
+        if argv[i] == flag {
+            i += 1;
+            if i < argv.len() {
+                if let Ok(v) = argv[i].parse::<usize>() {
+                    return v;
+                }
+            }
+            return default_value;
+        }
+        i += 1;
+    }
+    default_value
+}
+
+fn parse_csv_flag(flag: &str) -> Option<Vec<String>> {
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut i = 0usize;
+    while i < argv.len() {
+        if argv[i] == flag {
+            i += 1;
+            if i < argv.len() {
+                let vals = argv[i]
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect::<Vec<_>>();
+                return Some(vals);
+            }
+            return Some(Vec::new());
+        }
+        i += 1;
+    }
+    None
+}
+
+fn parse_require_full_deps(default_value: bool) -> bool {
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut out = default_value;
+    for arg in argv {
+        match arg.as_str() {
+            "--allow-partial-deps" => out = false,
+            "--require-full-deps" => out = true,
+            _ => {}
+        }
+    }
+    out
+}
+
+fn fmt_limit(v: usize) -> String {
+    if v == usize::MAX {
+        "All".to_string()
+    } else {
+        v.to_string()
+    }
+}
+
+fn select_families() -> Vec<Family> {
+    let all = completeness_families();
+    let include = parse_csv_flag("--families");
+    let exclude = parse_csv_flag("--disable-families").unwrap_or_default();
+    let available: HashSet<&'static str> = all.iter().map(|f| f.name).collect();
+
+    if let Some(req) = &include {
+        let unknown: Vec<String> = req
+            .iter()
+            .filter(|name| !available.contains(name.as_str()))
+            .cloned()
+            .collect();
+        if !unknown.is_empty() {
+            let mut avail_sorted: Vec<&str> = available.iter().copied().collect();
+            avail_sorted.sort_unstable();
+            eprintln!(
+                "Error: unknown --families entries: {}",
+                unknown.join(", ")
+            );
+            eprintln!("Available families: {}", avail_sorted.join(", "));
+            process::exit(2);
+        }
+    }
+
+    let include_set: Option<HashSet<String>> = include.map(|v| v.into_iter().collect());
+    let exclude_set: HashSet<String> = exclude.into_iter().collect();
+
+    all.into_iter()
+        .filter(|f| {
+            let included = match &include_set {
+                Some(set) => set.contains(f.name),
+                None => true,
+            };
+            included && !exclude_set.contains(f.name)
+        })
+        .collect()
+}
+
 fn main() {
     let start = Instant::now();
-    let gen_k = 7usize;
-    let verify_k = 6usize;
-    let max_keep_per_level = 100_000_000usize;
+    let gen_k_default = 3usize;
+    let verify_k_default = 6usize;
+    let max_keep_default = 100_000_000usize;
+    let gen_k = parse_usize_flag("--gen-k", gen_k_default);
+    let verify_k = parse_usize_flag("--verify-k", verify_k_default);
+    let max_keep_per_level = parse_usize_flag("--max-keep-per-level", max_keep_default);
+    let require_full_deps = parse_require_full_deps(true);
+    let families = select_families();
     //Profile 0: 0 const, 1 unary, 1 binary
-    let profile0_unary_take = 1usize;
-    let profile0_binary_take = 1usize;
+    let profile0_unary_take = usize::MAX;
+    let profile0_binary_take = usize::MAX;
     //Profile A: 1 const, 0 unary, 1 binary
-    let profile_a_const_take = 128usize;
+    let profile_a_const_take = usize::MAX;
     //let profile_a_binary_take = 120usize;
-    let profile_a_binary_take = 128usize;
+    let profile_a_binary_take = usize::MAX;
     //Profile B: 0 const, 0 unary, 1 binary
-    let profile_b_binary_take = 200usize;
+    let profile_b_binary_take = usize::MAX;
     //Profile C: 0 const, 0 unary, 0 binary, 1 ternary
     let profile_c_ternary_take = usize::MAX;
     let run = parse_profiles();
+    println!(
+        "Run config: gen_k={} verify_k={} max_keep_per_level={} require_full_deps={}",
+        gen_k, verify_k, max_keep_per_level, require_full_deps
+    );
+    if families.is_empty() {
+        println!("Enabled families: [] (no family checks can pass)");
+    } else {
+        let names: Vec<&str> = families.iter().map(|f| f.name).collect();
+        println!("Enabled families: {:?}", names);
+    }
 
     println!("Generating unnamed primitives...");
     let const_out = if run.pa {
-        generate_candidates(0, 1, max_keep_per_level)
+        generate_candidates(0, 2, max_keep_per_level, require_full_deps)
     } else {
         empty_gen_output()
     };
     let unary_out = if run.p0 {
-        generate_candidates(1, gen_k, max_keep_per_level)
+        generate_candidates(1, gen_k, max_keep_per_level, require_full_deps)
     } else {
         empty_gen_output()
     };
     let binary_out = if run.p0 || run.pa || run.pb {
-        generate_candidates(2, gen_k, max_keep_per_level)
+        generate_candidates(2, gen_k, max_keep_per_level, require_full_deps)
     } else {
         empty_gen_output()
     };
     let ternary_out = if run.pc {
-        generate_candidates(3, gen_k, max_keep_per_level)
+        generate_candidates(3, gen_k, max_keep_per_level, require_full_deps)
     } else {
         empty_gen_output()
     };
@@ -725,12 +874,12 @@ fn main() {
     );
     println!(
         "Profile limits: p0 unary={} binary={}, pA const={} binary={}, pB binary={}, pC ternary={}",
-        profile0_unary_take,
-        profile0_binary_take,
-        profile_a_const_take,
-        profile_a_binary_take,
-        profile_b_binary_take,
-        profile_c_ternary_take
+        fmt_limit(profile0_unary_take),
+        fmt_limit(profile0_binary_take),
+        fmt_limit(profile_a_const_take),
+        fmt_limit(profile_a_binary_take),
+        fmt_limit(profile_b_binary_take),
+        fmt_limit(profile_c_ternary_take)
     );
     println!(
         "Discarded by cap(max_keep_per_level={}): const={}, unary={}, binary={}, ternary={}",
@@ -783,7 +932,9 @@ fn main() {
                 f: Arc::new(|base, x| x.ln()?.div(base.ln()?)),
                 commutative: false,
             }];
-            if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+            if let Some(name) =
+                satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
+            {
                 hits += 1;
                 println!("ASSERTION HIT[{name}] unary=Exp(v0) | binary=Log(v0, v1)");
             } else {
@@ -811,7 +962,9 @@ fn main() {
                     }),
                     commutative: false,
                 }];
-                if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+                if let Some(name) =
+                    satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
+                {
                     hits += 1;
                     hits_p0 += 1;
                     println!("HIT[{name}] unary={} | binary={}", u.expr, b.expr);
@@ -846,7 +999,9 @@ fn main() {
                     }),
                     commutative: false,
                 }];
-                if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+                if let Some(name) =
+                    satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
+                {
                     hits += 1;
                     hits_pa += 1;
                     println!("HIT[{name}] const={} | binary={}", c.expr, b.expr);
@@ -874,7 +1029,9 @@ fn main() {
                 }),
                 commutative: false,
             }];
-            if let Some(name) = satisfies_any_family(&constants, &unary, &binary, &[], verify_k) {
+            if let Some(name) =
+                satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
+            {
                 hits += 1;
                 hits_pb += 1;
                 println!("HIT[{name}] binary={}", b.expr);
@@ -899,7 +1056,9 @@ fn main() {
                     move |a, b, c| f(&[a, b, c])
                 }),
             }];
-            if let Some(name) = satisfies_any_family(&constants, &[], &[], &ternary, verify_k) {
+            if let Some(name) =
+                satisfies_any_family(&constants, &[], &[], &ternary, &families, verify_k)
+            {
                 hits += 1;
                 hits_pc += 1;
                 println!("HIT[{name}] ternary={}", t.expr);
@@ -909,5 +1068,5 @@ fn main() {
     }
 
     println!("Done. hits={hits}, elapsed={:.2?}", start.elapsed());
-    println!("This is a starter project; tune gen_k/max_keep/profile loops for deeper search.");
+    
 }
