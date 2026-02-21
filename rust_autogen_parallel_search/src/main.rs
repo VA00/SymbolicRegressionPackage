@@ -1146,31 +1146,53 @@ fn main() {
             pa_c_n.saturating_mul(pa_b_n),
             const_pool.len().saturating_mul(binary_pool.len())
         );
-        for c in const_pool.iter().take(profile_a_const_take) {
-            let Some(cv) = (c.f)(&[]) else { continue };
-            for b in binary_pool.iter().take(profile_a_binary_take) {
-                let constants = vec![placeholder_constants[0], placeholder_constants[1], cv];
-                let unary = vec![];
-                let binary = vec![Binary {
-                    f: Arc::new({
-                        let f = b.f.clone();
-                        move |x, y| f(&[x, y])
-                    }),
-                    commutative: false,
-                }];
-                if let Some(name) =
-                    satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
-                {
-                    hits += 1;
-                    hits_pa += 1;
-                    println!(
-                        "HIT[{name}] const={} | binary={}",
-                        fmt_mma_expr(&c.expr),
-                        fmt_mma_expr(&b.expr)
-                    );
+        let const_candidates: Vec<(&Cand, C)> = const_pool
+            .iter()
+            .take(profile_a_const_take)
+            .filter_map(|c| (c.f)(&[]).map(|cv| (c, cv)))
+            .collect();
+        let binary_candidates: Vec<&Cand> =
+            binary_pool.iter().take(profile_a_binary_take).collect();
+        let pa_hits: Vec<(String, String, String)> = const_candidates
+            .par_iter()
+            .map(|(c, cv)| {
+                let mut local_hits: Vec<(String, String, String)> = Vec::new();
+                for b in &binary_candidates {
+                    let constants = vec![placeholder_constants[0], placeholder_constants[1], *cv];
+                    let unary = vec![];
+                    let binary = vec![Binary {
+                        f: Arc::new({
+                            let f = b.f.clone();
+                            move |x, y| f(&[x, y])
+                        }),
+                        commutative: false,
+                    }];
+                    if let Some(name) =
+                        satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
+                    {
+                        local_hits.push((name.to_string(), c.expr.clone(), b.expr.clone()));
+                    }
                 }
-            }
+                local_hits
+            })
+            .reduce(
+                || Vec::new(),
+                |mut acc, mut part| {
+                    acc.append(&mut part);
+                    acc
+                },
+            );
+        let mut pa_hits_sorted = pa_hits;
+        pa_hits_sorted.sort();
+        for (name, const_expr, binary_expr) in &pa_hits_sorted {
+            println!(
+                "HIT[{name}] const={} | binary={}",
+                fmt_mma_expr(const_expr),
+                fmt_mma_expr(binary_expr)
+            );
         }
+        hits_pa += pa_hits_sorted.len();
+        hits += pa_hits_sorted.len();
         println!("Profile A hits: {hits_pa}");
     }
 
@@ -1182,24 +1204,30 @@ fn main() {
             pb_b_n,
             binary_pool.len()
         );
-        for b in binary_pool.iter().take(profile_b_binary_take) {
-            let constants = vec![placeholder_constants[0], placeholder_constants[1]];
-            let unary = vec![];
-            let binary = vec![Binary {
-                f: Arc::new({
-                    let f = b.f.clone();
-                    move |x, y| f(&[x, y])
-                }),
-                commutative: false,
-            }];
-            if let Some(name) =
+        let binary_candidates: Vec<&Cand> = binary_pool.iter().take(profile_b_binary_take).collect();
+        let pb_hits: Vec<(String, String)> = binary_candidates
+            .par_iter()
+            .filter_map(|b| {
+                let constants = vec![placeholder_constants[0], placeholder_constants[1]];
+                let unary = vec![];
+                let binary = vec![Binary {
+                    f: Arc::new({
+                        let f = b.f.clone();
+                        move |x, y| f(&[x, y])
+                    }),
+                    commutative: false,
+                }];
                 satisfies_any_family(&constants, &unary, &binary, &[], &families, verify_k)
-            {
-                hits += 1;
-                hits_pb += 1;
-                println!("HIT[{name}] binary={}", fmt_mma_expr(&b.expr));
-            }
+                    .map(|name| (name.to_string(), b.expr.clone()))
+            })
+            .collect();
+        let mut pb_hits_sorted = pb_hits;
+        pb_hits_sorted.sort();
+        for (name, binary_expr) in &pb_hits_sorted {
+            println!("HIT[{name}] binary={}", fmt_mma_expr(binary_expr));
         }
+        hits_pb += pb_hits_sorted.len();
+        hits += pb_hits_sorted.len();
         println!("Profile B hits: {hits_pb}");
     }
 
@@ -1211,22 +1239,29 @@ fn main() {
             pc_t_n,
             ternary_pool.len()
         );
-        for t in ternary_pool.iter().take(profile_c_ternary_take) {
-            let constants = vec![placeholder_constants[0], placeholder_constants[1]];
-            let ternary = vec![Ternary {
-                f: Arc::new({
-                    let f = t.f.clone();
-                    move |a, b, c| f(&[a, b, c])
-                }),
-            }];
-            if let Some(name) =
+        let ternary_candidates: Vec<&Cand> =
+            ternary_pool.iter().take(profile_c_ternary_take).collect();
+        let pc_hits: Vec<(String, String)> = ternary_candidates
+            .par_iter()
+            .filter_map(|t| {
+                let constants = vec![placeholder_constants[0], placeholder_constants[1]];
+                let ternary = vec![Ternary {
+                    f: Arc::new({
+                        let f = t.f.clone();
+                        move |a, b, c| f(&[a, b, c])
+                    }),
+                }];
                 satisfies_any_family(&constants, &[], &[], &ternary, &families, verify_k)
-            {
-                hits += 1;
-                hits_pc += 1;
-                println!("HIT[{name}] ternary={}", fmt_mma_expr(&t.expr));
-            }
+                    .map(|name| (name.to_string(), t.expr.clone()))
+            })
+            .collect();
+        let mut pc_hits_sorted = pc_hits;
+        pc_hits_sorted.sort();
+        for (name, ternary_expr) in &pc_hits_sorted {
+            println!("HIT[{name}] ternary={}", fmt_mma_expr(ternary_expr));
         }
+        hits_pc += pc_hits_sorted.len();
+        hits += pc_hits_sorted.len();
         println!("Profile C hits: {hits_pc}");
     }
 
