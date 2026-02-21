@@ -1594,29 +1594,6 @@ fn can_represent(
     false
 }
 
-fn find_representation(
-    target: C,
-    constants: &[(String, C)],
-    unary: &[(String, Unary)],
-    binary: &[(String, Binary)],
-    ternary: &[(String, Ternary)],
-    max_k: usize,
-    equiv: EquivCfg,
-    domain: DomainMode,
-) -> Option<(String, usize)> {
-    find_representation_with_skip(
-        target,
-        constants,
-        unary,
-        binary,
-        ternary,
-        max_k,
-        equiv,
-        domain,
-        &HashSet::new(),
-    )
-}
-
 fn find_representation_with_skip(
     target: C,
     constants: &[(String, C)],

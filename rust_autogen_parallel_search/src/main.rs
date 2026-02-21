@@ -203,16 +203,73 @@ fn sample_inputs(arity: usize) -> Vec<Vec<C>> {
     }
 }
 
-fn signature(c: &Cand, arity: usize) -> Option<Vec<(i64, i64)>> {
-    let mut out = Vec::new();
-    for args in sample_inputs(arity) {
-        let v = (c.f)(&args)?;
-        if !v.is_finite() {
-            return None;
+fn arg_permutations(arity: usize) -> Vec<Vec<usize>> {
+    fn backtrack(
+        arity: usize,
+        used: &mut [bool],
+        cur: &mut Vec<usize>,
+        out: &mut Vec<Vec<usize>>,
+    ) {
+        if cur.len() == arity {
+            out.push(cur.clone());
+            return;
         }
-        out.push(qkey(v));
+        for i in 0..arity {
+            if used[i] {
+                continue;
+            }
+            used[i] = true;
+            cur.push(i);
+            backtrack(arity, used, cur, out);
+            cur.pop();
+            used[i] = false;
+        }
     }
-    Some(out)
+
+    if arity == 0 {
+        return vec![vec![]];
+    }
+    let mut used = vec![false; arity];
+    let mut cur = Vec::with_capacity(arity);
+    let mut out = Vec::new();
+    backtrack(arity, &mut used, &mut cur, &mut out);
+    out
+}
+
+fn signature(c: &Cand, arity: usize, quotient_var_permutations: bool) -> Option<Vec<(i64, i64)>> {
+    let samples = sample_inputs(arity);
+    if !quotient_var_permutations || arity <= 1 {
+        let mut out = Vec::new();
+        for args in samples {
+            let v = (c.f)(&args)?;
+            if !v.is_finite() {
+                return None;
+            }
+            out.push(qkey(v));
+        }
+        return Some(out);
+    }
+
+    let perms = arg_permutations(arity);
+    let mut best: Option<Vec<(i64, i64)>> = None;
+    for perm in perms {
+        let mut out = Vec::new();
+        for args in &samples {
+            let mut reordered: Vec<C> = Vec::with_capacity(arity);
+            for &idx in &perm {
+                reordered.push(args[idx]);
+            }
+            let v = (c.f)(&reordered)?;
+            if !v.is_finite() {
+                return None;
+            }
+            out.push(qkey(v));
+        }
+        if best.as_ref().is_none_or(|b| out < *b) {
+            best = Some(out);
+        }
+    }
+    best
 }
 
 fn unary_ops() -> Vec<(&'static str, Arc<dyn Fn(C) -> Option<C> + Send + Sync>)> {
@@ -270,6 +327,7 @@ fn generate_candidates(
     gen_k: usize,
     max_keep: usize,
     require_full_deps: bool,
+    quotient_var_permutations: bool,
 ) -> GenOutput {
     let mut levels: Vec<Vec<Cand>> = vec![vec![]; gen_k + 1];
     let mut seen: HashMap<Vec<(i64, i64)>, Cand> = HashMap::new();
@@ -283,7 +341,7 @@ fn generate_candidates(
             f,
             deps,
         };
-        if let Some(sig) = signature(&c, arity) {
+        if let Some(sig) = signature(&c, arity, quotient_var_permutations) {
             seen.insert(sig, c.clone());
             levels[1].push(c);
         }
@@ -295,7 +353,7 @@ fn generate_candidates(
             f: Arc::new(move |_| Some(vv)),
             deps: 0,
         };
-        if let Some(sig) = signature(&c, arity) {
+        if let Some(sig) = signature(&c, arity, quotient_var_permutations) {
             seen.insert(sig, c.clone());
             levels[1].push(c);
         }
@@ -312,7 +370,7 @@ fn generate_candidates(
                     f: Arc::new(move |args| op(f0(args)?) ),
                     deps: a.deps,
                 };
-                if let Some(sig) = signature(&cand, arity) {
+                if let Some(sig) = signature(&cand, arity, quotient_var_permutations) {
                     if !seen.contains_key(&sig) {
                         seen.insert(sig, cand.clone());
                         next.push(cand);
@@ -336,7 +394,7 @@ fn generate_candidates(
                             f: Arc::new(move |args| op(fa(args)?, fb(args)?)),
                             deps: a.deps | bb.deps,
                         };
-                        if let Some(sig) = signature(&cand, arity) {
+                        if let Some(sig) = signature(&cand, arity, quotient_var_permutations) {
                             if !seen.contains_key(&sig) {
                                 seen.insert(sig, cand.clone());
                                 next.push(cand);
@@ -366,7 +424,9 @@ fn generate_candidates(
                                         f: Arc::new(move |args| op(fa(args)?, fb(args)?, fc(args)?)),
                                         deps: a.deps | b.deps | c.deps,
                                     };
-                                    if let Some(sig) = signature(&cand, arity) {
+                                    if let Some(sig) =
+                                        signature(&cand, arity, quotient_var_permutations)
+                                    {
                                         if !seen.contains_key(&sig) {
                                             seen.insert(sig, cand.clone());
                                             next.push(cand);
@@ -762,6 +822,19 @@ fn parse_require_full_deps(default_value: bool) -> bool {
     out
 }
 
+fn parse_quotient_var_permutations(default_value: bool) -> bool {
+    let argv: Vec<String> = env::args().skip(1).collect();
+    let mut out = default_value;
+    for arg in argv {
+        match arg.as_str() {
+            "--no-quotient-var-permutations" => out = false,
+            "--quotient-var-permutations" => out = true,
+            _ => {}
+        }
+    }
+    out
+}
+
 fn fmt_limit(v: usize) -> String {
     if v == usize::MAX {
         "All".to_string()
@@ -822,6 +895,7 @@ fn main() {
     let max_keep_per_level = parse_usize_flag("--max-keep-per-level", max_keep_default);
     let rayon_threads = parse_usize_flag("--rayon-threads", 0usize);
     let require_full_deps = parse_require_full_deps(true);
+    let quotient_var_permutations = parse_quotient_var_permutations(true);
     let families = select_families();
     if rayon_threads > 0 {
         rayon::ThreadPoolBuilder::new()
@@ -843,11 +917,12 @@ fn main() {
     let profile_c_ternary_take = usize::MAX;
     let run = parse_profiles();
     println!(
-        "Run config: gen_k={} verify_k={} max_keep_per_level={} require_full_deps={} rayon_threads_request={} rayon_threads_effective={}",
+        "Run config: gen_k={} verify_k={} max_keep_per_level={} require_full_deps={} quotient_var_permutations={} rayon_threads_request={} rayon_threads_effective={}",
         gen_k,
         verify_k,
         max_keep_per_level,
         require_full_deps,
+        quotient_var_permutations,
         if rayon_threads == 0 {
             "auto".to_string()
         } else {
@@ -864,22 +939,46 @@ fn main() {
 
     println!("Generating unnamed primitives...");
     let const_out = if run.pa {
-        generate_candidates(0, 2, max_keep_per_level, require_full_deps)
+        generate_candidates(
+            0,
+            2,
+            max_keep_per_level,
+            require_full_deps,
+            quotient_var_permutations,
+        )
     } else {
         empty_gen_output()
     };
     let unary_out = if run.p0 {
-        generate_candidates(1, gen_k, max_keep_per_level, require_full_deps)
+        generate_candidates(
+            1,
+            gen_k,
+            max_keep_per_level,
+            require_full_deps,
+            quotient_var_permutations,
+        )
     } else {
         empty_gen_output()
     };
     let binary_out = if run.p0 || run.pa || run.pb {
-        generate_candidates(2, gen_k, max_keep_per_level, require_full_deps)
+        generate_candidates(
+            2,
+            gen_k,
+            max_keep_per_level,
+            require_full_deps,
+            quotient_var_permutations,
+        )
     } else {
         empty_gen_output()
     };
     let ternary_out = if run.pc {
-        generate_candidates(3, gen_k, max_keep_per_level, require_full_deps)
+        generate_candidates(
+            3,
+            gen_k,
+            max_keep_per_level,
+            require_full_deps,
+            quotient_var_permutations,
+        )
     } else {
         empty_gen_output()
     };
