@@ -313,6 +313,7 @@ fn ternary_ops() -> Vec<(&'static str, Arc<dyn Fn(C, C, C) -> Option<C> + Send +
 
 fn generation_seed_constants() -> Vec<(&'static str, C)> {
     vec![
+        ("0", C::real(0.0)),
         ("Pi", C::real(PI)),
         ("E", C::real(std::f64::consts::E)),
         ("I", C::i()),
@@ -328,7 +329,11 @@ fn generate_candidates(
     max_keep: usize,
     require_full_deps: bool,
     quotient_var_permutations: bool,
+    gen_filter: &GenLanguageFilter,
 ) -> GenOutput {
+    if gen_k == 0 {
+        return empty_gen_output();
+    }
     let mut levels: Vec<Vec<Cand>> = vec![vec![]; gen_k + 1];
     let mut seen: HashMap<Vec<(i64, i64)>, Cand> = HashMap::new();
     let mut discarded_by_cap = 0usize;
@@ -347,6 +352,9 @@ fn generate_candidates(
         }
     }
     for (n, v) in generation_seed_constants() {
+        if !gen_filter.allow_const(n) {
+            continue;
+        }
         let vv = v;
         let c = Cand {
             expr: n.to_string(),
@@ -362,6 +370,9 @@ fn generate_candidates(
     for k in 2..=gen_k {
         let mut next: Vec<Cand> = Vec::new();
         for u in unary_ops() {
+            if !gen_filter.allow_unary(u.0) {
+                continue;
+            }
             for a in &levels[k - 1] {
                 let f0 = a.f.clone();
                 let op = u.1.clone();
@@ -379,6 +390,9 @@ fn generate_candidates(
             }
         }
         for b in binary_ops() {
+            if !gen_filter.allow_binary(b.0) {
+                continue;
+            }
             for lk in 1..k - 1 {
                 let rk = k - 1 - lk;
                 for a in &levels[lk] {
@@ -406,6 +420,9 @@ fn generate_candidates(
         }
         if k >= 4 {
             for t in ternary_ops() {
+                if !gen_filter.allow_ternary(t.0) {
+                    continue;
+                }
                 for a_k in 1..=k - 3 {
                     for b_k in 1..=k - 2 - a_k {
                         let c_k = k - 1 - a_k - b_k;
@@ -847,6 +864,93 @@ fn fmt_mma_expr(expr: &str) -> String {
     expr.replace('(', "[").replace(')', "]")
 }
 
+struct GenLanguageFilter {
+    constants: Option<HashSet<String>>,
+    unary: Option<HashSet<String>>,
+    binary: Option<HashSet<String>>,
+    ternary: Option<HashSet<String>>,
+}
+
+impl GenLanguageFilter {
+    fn allow_const(&self, name: &str) -> bool {
+        self.constants.as_ref().is_none_or(|s| s.contains(name))
+    }
+    fn allow_unary(&self, name: &str) -> bool {
+        self.unary.as_ref().is_none_or(|s| s.contains(name))
+    }
+    fn allow_binary(&self, name: &str) -> bool {
+        self.binary.as_ref().is_none_or(|s| s.contains(name))
+    }
+    fn allow_ternary(&self, name: &str) -> bool {
+        self.ternary.as_ref().is_none_or(|s| s.contains(name))
+    }
+}
+
+fn validate_name_filter(flag: &str, req: &Option<Vec<String>>, available: &[&str]) {
+    let Some(req) = req else { return; };
+    let avail: HashSet<&str> = available.iter().copied().collect();
+    let unknown: Vec<String> = req
+        .iter()
+        .filter(|name| !avail.contains(name.as_str()))
+        .cloned()
+        .collect();
+    if !unknown.is_empty() {
+        let mut avail_sorted = available.to_vec();
+        avail_sorted.sort_unstable();
+        eprintln!("Error: unknown {} entries: {}", flag, unknown.join(", "));
+        eprintln!("Available {} values: {}", flag, avail_sorted.join(", "));
+        process::exit(2);
+    }
+}
+
+fn parse_generation_language_filter() -> GenLanguageFilter {
+    let const_req = parse_csv_flag("--gen-const");
+    let unary_req = parse_csv_flag("--gen-unary");
+    let binary_req = parse_csv_flag("--gen-binary");
+    let ternary_req = parse_csv_flag("--gen-ternary");
+
+    let const_avail: Vec<&str> = generation_seed_constants().iter().map(|(n, _)| *n).collect();
+    let unary_avail: Vec<&str> = unary_ops().iter().map(|(n, _)| *n).collect();
+    let binary_avail: Vec<&str> = binary_ops().iter().map(|(n, _, _)| *n).collect();
+    let ternary_avail: Vec<&str> = ternary_ops().iter().map(|(n, _)| *n).collect();
+
+    validate_name_filter("--gen-const", &const_req, &const_avail);
+    validate_name_filter("--gen-unary", &unary_req, &unary_avail);
+    validate_name_filter("--gen-binary", &binary_req, &binary_avail);
+    validate_name_filter("--gen-ternary", &ternary_req, &ternary_avail);
+
+    GenLanguageFilter {
+        constants: const_req.map(|v| v.into_iter().collect()),
+        unary: unary_req.map(|v| v.into_iter().collect()),
+        binary: binary_req.map(|v| v.into_iter().collect()),
+        ternary: ternary_req.map(|v| v.into_iter().collect()),
+    }
+}
+
+fn selected_generation_names(filter: &GenLanguageFilter) -> (Vec<String>, Vec<String>, Vec<String>, Vec<String>) {
+    let consts = generation_seed_constants()
+        .into_iter()
+        .map(|(n, _)| n.to_string())
+        .filter(|n| filter.allow_const(n))
+        .collect();
+    let unary = unary_ops()
+        .into_iter()
+        .map(|(n, _)| n.to_string())
+        .filter(|n| filter.allow_unary(n))
+        .collect();
+    let binary = binary_ops()
+        .into_iter()
+        .map(|(n, _, _)| n.to_string())
+        .filter(|n| filter.allow_binary(n))
+        .collect();
+    let ternary = ternary_ops()
+        .into_iter()
+        .map(|(n, _)| n.to_string())
+        .filter(|n| filter.allow_ternary(n))
+        .collect();
+    (consts, unary, binary, ternary)
+}
+
 fn select_families() -> Vec<Family> {
     let all = completeness_families();
     let include = parse_csv_flag("--families");
@@ -888,14 +992,17 @@ fn select_families() -> Vec<Family> {
 fn main() {
     let start = Instant::now();
     let gen_k_default = 3usize;
+    let gen_k_const_default = 1usize;
     let verify_k_default = 6usize;
     let max_keep_default = 100_000_000usize;
     let gen_k = parse_usize_flag("--gen-k", gen_k_default);
+    let gen_k_const = parse_usize_flag("--gen-k-const", gen_k_const_default);
     let verify_k = parse_usize_flag("--verify-k", verify_k_default);
     let max_keep_per_level = parse_usize_flag("--max-keep-per-level", max_keep_default);
     let rayon_threads = parse_usize_flag("--rayon-threads", 0usize);
     let require_full_deps = parse_require_full_deps(true);
     let quotient_var_permutations = parse_quotient_var_permutations(true);
+    let gen_filter = parse_generation_language_filter();
     let families = select_families();
     if rayon_threads > 0 {
         rayon::ThreadPoolBuilder::new()
@@ -917,8 +1024,9 @@ fn main() {
     let profile_c_ternary_take = usize::MAX;
     let run = parse_profiles();
     println!(
-        "Run config: gen_k={} verify_k={} max_keep_per_level={} require_full_deps={} quotient_var_permutations={} rayon_threads_request={} rayon_threads_effective={}",
+        "Run config: gen_k={} gen_k_const={} verify_k={} max_keep_per_level={} require_full_deps={} quotient_var_permutations={} rayon_threads_request={} rayon_threads_effective={}",
         gen_k,
+        gen_k_const,
         verify_k,
         max_keep_per_level,
         require_full_deps,
@@ -936,15 +1044,21 @@ fn main() {
         let names: Vec<&str> = families.iter().map(|f| f.name).collect();
         println!("Enabled families: {:?}", names);
     }
+    let (gen_consts, gen_unary, gen_binary, gen_ternary) = selected_generation_names(&gen_filter);
+    println!(
+        "Generation language: const={:?} unary={:?} binary={:?} ternary={:?}",
+        gen_consts, gen_unary, gen_binary, gen_ternary
+    );
 
     println!("Generating unnamed primitives...");
     let const_out = if run.pa {
         generate_candidates(
             0,
-            2,
+            gen_k_const,
             max_keep_per_level,
             require_full_deps,
             quotient_var_permutations,
+            &gen_filter,
         )
     } else {
         empty_gen_output()
@@ -956,6 +1070,7 @@ fn main() {
             max_keep_per_level,
             require_full_deps,
             quotient_var_permutations,
+            &gen_filter,
         )
     } else {
         empty_gen_output()
@@ -967,6 +1082,7 @@ fn main() {
             max_keep_per_level,
             require_full_deps,
             quotient_var_permutations,
+            &gen_filter,
         )
     } else {
         empty_gen_output()
@@ -978,6 +1094,7 @@ fn main() {
             max_keep_per_level,
             require_full_deps,
             quotient_var_permutations,
+            &gen_filter,
         )
     } else {
         empty_gen_output()

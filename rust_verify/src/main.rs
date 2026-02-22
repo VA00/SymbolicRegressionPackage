@@ -954,6 +954,14 @@ fn ternary_catalog() -> HashMap<&'static str, Ternary> {
                 f: |a, b, c| a.sub(b).div(c),
             },
         ),
+        (
+            "LogPowExpSub",
+            Ternary {
+                // LogPowExpSub[a,b,c] = Log[a, Power[c, Exp[Subtract[a,b]]]]
+                // = Exp[a-b] * Log[c] / Log[a]
+                f: |a, b, c| a.sub(b).exp().mul(c.ln()?).div(a.ln()?),
+            },
+        ),
     ]
     .into_iter()
     .collect()
@@ -1317,6 +1325,7 @@ def apply3(n,a,b,c):
     if n == 'FNMS': return -(a*b)-c
     if n == 'FSD': return (a-b)/c if c != 0 else None
     if n == 'TExpLog': return mp.exp(a)*(mp.log(c)/mp.log(b)) if (b > 0 and b != 1 and c > 0) else None
+    if n == 'LogPowExpSub': return mp.exp(a-b)*(mp.log(c)/mp.log(a)) if (a > 0 and a != 1 and c > 0) else None
     return None
 
 def eval_expr(e, env):
