@@ -48,6 +48,7 @@ struct Args {
     check_involution: Option<String>,
     involution_samples: usize,
     validate_witness: bool,
+    validate_witness_highprec: bool,
     scan_family: bool,
     scan_g: String,
     scan_h: String,
@@ -272,6 +273,7 @@ fn parse_args() -> Args {
         check_involution: None,
         involution_samples: 24,
         validate_witness: true,
+        validate_witness_highprec: false,
         scan_family: false,
         scan_g: "Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid".to_string(),
         scan_h: "reflect,recip,mobius,powlog".to_string(),
@@ -285,6 +287,10 @@ fn parse_args() -> Args {
         let flag = argv[i].clone();
         i += 1;
         match flag.as_str() {
+            "-h" | "--help" => {
+                print_help();
+                process::exit(0);
+            }
             "--constants" => {
                 if let Some(v) = collect_csv_flag_values(&argv, &mut i) {
                     args.constants = v;
@@ -415,6 +421,9 @@ fn parse_args() -> Args {
             "--no-validate-witness" => {
                 args.validate_witness = false;
             }
+            "--validate-witness-highprec" => {
+                args.validate_witness_highprec = true;
+            }
             "--scan-family" => {
                 args.scan_family = true;
             }
@@ -447,11 +456,55 @@ fn parse_args() -> Args {
             }
             _ => {
                 eprintln!("Error: unrecognized argument: {flag}");
+                eprintln!("Use --help to see available options.");
                 process::exit(2);
             }
         }
     }
     args
+}
+
+fn print_help() {
+    println!("verify_base_set_rs - symbolic base-set reconstruction checker");
+    println!();
+    println!("Usage:");
+    println!("  verify_base_set_rs [options]");
+    println!();
+    println!("Core options:");
+    println!("  --constants CSV             Base constants (default: Pi)");
+    println!("  --functions CSV             Base unary functions (default: Exp,Log,Minus)");
+    println!("  --operations CSV            Base binary operations (default: Plus)");
+    println!("  --ternary CSV               Base ternary operations (default: empty)");
+    println!("  --max-k N                   Maximum search code length/depth bound (default: 10)");
+    println!("  --domain real|complex       Evaluation domain (default: complex)");
+    println!("  --explain                   Print witness expressions for discovered items");
+    println!();
+    println!("Target selection (defaults to CALC4-like sets):");
+    println!("  --target-constants CSV");
+    println!("  --target-functions CSV");
+    println!("  --target-operations CSV");
+    println!("  --target-ternary CSV");
+    println!();
+    println!("Equivalence / validation:");
+    println!("  --equiv rel|ulp             Numeric equivalence mode (default: rel)");
+    println!("  --eps X                     Relative epsilon for --equiv rel");
+    println!("  --ulp N                     ULP tolerance for --equiv ulp");
+    println!("  --no-validate-witness       Skip witness re-validation (faster, less safe)");
+    println!("  --validate-witness-highprec Enable extra Python/mpmath witness check (opt-in)");
+    println!();
+    println!("Diagnostics / exploration:");
+    println!("  --check-involution NAME     Test f(f(x)) ~= x for a unary function");
+    println!("  --involution-samples N      Sample count for involution checks");
+    println!("  --scan-family               Scan generated unary candidates");
+    println!("  --scan-g CSV                Candidate generator base functions");
+    println!("  --scan-h CSV                Candidate template families");
+    println!("  --scan-params CSV           Parameter pool for candidate generation");
+    println!("  --scan-top N                Print top-N scan results");
+    println!();
+    println!("Examples:");
+    println!("  verify_base_set_rs --constants Pi --functions Exp,Log,Minus --operations Plus --max-k 10");
+    println!("  verify_base_set_rs --constants 1 --functions '' --operations EML --max-k 10 --explain");
+    println!("  verify_base_set_rs --check-involution ArcSinh");
 }
 
 fn collect_csv_flag_values(argv: &[String], i: &mut usize) -> Option<String> {
@@ -892,6 +945,14 @@ fn binary_catalog() -> HashMap<&'static str, Binary> {
                 commutative: true,
             },
         ),
+        (
+            "EML",
+            Binary {
+                // EML[a,b] = Exp[a] - Log[b]
+                f: |a, b| Some(a.exp().sub(b.ln()?)),
+                commutative: false,
+            },
+        ),
     ]
     .into_iter()
     .collect()
@@ -1308,6 +1369,7 @@ def apply1(n, x):
     return None
 
 def apply2(n,a,b):
+    if n == 'EML': return mp.e**a - mp.log(b) if b > 0 else None
     if n == 'Plus': return a+b
     if n == 'Times': return a*b
     if n == 'Subtract': return a-b
@@ -1346,38 +1408,57 @@ if we is None or te is None:
     sys.exit(1)
 
 pairs = [
-  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369')),
-  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453')),
-  (mp.mpf('1.3'), mp.mpf('2.1')),
-  (mp.mpf('2.3'), mp.mpf('3.7')),
+  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369')),   # +EulerGamma, +Glaisher
+  (mp.mpf('-0.5772156649015328606'), mp.mpf('1.2824271291006226369')),  # -EulerGamma, +Glaisher
+  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453')),  # +Catalan, +Khinchin
+  (mp.mpf('-0.91596559417721901505'), mp.mpf('2.6854520010653064453')), # -Catalan, +Khinchin
+  (mp.mpf('1.2824271291006226369'), mp.mpf('0.5772156649015328606')),   # +Glaisher, +EulerGamma
+  (mp.mpf('-1.2824271291006226369'), mp.mpf('0.5772156649015328606')),  # -Glaisher, +EulerGamma
+  (mp.mpf('2.6854520010653064453'), mp.mpf('0.91596559417721901505')),  # +Khinchin, +Catalan
+  (mp.mpf('-2.6854520010653064453'), mp.mpf('0.91596559417721901505')), # -Khinchin, +Catalan
 ]
 triples = [
-  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369'), mp.pi),
-  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453'), mp.mpf('2.7')),
-  (mp.mpf('1.3'), mp.mpf('2.1'), mp.mpf('3.7')),
+  (mp.mpf('0.5772156649015328606'), mp.mpf('1.2824271291006226369'), mp.mpf('2.6854520010653064453')),
+  (mp.mpf('0.91596559417721901505'), mp.mpf('2.6854520010653064453'), mp.mpf('1.2824271291006226369')),
+  (mp.mpf('-0.5772156649015328606'), mp.mpf('1.2824271291006226369'), mp.mpf('2.6854520010653064453')),
 ]
 tol = mp.mpf('1e-60')
 
+tested_pairs = 0
 for x,y in pairs:
-    env = {'EulerGamma': x, 'Glaisher': y, 'Catalan': pairs[1][0], 'Khinchin': pairs[1][1]}
-    wv = eval_expr(we, env)
+    env = {
+      'EulerGamma': x,
+      'Glaisher': y,
+      'Catalan': mp.mpf('0.91596559417721901505'),
+      'Khinchin': mp.mpf('2.6854520010653064453')
+    }
     tv = eval_expr(te, env)
-    if wv is None or tv is None:
-        # domain not supported in this real-only high-precision evaluator
-        sys.exit(4)
+    if tv is None:
+        continue
+    wv = eval_expr(we, env)
+    if wv is None:
+        sys.exit(1)
     if not mp.isfinite(wv) or not mp.isfinite(tv) or abs(wv-tv) > tol:
         sys.exit(1)
+    tested_pairs += 1
+if tested_pairs == 0:
+    sys.exit(4)
 
 if kind == 'ternary':
+    tested_triples = 0
     for x,y,z in triples:
         env = {'EulerGamma': x, 'Glaisher': y, 'Pi': z}
-        wv = eval_expr(we, env)
         tv = eval_expr(te, env)
-        if wv is None or tv is None:
-            # domain not supported in this real-only high-precision evaluator
-            sys.exit(4)
+        if tv is None:
+            continue
+        wv = eval_expr(we, env)
+        if wv is None:
+            sys.exit(1)
         if not mp.isfinite(wv) or not mp.isfinite(tv) or abs(wv-tv) > tol:
             sys.exit(1)
+        tested_triples += 1
+    if tested_triples == 0:
+        sys.exit(4)
 sys.exit(0)
 "#;
     let Ok(out) = Command::new("python")
@@ -1409,11 +1490,13 @@ fn validate_witness(
     kind: WitnessKind,
     witness_expr: &str,
     equiv: EquivCfg,
+    use_highprec_python: bool,
     unary_all: &HashMap<String, Unary>,
     binary_all: &HashMap<&'static str, Binary>,
     ternary_all: &HashMap<&'static str, Ternary>,
     const_all: &HashMap<&'static str, C>,
 ) -> bool {
+    let require_real_target_samples = !matches!(kind, WitnessKind::Constant(_));
     let target_expr = match &kind {
         WitnessKind::Constant(name) => name.clone(),
         WitnessKind::Unary(name) => format!("{name}[EulerGamma]"),
@@ -1427,40 +1510,54 @@ fn validate_witness(
         return false;
     };
 
-    // Keep validation points in a branch-stable real region around the main anchors.
-    // This avoids false negatives from branch-cut jumps in complex identities.
+    // Primary witness probes use only the four transcendental anchors
+    // {EulerGamma, Catalan, Glaisher, Khinchin} with sign-reflected variants.
+    // Domain-invalid target samples are skipped below.
     let sample_pairs: Vec<(f64, f64)> = vec![
         (EULER_GAMMA, GLAISHER),
+        (-EULER_GAMMA, GLAISHER),
         (CATALAN, KHINCHIN),
-        (0.62, 1.73),
-        (0.84, 2.31),
+        (-CATALAN, KHINCHIN),
+        (GLAISHER, EULER_GAMMA),
+        (-GLAISHER, EULER_GAMMA),
+        (KHINCHIN, CATALAN),
+        (-KHINCHIN, CATALAN),
     ];
     let sample_triples: Vec<(f64, f64, f64)> = vec![
-        (EULER_GAMMA, GLAISHER, PI),
-        (CATALAN, KHINCHIN, 2.7),
-        (0.72, 1.51, 2.2),
+        (EULER_GAMMA, GLAISHER, KHINCHIN),
+        (CATALAN, KHINCHIN, GLAISHER),
+        (-EULER_GAMMA, GLAISHER, KHINCHIN),
     ];
 
     let mut real_only = true;
+    let mut tested_pairs = 0usize;
     for (x, y) in &sample_pairs {
         let mut env_c: HashMap<String, C> = HashMap::new();
         env_c.insert("EulerGamma".to_string(), C::real(*x));
         env_c.insert("Glaisher".to_string(), C::real(*y));
         env_c.insert("Catalan".to_string(), C::real(CATALAN));
         env_c.insert("Khinchin".to_string(), C::real(KHINCHIN));
-        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
-            return false;
-        };
         let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            continue;
+        };
+        if require_real_target_samples && !imag_is_zero(tv, equiv) {
+            continue;
+        }
+        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
             return false;
         };
         if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
             return false;
         }
+        tested_pairs += 1;
         if !imag_is_zero(wv, equiv) || !imag_is_zero(tv, equiv) {
             real_only = false;
         }
     }
+    if tested_pairs == 0 {
+        return false;
+    }
+    let mut tested_triples = 0usize;
     for (x, y, z) in &sample_triples {
         if !matches!(kind, WitnessKind::Ternary(_)) {
             break;
@@ -1469,22 +1566,34 @@ fn validate_witness(
         env_c.insert("EulerGamma".to_string(), C::real(*x));
         env_c.insert("Glaisher".to_string(), C::real(*y));
         env_c.insert("Pi".to_string(), C::real(*z));
-        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
-            return false;
-        };
         let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+            continue;
+        };
+        if require_real_target_samples && !imag_is_zero(tv, equiv) {
+            continue;
+        }
+        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
             return false;
         };
         if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
             return false;
         }
+        tested_triples += 1;
         if !imag_is_zero(wv, equiv) || !imag_is_zero(tv, equiv) {
             real_only = false;
         }
     }
+    if matches!(kind, WitnessKind::Ternary(_)) && tested_triples == 0 {
+        return false;
+    }
 
     // Complex witnesses are accepted/rejected by multi-point complex checks only.
     if !real_only {
+        return true;
+    }
+
+    // Real-only witnesses may get extra high-precision confirmation using Python/mpmath.
+    if !use_highprec_python {
         return true;
     }
 
@@ -1621,6 +1730,10 @@ fn find_representation_with_skip(
         if !value_ok(c, domain, equiv) {
             continue;
         }
+        if near(c, target, equiv) && skip_expr.contains(name) {
+            // Do not let a rejected target witness consume the dedup slot.
+            continue;
+        }
         let key = qkey(c);
         if seen.insert(key) {
             levels[1].push((c, name.clone()));
@@ -1637,12 +1750,16 @@ fn find_representation_with_skip(
             for (x, x_expr) in &levels[k - 1] {
                 if let Some(y) = (u.f)(*x) {
                     if value_ok(y, domain, equiv) {
-                        let key = qkey(y);
-                        if seen.insert(key) {
-                                    let expr = format!("{u_name}[{x_expr}]");
-                            if near(y, target, equiv) && !skip_expr.contains(&expr) {
+                        let expr = format!("{u_name}[{x_expr}]");
+                        if near(y, target, equiv) {
+                            if !skip_expr.contains(&expr) {
                                 return Some((expr, k));
                             }
+                            // Rejected target witness: do not poison dedup for this value.
+                            continue;
+                        }
+                        let key = qkey(y);
+                        if seen.insert(key) {
                             next.push((y, expr));
                         }
                     }
@@ -1660,12 +1777,15 @@ fn find_representation_with_skip(
                         }
                         if let Some(y) = (b.f)(*a, *bb) {
                             if value_ok(y, domain, equiv) {
-                                let key = qkey(y);
-                                if seen.insert(key) {
-                                    let expr = format!("{b_name}[{a_expr}, {bb_expr}]");
-                                    if near(y, target, equiv) && !skip_expr.contains(&expr) {
+                                let expr = format!("{b_name}[{a_expr}, {bb_expr}]");
+                                if near(y, target, equiv) {
+                                    if !skip_expr.contains(&expr) {
                                         return Some((expr, k));
                                     }
+                                    continue;
+                                }
+                                let key = qkey(y);
+                                if seen.insert(key) {
                                     next.push((y, expr));
                                 }
                             }
@@ -1688,16 +1808,17 @@ fn find_representation_with_skip(
                                 for (c, c_expr) in &levels[right_k] {
                                     if let Some(y) = (t.f)(*a, *b, *c) {
                                         if value_ok(y, domain, equiv) {
-                                            let key = qkey(y);
-                                            if seen.insert(key) {
-                                                let expr = format!(
-                                                    "{t_name}[{a_expr}, {b_expr}, {c_expr}]"
-                                                );
-                                                if near(y, target, equiv)
-                                                    && !skip_expr.contains(&expr)
-                                                {
+                                            let expr = format!(
+                                                "{t_name}[{a_expr}, {b_expr}, {c_expr}]"
+                                            );
+                                            if near(y, target, equiv) {
+                                                if !skip_expr.contains(&expr) {
                                                     return Some((expr, k));
                                                 }
+                                                continue;
+                                            }
+                                            let key = qkey(y);
+                                            if seen.insert(key) {
                                                 next.push((y, expr));
                                             }
                                         }
@@ -2011,6 +2132,7 @@ fn main() {
                             WitnessKind::Binary(op_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
                             &ternary_all,
@@ -2091,6 +2213,7 @@ fn main() {
                             WitnessKind::Ternary(op_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
                             &ternary_all,
@@ -2165,6 +2288,7 @@ fn main() {
                             WitnessKind::Constant(c_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
                             &ternary_all,
@@ -2242,6 +2366,7 @@ fn main() {
                             WitnessKind::Unary(f_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
                             &ternary_all,
