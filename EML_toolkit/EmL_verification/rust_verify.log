@@ -1,0 +1,491 @@
+This is log of verification/search procedure from rust_verify code.   
+
+PS C:\SymbolicRegressionPackage\rust_verify> cargo run --release -- --constants 1 --functions "" --operations EML --explain >rust_verify.log
+
+Loaded base constants: ["1", "EulerGamma", "Glaisher"]
+Loaded base unary functions: []
+Loaded base binary operations: ["EML"]
+Loaded base ternary operations: []
+Target constants: ["-1", "1", "2", "E", "EulerGamma", "Glaisher", "Pi"]
+Target unary functions: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Target binary operations: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Target ternary operations: []
+Domain mode: complex (complex branches are allowed).
+Remaining constants: ["-1", "2", "E", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+Found constant: E
+  witness[k=3]: EML[1, 1]
+Remaining constants: ["-1", "2", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+Found unary function: Exp
+  witness[k=3]: EML[EulerGamma, 1]
+Remaining constants: ["-1", "2", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found unary function: Log
+  witness[k=6]: EML[1, Exp[EML[1, EulerGamma]]]
+Remaining constants: ["-1", "2", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found binary operation: Subtract
+  witness[k=5]: EML[Log[EulerGamma], Exp[Glaisher]]
+Remaining constants: ["-1", "2", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found constant: -1
+  witness[k=4]: Subtract[Log[1], 1]
+Remaining constants: ["2", "Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+Found constant: 2
+  witness[k=3]: Subtract[1, -1]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found unary function: Minus
+  witness[k=4]: Subtract[Log[1], EulerGamma]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found binary operation: Plus
+  witness[k=4]: Subtract[EulerGamma, Minus[Glaisher]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "Inv", "LogisticSigmoid", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found unary function: Inv
+  witness[k=4]: Exp[Minus[Log[EulerGamma]]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "LogisticSigmoid", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Power", "Times"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found binary operation: Times
+  witness[k=6]: Exp[Plus[Log[EulerGamma], Log[Glaisher]]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "LogisticSigmoid", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+Found unary function: Sqr
+  witness[k=3]: Times[EulerGamma, EulerGamma]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "LogisticSigmoid", "Sin", "Sinh", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found binary operation: Divide
+  witness[k=4]: Times[EulerGamma, Inv[Glaisher]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Half", "LogisticSigmoid", "Sin", "Sinh", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+Found unary function: Half
+  witness[k=3]: Divide[EulerGamma, 2]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Avg", "Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found binary operation: Avg
+  witness[k=4]: Half[Plus[EulerGamma, Glaisher]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Sqrt", "Tan", "Tanh"]
+Remaining binary: ["Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found unary function: Sqrt
+  witness[k=4]: Exp[Half[Log[EulerGamma]]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: ["Hypot", "Log", "Power"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found binary operation: Power
+  witness[k=5]: Exp[Times[Glaisher, Log[EulerGamma]]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: ["Hypot", "Log"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found binary operation: Log
+  witness[k=5]: Divide[Log[Glaisher], Log[EulerGamma]]
+Remaining constants: ["Pi"]
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: ["Hypot"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found constant: Pi
+  witness[k=5]: Sqrt[Minus[Sqr[Log[-1]]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: ["Hypot"]
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found binary operation: Hypot
+  witness[k=6]: Sqrt[Plus[Sqr[EulerGamma], Sqr[Glaisher]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "LogisticSigmoid", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found unary function: LogisticSigmoid
+  witness[k=6]: Inv[EML[Minus[EulerGamma], Exp[-1]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found unary function: Cosh
+  witness[k=6]: Avg[Exp[EulerGamma], Exp[Minus[EulerGamma]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Sin", "Sinh", "Tan", "Tanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: Sinh
+  witness[k=5]: EML[EulerGamma, Exp[Cosh[EulerGamma]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Sin", "Tan", "Tanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: Tanh
+  witness[k=5]: Divide[Sinh[EulerGamma], Cosh[EulerGamma]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Sin", "Tan"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: Cos
+  witness[k=5]: Cosh[Sqrt[Minus[Sqr[EulerGamma]]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Sin", "Tan"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: Sin
+  witness[k=5]: Cos[Subtract[EulerGamma, Half[Pi]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Tan"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: Tan
+  witness[k=5]: Divide[Sin[EulerGamma], Cos[EulerGamma]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+No new items at K = 5
+Testing with K = 6
+Found unary function: ArcSinh
+  witness[k=6]: Log[Plus[EulerGamma, Hypot[-1, EulerGamma]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcTan", "ArcTanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+No new items at K = 4
+Testing with K = 5
+Found unary function: ArcCosh
+  witness[k=5]: ArcSinh[Hypot[EulerGamma, Sqrt[-1]]]
+Remaining constants: []
+Remaining unary: ["ArcCos", "ArcSin", "ArcTan", "ArcTanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found unary function: ArcCos
+  witness[k=4]: ArcCosh[Cos[ArcCosh[EulerGamma]]]
+Remaining constants: []
+Remaining unary: ["ArcSin", "ArcTan", "ArcTanh"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
+No new items at K = 4
+Testing with K = 5
+Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
+Rejected flaky witness for unary function: ArcTan at k=5 -> ArcCos[Inv[Cosh[ArcSinh[EulerGamma]]]]
+Rejected flaky witness for unary function: ArcTanh at k=5 -> ArcCosh[Inv[Sin[ArcCos[EulerGamma]]]]
+Found unary function: ArcTanh
+  witness[k=5]: ArcSinh[Inv[Tan[ArcCos[EulerGamma]]]]
+Remaining constants: []
+Remaining unary: ["ArcSin", "ArcTan"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
+No new items at K = 4
+Testing with K = 5
+Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
+Rejected flaky witness for unary function: ArcTan at k=5 -> ArcCos[Inv[Cosh[ArcSinh[EulerGamma]]]]
+Found unary function: ArcSin
+  witness[k=5]: Subtract[Half[Pi], ArcCos[EulerGamma]]
+Remaining constants: []
+Remaining unary: ["ArcTan"]
+Remaining binary: []
+Remaining ternary: []
+Testing with K = 1
+No new items at K = 1
+Testing with K = 2
+No new items at K = 2
+Testing with K = 3
+No new items at K = 3
+Testing with K = 4
+Found unary function: ArcTan
+  witness[k=4]: ArcSin[Tanh[ArcSinh[EulerGamma]]]
+Remaining constants: []
+Remaining unary: []
+Remaining binary: []
+Remaining ternary: []
+Known constants: ["-1", "1", "2", "E", "EulerGamma", "Glaisher", "Pi"]
+Known unary functions: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Known binary operations: ["Avg", "Divide", "EML", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Known ternary operations: []
+Target constants: ["-1", "1", "2", "E", "EulerGamma", "Glaisher", "Pi"]
+Target unary functions: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
+Target binary operations: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
+Target ternary operations: []
+Remaining constants: []
+Remaining unary: []
+Remaining binary: []
+Remaining ternary: []
+Elapsed: 33.68s

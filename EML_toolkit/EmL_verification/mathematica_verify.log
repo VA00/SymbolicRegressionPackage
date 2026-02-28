@@ -1,0 +1,937 @@
+Import["https://raw.githubusercontent.com/VA00/SymbolicRegressionPackage/refs/heads/master/SymbolicRegression.m"]
+EML[x_,y_]:=Exp[x]-Log[y]
+VerifyBaseSet[{1},{},{EML}]
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+
+Found new constant: Glaisher	{{Glaisher,0,{Glaisher,Identity},Glaisher}}
+
+Remaining constants: {EulerGamma,\[Pi],E,I,1,-1,2}
+Remaining functions: {Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,1},{},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+
+Found new constant: EulerGamma	{{EulerGamma,0,{EulerGamma,Identity},EulerGamma}}
+
+Remaining constants: {\[Pi],E,I,1,-1,2}
+Remaining functions: {Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,1},{},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+
+Found new constant: 1	{{1,0,{1,Identity},1}}
+
+Remaining constants: {\[Pi],E,I,-1,2}
+Remaining functions: {Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,1},{},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+
+Found new constant: E	{{E,0,{1,1,EML,Identity},E}}
+
+Remaining constants: {\[Pi],I,-1,2}
+Remaining functions: {Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,1},{},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+
+Found new function: Exp	{{E^EulerGamma,0,{EulerGamma,1,EML,Identity},E^EulerGamma}}
+
+Remaining constants: {\[Pi],I,-1,2}
+Remaining functions: {Half,Minus,Log,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,1},{Exp},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:17GMT+1
+No new items found at K = 5
+Testing with K = 6	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+
+Found new function: Log	{{E^Glaisher-Log[E^E^Glaisher/EulerGamma],0,{Glaisher,Glaisher,EulerGamma,EML,Exp,EML,Identity},Log[EulerGamma]}}
+
+Remaining constants: {\[Pi],I,-1,2}
+Remaining functions: {Half,Minus,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Subtract,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,1},{Exp,Log},{EML}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+
+Found new operation: Subtract	{{EulerGamma-Glaisher,0,{EulerGamma,Log,Glaisher,Exp,EML,Identity},EulerGamma-Glaisher}}
+
+Remaining constants: {\[Pi],I,-1,2}
+Remaining functions: {Half,Minus,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,1},{Exp,Log},{EML,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:18GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+
+Found new constant: -1	{{-1,0,{1,Log,1,Subtract,Identity},-1}}
+
+Remaining constants: {\[Pi],I,2}
+Remaining functions: {Half,Minus,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,1,-1},{Exp,Log},{EML,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+
+Found new constant: 2	{{2,0,{1,-1,Subtract,Identity},2}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Minus,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Log},{EML,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+
+Found new function: Minus	{{-EulerGamma,0,{1,Log,EulerGamma,Subtract,Identity},-EulerGamma}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Plus,Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Log,Minus},{EML,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+
+Found new operation: Plus	{{EulerGamma+Glaisher,0,{Glaisher,EulerGamma,Minus,Subtract,Identity},EulerGamma+Glaisher}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Log,Minus},{EML,Plus,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:19GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:19GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:20GMT+1
+
+Found new function: Inv	{{1/EulerGamma,0,{EulerGamma,Log,Minus,Exp,Identity},1/EulerGamma}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Times,Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Inv,Log,Minus},{EML,Plus,Subtract}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:20GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:20GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:20GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:20GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:21GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:24:22GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:22GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:27GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:29GMT+1
+No new items found at K = 5
+Testing with K = 6	Sat 28 Feb 2026 12:24:45GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:45GMT+1
+
+Found new operation: Times	{{EulerGamma Glaisher,0,{Glaisher,Log,EulerGamma,Log,Plus,Exp,Identity},EulerGamma Glaisher}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Inv,Log,Minus},{EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:52GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:52GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:52GMT+1
+
+Found new function: Sqr	{{EulerGamma^2,0,{EulerGamma,EulerGamma,Times,Identity},EulerGamma^2}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Divide,Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Inv,Log,Minus,Sqr},{EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:52GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:52GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:52GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+
+Found new operation: Divide	{{EulerGamma/Glaisher,0,{EulerGamma,Glaisher,Inv,Times,Identity},EulerGamma/Glaisher}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Half,Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Inv,Log,Minus,Sqr},{Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+
+Found new function: Half	{{EulerGamma/2,0,{EulerGamma,2,Divide,Identity},EulerGamma/2}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Avg,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Half,Inv,Log,Minus,Sqr},{Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:53GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:53GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:53GMT+1
+
+Found new operation: Avg	{{(EulerGamma+Glaisher)/2,0,{Glaisher,EulerGamma,Plus,Half,Identity},(EulerGamma+Glaisher)/2}}
+
+Remaining constants: {\[Pi],I}
+Remaining functions: {Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,-1},{Exp,Half,Inv,Log,Minus,Sqr},{Avg,Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:54GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:54GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:54GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:54GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:55GMT+1
+
+Found new constant: I	{{I,0,{-1,Log,Half,Exp,Identity},I}}
+
+Remaining constants: {\[Pi]}
+Remaining functions: {Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Hypot}
+Current CALC3: {{Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr},{Avg,Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:56GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:56GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:56GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:56GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:57GMT+1
+
+Found new constant: \[Pi]	{{\[Pi],0,{-1,Log,I,Divide,Identity},\[Pi]}}
+
+Remaining constants: {}
+Remaining functions: {Sqrt,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Hypot}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr},{Avg,Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:58GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:58GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:24:58GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:24:58GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:00GMT+1
+
+Found new function: Sqrt	{{Sqrt[EulerGamma],0,{EulerGamma,Log,Half,Exp,Identity},Sqrt[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Power,Log,Hypot}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Plus,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:00GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:00GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:00GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:00GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:25:01GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:01GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:03GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:03GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:25:11GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:11GMT+1
+
+Found new operation: Power	{{EulerGamma^Glaisher,0,{Glaisher,EulerGamma,Log,Times,Exp,Identity},EulerGamma^Glaisher}}
+
+Remaining constants: {}
+Remaining functions: {Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Log,Hypot}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:14GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:14GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:14GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:14GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:25:15GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:15GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:16GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:16GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:25:25GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:25GMT+1
+
+Found new operation: Log	{{Log[Glaisher]/Log[EulerGamma],0,{Glaisher,Log,EulerGamma,Log,Divide,Identity},Log[Glaisher]/Log[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {Hypot}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:34GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:34GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:34GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:34GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:25:35GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:25:35GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:25:46GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:25:46GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:26:02GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:26:02GMT+1
+No new items found at K = 5
+Testing with K = 6	Sat 28 Feb 2026 12:29:33GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:29:33GMT+1
+
+Found new operation: Hypot	{{Sqrt[EulerGamma^2+Glaisher^2],0,{Glaisher,Sqr,EulerGamma,Sqr,Plus,Sqrt,Identity},Sqrt[EulerGamma^2+Glaisher^2]}}
+
+Remaining constants: {}
+Remaining functions: {Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:33:24GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:33:24GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:33:24GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:33:24GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:33:25GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:33:25GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:33:25GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:33:25GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:33:37GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:33:37GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:33:37GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:33:37GMT+1
+No new items found at K = 5
+Testing with K = 6	Sat 28 Feb 2026 12:37:44GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:37:44GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:37:44GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:37:44GMT+1
+
+Found new function: Cosh	{{1/2 (E^-EulerGamma+E^EulerGamma),0,{EulerGamma,Exp,EulerGamma,Exp,Inv,Avg,Identity},Cosh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cosh,Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:15GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:15GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:15GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:15GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:16GMT+1
+
+Found new function: Cos	{{Cos[EulerGamma],0,{EulerGamma,I,Divide,Cosh,Identity},Cos[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,Minus,Sqr,Sqrt},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:16GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:16GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:16GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:16GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:17GMT+1
+
+Found new function: Sinh	{{Sqrt[-1+Cosh[EulerGamma]^2],0,{I,EulerGamma,Cosh,Hypot,Identity},Sinh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,Minus,Sinh,Sqr,Sqrt},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:17GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:17GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:17GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:17GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:42:18GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:18GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:18GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:18GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:42:34GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:34GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:34GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:34GMT+1
+
+Found new function: Sin	{{Sin[EulerGamma],0,{EulerGamma,\[Pi],Half,Subtract,Cos,Identity},Sin[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,Minus,Sin,Sinh,Sqr,Sqrt},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:42GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:42GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:42GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:42GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:42:43GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:42:43GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:42:43GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:42:43GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:43:00GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:00GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:00GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:00GMT+1
+
+Found new function: Tanh	{{Tanh[EulerGamma],0,{EulerGamma,Sinh,EulerGamma,Cosh,Divide,Identity},Tanh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,Minus,Sin,Sinh,Sqr,Sqrt,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:23GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:23GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:23GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:43:24GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:24GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:24GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:24GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:43:42GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:42GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:42GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:42GMT+1
+
+Found new function: Tan	{{Sqrt[-1+Sec[EulerGamma]^2],0,{I,EulerGamma,Cos,Inv,Hypot,Identity},Tan[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:50GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:50GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:50GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:50GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:43:51GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:43:51GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:43:51GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:43:51GMT+1
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:44:09GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:44:09GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:44:09GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:44:09GMT+1
+
+Found new function: LogisticSigmoid	{{1/2 (1+Tanh[EulerGamma/2]),0,{1,EulerGamma,Half,Tanh,Avg,Identity},LogisticSigmoid[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:51:02GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:51:02GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:51:02GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:51:02GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 12:51:03GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:51:03GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:51:03GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:51:03GMT+1
+Less::nord2: Comparison of Sqrt[Im[-LogisticSigmoid[ComplexInfinity]]^2+(ArcSinh[EulerGamma]+Re[-LogisticSigmoid[ComplexInfinity]])^2] and 0.0001165741300646967115306822514709947272880159302092029527`28.32678772630792 is invalid.
+Less::nord2: Comparison of Sqrt[Im[-LogisticSigmoid[ComplexInfinity]]^2+(ArcTanh[EulerGamma]+Re[-LogisticSigmoid[ComplexInfinity]])^2] and 0.0001345099151025744041948835812647103212454465858445573418`28.310434325293944 is invalid.
+Less::nord2: Comparison of Sqrt[Im[-LogisticSigmoid[ComplexInfinity]]^2+(ArcSin[EulerGamma]+Re[-LogisticSigmoid[ComplexInfinity]])^2] and 9.8694781678774504320833870487699782614848404806200834`27.205203751502076*^-6 is invalid.
+General::stop: Further output of Less::nord2 will be suppressed during this calculation.
+No new items found at K = 4
+Testing with K = 5	Sat 28 Feb 2026 12:51:21GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:51:21GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:51:21GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:51:21GMT+1
+No new items found at K = 5
+Testing with K = 6	Sat 28 Feb 2026 12:59:28GMT+1
+Recognizing operations started	Sat 28 Feb 2026 12:59:28GMT+1
+Recognizing constants started	Sat 28 Feb 2026 12:59:28GMT+1
+Recognizing functions started	Sat 28 Feb 2026 12:59:28GMT+1
+
+Found new function: ArcSinh	{{Log[EulerGamma+Sqrt[1+EulerGamma^2]],0,{EulerGamma,EulerGamma,1,Hypot,Plus,Log,Identity},ArcSinh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcSinh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:23GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:23GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:23GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:23GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 13:01:24GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:24GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:24GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:24GMT+1
+
+Found new function: ArcCosh	{{I ArcSin[Sqrt[1-EulerGamma^2]],0,{EulerGamma,I,Hypot,ArcSinh,Identity},ArcCosh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcTanh,ArcSin,ArcCos,ArcTan}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCosh,ArcSinh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:39GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:39GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:39GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:39GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 13:01:40GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:40GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:40GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:40GMT+1
+
+Found new function: ArcCos	{{-I ArcCosh[EulerGamma],0,{EulerGamma,ArcCosh,I,Divide,Identity},ArcCos[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcTanh,ArcSin,ArcTan}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCos,ArcCosh,ArcSinh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:49GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:49GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:49GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:49GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 13:01:50GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:50GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:50GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:50GMT+1
+
+Found new function: ArcSin	{{ArcCos[Sqrt[1-EulerGamma^2]],0,{EulerGamma,ArcCos,Sin,ArcCos,Identity},ArcSin[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcTanh,ArcTan}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCos,ArcCosh,ArcSin,ArcSinh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:57GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:57GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:57GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:57GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 13:01:58GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:01:58GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:01:58GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:01:58GMT+1
+
+Found new function: ArcTanh	{{ArcSinh[EulerGamma/Sqrt[1-EulerGamma^2]],0,{EulerGamma,ArcSin,Tan,ArcSinh,Identity},ArcTanh[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {ArcTan}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCos,ArcCosh,ArcSin,ArcSinh,ArcTanh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Testing with K = 1	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:02:01GMT+1
+No new items found at K = 1
+Testing with K = 2	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:02:01GMT+1
+No new items found at K = 2
+Testing with K = 3	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:02:01GMT+1
+No new items found at K = 3
+Testing with K = 4	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing operations started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing constants started	Sat 28 Feb 2026 13:02:01GMT+1
+Recognizing functions started	Sat 28 Feb 2026 13:02:01GMT+1
+
+Found new function: ArcTan	{{ArcSin[EulerGamma/Sqrt[1+EulerGamma^2]],0,{EulerGamma,ArcSinh,Tanh,ArcSin,Identity},ArcTan[EulerGamma]}}
+
+Remaining constants: {}
+Remaining functions: {}
+Remaining operations: {}
+Current CALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCos,ArcCosh,ArcSin,ArcSinh,ArcTan,ArcTanh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+Final newCALC3: {{\[Pi],Glaisher,EulerGamma,E,2,1,I,-1},{ArcCos,ArcCosh,ArcSin,ArcSinh,ArcTan,ArcTanh,Cos,Cosh,Exp,Half,Inv,Log,LogisticSigmoid,Minus,Sin,Sinh,Sqr,Sqrt,Tan,Tanh},{Avg,Divide,EML,Hypot,Log,Plus,Power,Subtract,Times}}
+37.797238638min
+All items recognized! Calculator is still fully functional...

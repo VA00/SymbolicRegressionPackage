@@ -1,0 +1,70 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      1993,         62]
+NotebookOptionsPosition[      1460,         46]
+NotebookOutlinePosition[      1856,         62]
+CellTagsIndexPosition[      1813,         59]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Import", 
+  "[", "\"\<https://raw.githubusercontent.com/VA00/SymbolicRegressionPackage/\
+refs/heads/master/SymbolicRegression.m\>\"", "]"}]], "Input",
+ CellLabel->"In[1]:=",ExpressionUUID->"c4a262cb-17d4-40fc-8571-2131f134f1cb"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"EML", "[", 
+   RowBox[{"x_", ",", "y_"}], "]"}], ":=", 
+  RowBox[{
+   RowBox[{"Exp", "[", "x", "]"}], "-", 
+   RowBox[{"Log", "[", "y", "]"}]}]}]], "Input",
+ CellLabel->"In[2]:=",ExpressionUUID->"01e3f325-4b59-4f45-a595-9c970a0f079f"],
+
+Cell[BoxData[
+ RowBox[{"VerifyBaseSet", "[", 
+  RowBox[{
+   RowBox[{"{", "1", "}"}], ",", 
+   RowBox[{"{", "}"}], ",", 
+   RowBox[{"{", "EML", "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.981211010446392*^9, 3.9812110153514824`*^9}, {
+   3.9812620838450375`*^9, 3.9812620847448044`*^9}, 
+   3.9812666393087387`*^9},ExpressionUUID->"75f6380e-ff16-4780-aa0e-\
+7a86f78467c2"]
+},
+WindowSize->{1269, 721},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"14.3 for Microsoft Windows (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"2257d8c5-8c1b-5542-aa9f-fd29f4051acf"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 252, 4, 28, "Input",ExpressionUUID->"c4a262cb-17d4-40fc-8571-2131f134f1cb"],
+Cell[809, 26, 269, 7, 28, "Input",ExpressionUUID->"01e3f325-4b59-4f45-a595-9c970a0f079f"],
+Cell[1081, 35, 375, 9, 28, "Input",ExpressionUUID->"75f6380e-ff16-4780-aa0e-7a86f78467c2"]
+}
+]
+*)
+
