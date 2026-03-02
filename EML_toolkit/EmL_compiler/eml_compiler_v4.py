@@ -52,13 +52,12 @@ def eml_const_I():
     #return eml_exp(eml_mul(eml_log(eml_neg("1")),eml_rational(1,2)))  # I = Exp[Log[-1]*(1/2)]
     #print(eml_neg("1"))
     #print(eml_log(eml_neg("1")))
-    return eml_exp(eml_div(eml_log("-1"),"2"))  # I = Exp[Log[-1]/2]
+    return eml_neg(eml_exp(eml_div(eml_log("-1"),"2")))  # I = -Exp[Log[-1]/2]
 
 def eml_const_Pi():
     i_eml = eml_const_I()
-    minus_i = eml_neg(i_eml)
     log_minus1 = eml_log(eml_neg("1"))
-    return eml_mul(minus_i, log_minus1)  # Pi = -I*Log[-1]
+    return eml_mul(i_eml, log_minus1)  # Pi = I*Log[-1]
 
 def eml_const_GoldenRatio():
     # φ = (1 + sqrt(5))/2 = (1 + 5^(1/2)) / 2
@@ -76,9 +75,9 @@ def ASEC(x): return acos(1/x)
 def ACSC(x): return asin(1/x)
 def ACOT(x): return atan(1/x)
 
-def ASIN_LOG(z):   return -I*log(I*z + sqrt(1 - z**2))
-def ACOS_LOG(z):   return -I*log(z + sqrt(z - 1)*sqrt(z + 1))
-def ATAN_LOG(z):   return (I/2)*log((I + z)/(I - z))
+def ASIN_LOG(z):   return I*log(-I*z + sqrt(1 - z**2))
+def ACOS_LOG(z):   return I*log(z + sqrt(z - 1)*sqrt(z + 1))
+def ATAN_LOG(z):   return (-I/2)*log((-I + z)/(-I - z))
 def ASINH_LOG(z):  return log(z + sqrt(z**2 + 1))
 def ACOSH_LOG(z):  return log(z + sqrt(z + 1)*sqrt(z - 1))
 def ATANH_LOG(z):  return Rational(1,2)*log((1 + z)/(1 - z))
