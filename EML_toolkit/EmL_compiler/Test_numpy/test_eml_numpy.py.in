@@ -1,0 +1,123 @@
+import math
+import struct
+
+import numpy as np
+
+
+def eml(x, y):
+    with np.errstate(all="ignore"):
+        x = np.complex128(x)
+        y = np.complex128(y)
+        return np.exp(x) - np.log(y)
+
+
+def @NAME@(x):
+    with np.errstate(all="ignore"):
+        return @PY_EXPR@
+
+
+def ref_half(x):
+    return x / 2.0
+
+
+def ref_minus(x):
+    return -x
+
+
+def ref_inv(x):
+    return 1.0 / x
+
+
+def ref_sqr(x):
+    return x * x
+
+
+def ref_logistic_sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def ref_identity(x):
+    return x
+
+
+def ref_fn(x):
+    with np.errstate(all="ignore"):
+        return @REF@(x)
+
+
+def ordered_u64(x):
+    bits = struct.unpack(">Q", struct.pack(">d", float(x)))[0]
+    if bits >> 63:
+        return (~bits) & 0xFFFFFFFFFFFFFFFF
+    return bits | (1 << 63)
+
+
+def ulp_distance(a, b):
+    ua = ordered_u64(a)
+    ub = ordered_u64(b)
+    return abs(ua - ub)
+
+
+ulp_floor = 1e-12
+x_min = float(@XMIN@)
+x_max = float(@XMAX@)
+step = float(@STEP@)
+n_steps = int(round((x_max - x_min) / step))
+
+worst_re_x = 0.0
+worst_im_x = 0.0
+worst_re_err = 0.0
+worst_im_err = 0.0
+sumsq_re = 0.0
+sumsq_im = 0.0
+min_ulp_re = None
+max_ulp_re = 0
+n = 0
+n_valid = 0
+n_ulp = 0
+n_nonfinite = 0
+
+for i in range(n_steps + 1):
+    x = x_max if i == n_steps else x_min + i * step
+    z = @NAME@(np.complex128(x + 0.0j))
+    got = float(np.real(z))
+    ref = float(ref_fn(x))
+    im_err = float(np.imag(z))
+    n += 1
+
+    if not (math.isfinite(got) and math.isfinite(ref) and math.isfinite(im_err)):
+        n_nonfinite += 1
+        continue
+
+    re_err = got - ref
+    n_valid += 1
+
+    if abs(re_err) > abs(worst_re_err):
+        worst_re_err = re_err
+        worst_re_x = x
+    if abs(im_err) > abs(worst_im_err):
+        worst_im_err = im_err
+        worst_im_x = x
+
+    sumsq_re += re_err * re_err
+    sumsq_im += im_err * im_err
+    if abs(ref) >= ulp_floor:
+        ulp_re = ulp_distance(got, ref)
+        min_ulp_re = ulp_re if min_ulp_re is None else min(min_ulp_re, ulp_re)
+        max_ulp_re = max(max_ulp_re, ulp_re)
+        n_ulp += 1
+
+print(f"expr        : @EXPR@")
+print(f"function    : @NAME@")
+print(f"reference   : @REF_LABEL@")
+print(f"range       : [{x_min:g}, {x_max:g}], step={step:g}")
+print(f"samples     : {n}")
+print(f"valid       : {n_valid}")
+print(f"nonfinite   : {n_nonfinite}")
+print(f"worst re err: {worst_re_err:.17g} at x={worst_re_x:.17g}")
+print(f"worst im err: {worst_im_err:.17g} at x={worst_im_x:.17g}")
+if n_valid > 0:
+    print(f"rms re err  : {math.sqrt(sumsq_re / n_valid):.17g}")
+    print(f"rms im err  : {math.sqrt(sumsq_im / n_valid):.17g}")
+if n_ulp > 0:
+    print(f"ulp re      : min={min_ulp_re} max={max_ulp_re}  (|ref| >= {ulp_floor:.1e}, n={n_ulp})")
