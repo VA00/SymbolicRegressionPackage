@@ -1,0 +1,14 @@
+#ifndef EML_MATH_H
+#define EML_MATH_H
+
+#include <complex.h>
+
+static inline double complex eml(double complex x, double complex y) {
+    return cexp(x) - clog(y);
+}
+
+static inline double complex @NAME@(double complex x) {
+    return @C_EXPR@;
+}
+
+#endif

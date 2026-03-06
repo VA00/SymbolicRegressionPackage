@@ -1,0 +1,82 @@
+from mpmath import mp
+
+mp.dps = @DPS@
+
+def eml(x, y):
+    return mp.exp(x) - mp.log(y)
+
+def @NAME@(x):
+    return @C_EXPR@
+
+def ref_half(x):
+    return x / 2
+
+def ref_minus(x):
+    return -x
+
+def ref_inv(x):
+    return 1 / x
+
+def ref_sqr(x):
+    return x * x
+
+def ref_logistic_sigmoid(x):
+    return 1 / (1 + mp.exp(-x))
+
+def ref_identity(x):
+    return x
+
+def ref_fn(x):
+    return @REF@(x)
+
+step = mp.mpf("@STEP@")
+xmin = mp.mpf("@XMIN@")
+xmax = mp.mpf("@XMAX@")
+steps = int(mp.nint((xmax - xmin) / step))
+
+worst_re_x = mp.mpf("0")
+worst_im_x = mp.mpf("0")
+worst_re_err = mp.mpf("0")
+worst_im_err = mp.mpf("0")
+sumsq_re = mp.mpf("0")
+sumsq_im = mp.mpf("0")
+n = 0
+n_valid = 0
+n_nonfinite = 0
+
+for i in range(steps + 1):
+    x = xmax if i == steps else xmin + i * step
+    z = @NAME@(x)
+    ref = ref_fn(x)
+    if not (mp.isfinite(mp.re(z)) and mp.isfinite(mp.im(z)) and mp.isfinite(ref)):
+        n += 1
+        n_nonfinite += 1
+        continue
+    re_err = mp.re(z) - ref
+    im_err = mp.im(z)
+
+    if abs(re_err) > abs(worst_re_err):
+        worst_re_err = re_err
+        worst_re_x = x
+    if abs(im_err) > abs(worst_im_err):
+        worst_im_err = im_err
+        worst_im_x = x
+
+    sumsq_re += re_err * re_err
+    sumsq_im += im_err * im_err
+    n += 1
+    n_valid += 1
+
+print(f"expr        : @EXPR@")
+print(f"function    : @NAME@")
+print(f"reference   : @REF@")
+print(f"range       : [@XMIN@, @XMAX@], step=@STEP@")
+print(f"mp.dps      : {mp.dps}")
+print(f"samples     : {n}")
+print(f"valid       : {n_valid}")
+print(f"nonfinite   : {n_nonfinite}")
+print(f"worst re err: {mp.nstr(worst_re_err, 25)} at x={mp.nstr(worst_re_x, 25)}")
+print(f"worst im err: {mp.nstr(worst_im_err, 25)} at x={mp.nstr(worst_im_x, 25)}")
+if n_valid > 0:
+    print(f"rms re err  : {mp.nstr(mp.sqrt(sumsq_re / n_valid), 25)}")
+    print(f"rms im err  : {mp.nstr(mp.sqrt(sumsq_im / n_valid), 25)}")
