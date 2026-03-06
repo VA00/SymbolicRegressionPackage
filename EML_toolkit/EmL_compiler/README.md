@@ -1,4 +1,4 @@
-Compiler is able to convert any elementary function formula to pure EML form. Input expression should be proper Wolfram Mathematica form.
+Compiler is able to convert any elementary formula (''function '') to pure EML form. Input should be proper Wolfram Mathematica expression with correct syntax. For those who do not use Mathematica, this usually means square brackets, and function name starting uppercase, e.g. Sin[x] vs sin(x). 
 
 For example, to obtain EML form for natural logarithm, use
 
@@ -8,8 +8,8 @@ Expected output:
 
 EML[1,EML[EML[1,x],1]]
 
-Verify in Mathematica:
+Verify in Mathematica by back-substitution of the EML:
 
 EML[1, EML[EML[1, x], 1]] /. EML -> Function[{x, y}, Exp[x] - Log[y]]
 
-Expressions usually require heavy simplification. Try FullSimplify and specify real domain or range for x, use PowerExpand for quick check. 
+Resulting expressions usually require heavy simplification. Try FullSimplify and specify real domain or range for x; use PowerExpand for quick check. 
