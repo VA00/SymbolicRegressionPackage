@@ -1,32 +1,21 @@
-# C backend test
+# C standard math test
 
-This backend checks compiled EML expressions in C using `<math.h>`, `<complex.h>`, and a compiler available as `cc`.
+This script purpose it to check if compiled EML expressions can be properly evaluated in C using `<math.h>`, `<complex.h>`, and a compiler available as `cc`. Script generates C code files `eml_math.h` and `test_eml.c`, and compiles them to executable file `test_eml`.
 
 Platform:
 
-- Linux: yes
-- macOS: yes
-- Windows 11 PowerShell 7: not with the provided helper workflow, because both `./make_eml_c.sh` and `run_unary_suite_c.py` rely on a POSIX `sh` script. Use Git Bash, MSYS2, or WSL if you want to run the supplied helpers on Windows.
+- Linux,macOS: yes; Windows 11 PowerShell 7: no, use WSL.
 
-Set up the shared Python environment first from the parent directory:
+Set up the shared Python environment first, see README from the parent directory.
 
-```sh
-cd ..
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements-test.txt
-cd Test_C_math_h
-```
-
-Single function:
+To test single function, e.g, ArcCos[x] in the range -1<=x<=1 with step 0.01:
 
 ```sh
 ./make_eml_c.sh 'ArcCos[x]' eml_arccos -1 1 0.01
 ./test_eml
 ```
 
-Full unary suite:
+Run full unary suite:
 
 ```sh
 python run_unary_suite_c.py
@@ -34,11 +23,11 @@ python run_unary_suite_c.py
 
 The suite itself is launched with Python, but internally it calls `./make_eml_c.sh`, so the same shell requirement applies.
 
-Input required from parent directory:
+Input (EML compiler) required from parent directory:
 
 - `../eml_compiler_v4.py`
 
-Generated here:
+Generated files:
 
 - `eml_math.h`
 - `test_eml.c`
