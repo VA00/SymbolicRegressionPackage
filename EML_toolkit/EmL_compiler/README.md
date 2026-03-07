@@ -7,7 +7,11 @@ This directory contains a standalone EML compiler plus four test suites that che
 - `torch`
 - `mpmath`
 
-Additionaly, Wolfram Mathematica Notebook EmL_symbolic_simplification_test.nb is provided for check, if EML-compiled expressions do simplify symbolically to their originals. 
+Additionaly, Wolfram Mathematica Notebook 
+
+- `EmL_symbolic_simplification_test.nb`
+
+is provided for check, if EML-compiled expressions do simplify symbolically to their originals. 
   
 
 The compiler itself is eml_compiler_v4.py. It translates a Wolfram-style expression such as `ArcCos[x]`, or `x+y/z-2` into a pure EML expression. 
