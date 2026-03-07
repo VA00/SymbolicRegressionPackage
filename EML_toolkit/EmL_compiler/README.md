@@ -61,7 +61,7 @@ The per-backend subdirectories are:
 - `Test_torch`
 - `Test_mpmath`
 
-The current suites cover unary expressions on real grids. They are intended as explicit demonstration runs for the manuscript claim that compiled EML expressions can be evaluated in these environments.
+The current suites cover unary expressions on real grids. They are intended as explicit demonstration runs for the claim that compiled EML expressions can be evaluated in these environments.
 
 ## Requirements
 
