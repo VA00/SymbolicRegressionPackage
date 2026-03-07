@@ -1,16 +1,37 @@
-# `numpy` test
+# NumPy backend test
 
-One function:
+This backend checks compiled EML expressions with `numpy` complex arithmetic.
+
+Platform:
+
+- Linux: yes
+- macOS: yes
+- Windows 11 PowerShell 7: yes
+
+This directory uses only Python scripts, so it does not require `bash` or `sh`.
+
+Set up the shared Python environment first from the parent directory:
 
 ```sh
-python3 make_eml_numpy.py 'ArcCos[x]' eml_arccos -1 1 0.01
-python3 test_eml_numpy.py
+cd ..
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-test.txt
+cd Test_numpy
+```
+
+Single function:
+
+```sh
+python make_eml_numpy.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python test_eml_numpy.py
 ```
 
 Full unary suite:
 
 ```sh
-python3 run_unary_suite_numpy.py
+python run_unary_suite_numpy.py
 ```
 
 Input required from parent directory:

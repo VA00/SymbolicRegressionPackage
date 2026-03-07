@@ -1,18 +1,37 @@
-# `torch` test
+# PyTorch backend test
 
-The generated test evaluates the whole input grid in parallel as a `torch.complex128` tensor.
+This backend checks compiled EML expressions with `torch.complex128`. The generated test evaluates the full input grid in parallel.
 
-One function:
+Platform:
+
+- Linux: yes
+- macOS: yes
+- Windows 11 PowerShell 7: yes
+
+This directory uses only Python scripts, so it does not require `bash` or `sh`.
+
+Set up the shared Python environment first from the parent directory:
 
 ```sh
-python3 make_eml_torch.py 'ArcCos[x]' eml_arccos -1 1 0.01
-python3 test_eml_torch.py
+cd ..
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-test.txt
+cd Test_torch
+```
+
+Single function:
+
+```sh
+python make_eml_torch.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python test_eml_torch.py
 ```
 
 Full unary suite:
 
 ```sh
-python3 run_unary_suite_torch.py
+python run_unary_suite_torch.py
 ```
 
 Input required from parent directory:
