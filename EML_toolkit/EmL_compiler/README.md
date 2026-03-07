@@ -1,17 +1,48 @@
-# EML compiler backend tests
+# EML compiler with tests
 
-This directory contains a standalone EML compiler plus four backend-specific test suites that check whether compiled expressions can be evaluated with:
+This directory contains a standalone EML compiler plus four test suites that check whether compiled expressions can be evaluated with:
 
 - C `<math.h>` and `<complex.h>`
 - `numpy`
 - `torch`
 - `mpmath`
 
-The compiler itself is [eml_compiler_v4.py](/Users/misiek/Documents/Articles/EML%20Sheffer/EML_Sheffer_PNAS_2026-02-28/SymbolicRegressionPackage/EML_toolkit/EmL_compiler/eml_compiler_v4.py). It translates a Wolfram-style expression such as `ArcCos[x]` into a pure EML expression.
+Additionaly, Wolfram Mathematica Notebook EmL_symbolic_simplification_test.nb is provided for check, if EML-compiled expressions do simplify symbolically to their originals. 
+  
 
-## What the backend tests do
+The compiler itself is eml_compiler_v4.py. It translates a Wolfram-style expression such as `ArcCos[x]`, or `x+y/z-2` into a pure EML expression. 
 
-Each backend suite follows the same pattern:
+## Usage example
+
+Compiler is able to convert any elementary formula (''function '') to pure EML form. Input should be proper Wolfram Mathematica expression with correct syntax. For those who do not use Mathematica, this usually means square brackets, and function name starting uppercase, e.g. Sin[x] vs sin(x).
+
+For example, to obtain EML form for natural logarithm, use
+
+python3 .\eml_compiler_v4.py Log[x]
+
+Expected output:
+
+EML[1,EML[EML[1,x],1]]
+
+Verify in Mathematica by back-substitution of the EML:
+
+EML[1, EML[EML[1, x], 1]] /. EML -> Function[{x, y}, Exp[x] - Log[y]]
+
+Resulting expressions usually require heavy simplification. Try FullSimplify and specify real domain or range for x; use PowerExpand for quick check.
+
+## What the symbolic simplification test do
+
+First, you must generate EML-compiled expressions for all considered constants, unary functions, and binary operations. 
+
+```sh
+python eml_compiler_v4.py --emit-test
+```
+
+It will create `eml_tests_out/` directory with Wolfram Language `*.wl` files for originals and EML-compiled equivalents. After that, notebook `EmL_symbolic_simplification_test.nb` can be evaluated to provide symbolic check if all EML-compiled expressions are equivalent to originals. 
+
+## What the numerical tests do
+
+Each test suite follows the same pattern:
 
 1. Compile a Wolfram-style expression to EML.
 2. Generate backend-specific source code from a template.
