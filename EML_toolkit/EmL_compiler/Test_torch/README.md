@@ -1,25 +1,12 @@
 # PyTorch backend test
 
-This backend checks compiled EML expressions with `torch.complex128`. The generated test evaluates the full input grid in parallel.
+This test checks compiled EML expressions evaluation with tensor `torch.complex128` format. The generated test evaluates the full input grid in parallel. PyTorch (https://github.com/pytorch/pytorch) is modern standard for massively-parallel numerical computations using GPUs. 
 
 Platform:
 
-- Linux: yes
-- macOS: yes
-- Windows 11 PowerShell 7: yes
+    Linux,macOS: yes; Windows 11 PowerShell 7: yes.
 
-This directory uses only Python scripts, so it does not require `bash` or `sh`.
-
-Set up the shared Python environment first from the parent directory:
-
-```sh
-cd ..
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements-test.txt
-cd Test_torch
-```
+Set up the shared Python environment first, see README from the parent directory.
 
 Single function:
 
