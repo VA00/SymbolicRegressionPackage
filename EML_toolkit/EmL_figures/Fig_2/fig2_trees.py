@@ -237,35 +237,49 @@ def render_panel(
     max_y = max(node.y for node in collect_nodes(root))
     for idx, node in enumerate(collect_nodes(root)):
         node.name = f"row{row_idx}_n{idx}"
-    lines: list[str] = []
-
+    node_lines: list[str] = []
+    edge_lines: list[str] = []
+    eml_r = 0.23
+    eml_dot = 0.055
+    leaf_out_dx = 0.13
     for node in collect_nodes(root):
         y = -node.y
         if node.is_leaf:
-            style = "termnode"
-            label = math_label(node.label)
-        else:
-            style = "emlnode"
-            label = r"$\eml$"
-        lines.append(
-            f"\\node[{style}] ({node.name}) at ({node.x:.3f}cm,{y:.3f}cm) {{{label}}};"
+            node_lines.extend(
+                [
+                    f"\\coordinate ({node.name}out) at ({node.x + leaf_out_dx:.3f}cm,{y:.3f}cm);",
+                    f"\\node[termnode] ({node.name}) at ({node.x:.3f}cm,{y:.3f}cm) {{{math_label(node.label)}}};",
+                ]
+            )
+            continue
+
+        node_lines.extend(
+            [
+                f"\\coordinate ({node.name}center) at ({node.x:.3f}cm,{y:.3f}cm);",
+                f"\\coordinate ({node.name}inA) at ($({node.name}center)+(150:{eml_r:.3f}cm)$);",
+                f"\\coordinate ({node.name}inB) at ($({node.name}center)+(210:{eml_r:.3f}cm)$);",
+                f"\\coordinate ({node.name}out) at ($({node.name}center)+({eml_r:.3f}cm,0cm)$);",
+                f"\\draw[emlbody] ({node.name}center) circle [radius={eml_r:.3f}cm];",
+                f"\\draw[emlarc] ($({node.name}center)+(220:{eml_r:.3f}cm)$) arc[start angle=220,end angle=290,radius={eml_r:.3f}cm];",
+                f"\\draw[emlarrow] ($({node.name}center)+(290:{eml_r:.3f}cm)$) -- ($({node.name}center)+(308:{eml_r:.3f}cm)$);",
+                f"\\node[emldot, circle, inner sep=0pt, minimum size={eml_dot:.3f}cm] at ({node.name}out) {{}};",
+                f"\\node[emllabel] at ({node.name}center) {{$\\eml$}};",
+            ]
         )
 
     for node in collect_nodes(root):
         if node.left is not None:
-            lines.append(
-                f"\\draw[branch] ({node.left.name}.east) -- ([yshift=1.15mm]{node.name}.west);"
-            )
+            source = f"({node.left.name}out)"
+            edge_lines.append(f"\\draw[branch] {source} -- ({node.name}inA);")
         if node.right is not None:
-            lines.append(
-                f"\\draw[branch] ({node.right.name}.east) -- ([yshift=-1.15mm]{node.name}.west);"
-            )
+            source = f"({node.right.name}out)"
+            edge_lines.append(f"\\draw[branch] {source} -- ({node.name}inB);")
 
-    lines.append(
-        f"\\node[exprlabel, anchor=west] at ({width + expr_gap:.3f}cm,0cm) {{$\\mkern-4mu\\raisebox{{-0.18ex}}{{\\ensuremath{{\\to}}}}\\;{panel['title_expr']}$}};"
+    node_lines.append(
+        f"\\node[exprlabel, anchor=base west, yshift=-\\dimexpr\\EMLarrowcenter+\\EMLarrowfudge\\relax] at ({width + expr_gap:.3f}cm,0cm) {{$\\to {panel['title_expr']}$}};"
     )
 
-    return "\n".join(lines), -min_y, max_y
+    return "\n".join(node_lines + edge_lines), -min_y, max_y
 
 
 def build_document() -> str:
@@ -330,20 +344,20 @@ def build_document() -> str:
             r"\documentclass[tikz,border=6pt]{standalone}",
             r"\usepackage{amsmath,amssymb}",
             r"\usepackage{newtxtext,newtxmath}",
+            r"\usetikzlibrary{arrows.meta,calc,decorations.markings}",
             r"\DeclareMathOperator{\eml}{eml}",
+            r"\newdimen\EMLarrowcenter",
+            r"\newdimen\EMLarrowfudge",
+            r"\AtBeginDocument{\setbox0=\hbox{$\to$}\global\EMLarrowcenter=\dimexpr(\ht0-\dp0)/2\relax}",
+            r"\EMLarrowfudge=1.3pt",
             r"\definecolor{emlStroke}{RGB}{56,63,71}",
             r"\definecolor{emlFill}{RGB}{247,243,235}",
             r"\tikzset{",
-            r"  emlnode/.style={",
-            r"    draw=emlStroke,",
-            r"    fill=emlFill,",
-            r"    rounded corners=1.8pt,",
-            r"    line width=0.5pt,",
-            r"    minimum width=7.4mm,",
-            r"    minimum height=4.0mm,",
-            r"    inner sep=0.20pt,",
-            r"    font=\fontsize{10.4}{11.2}\selectfont",
-            r"  },",
+            r"  emlbody/.style={draw=emlStroke, fill=emlFill, line width=0.46pt},",
+            r"  emlarc/.style={draw=emlStroke, line width=0.46pt, line cap=round, line join=round},",
+            r"  emlarrow/.style={draw=emlStroke, line width=0.46pt, line cap=round, line join=round, postaction={decorate}, decoration={markings, mark=at position 1 with {\arrow{Stealth[length=1.7mm,width=1.25mm]}}}},",
+            r"  emldot/.style={draw=emlStroke, fill=emlStroke, line width=0.36pt},",
+            r"  emllabel/.style={text=emlStroke, font=\fontsize{6.2}{6.4}\selectfont},",
             r"  termnode/.style={",
             r"    text=black!78,",
             r"    font=\fontsize{14.0}{14.8}\selectfont,",
