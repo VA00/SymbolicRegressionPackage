@@ -135,10 +135,10 @@ DISPLAY_NAMES = {
 #   fill = pastel node fill (spiral nodes)
 #   edge = saturated border (spiral node borders AND adjacency matrix squares)
 CATEGORIES = {
-    'eml':      {'fill': '#ffcdd2', 'edge': '#c62828'},
+    'eml':      {'fill': '#ef9a9a', 'edge': '#c62828'},
     'constant': {'fill': '#c8e6c9', 'edge': '#2e7d32'},
-    'unary':    {'fill': '#f5f5f5', 'edge': '#424242'},
-    'binary':   {'fill': '#eeeeee', 'edge': '#424242'},
+    'unary':    {'fill': '#cccccc', 'edge': '#424242'},
+    'binary':   {'fill': '#c0c0c0', 'edge': '#424242'},
     'trig':     {'fill': '#bbdefb', 'edge': '#1565c0'},
     'hyp':      {'fill': '#f8bbd0', 'edge': '#ad1457'},
 }
@@ -354,12 +354,12 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
     """Generate standalone TikZ file (circular arc edges, layered rendering)."""
 
     color_defs = {
-        '#ffcdd2': 'fillEML',
+        '#ef9a9a': 'fillEML',
         '#c8e6c9': 'fillConst',
         '#bbdefb': 'fillTrig',
         '#f8bbd0': 'fillHyp',
-        '#f5f5f5': 'fillUnary',
-        '#eeeeee': 'fillBinary',
+        '#cccccc': 'fillUnary',
+        '#c0c0c0': 'fillBinary',
     }
     edge_color_defs = {
         '#c62828': 'edgeEML',
@@ -370,11 +370,12 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
     }
 
     # TeX display names (ISO 80000-2 for inverse functions)
+    # Compact forms using \smash, \! and scriptsize stacking for long labels
     TEX_NAMES = {
-        'EML':     r'\textsf{EML}',
+        'EML':     r'$\operatorname{eml}$',
         '1':       r'$1$',
         'e':       r'$e$',
-        '\u22121': r'$-1$',
+        '\u22121': r'$\!-\!1$',
         '2':       r'$2$',
         '\u03c0':  r'$\pi$',
         'exp':     r'$\exp$',
@@ -383,16 +384,16 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
         '1/x':     r'$1/x$',
         'x\u00b2': r'$x^2$',
         'x/2':     r'$x/2$',
-        '\u221ax': r'$\sqrt{x}$',
+        '\u221ax': r'$\!\sqrt{x}$',
         '\u03c3':  r'$\sigma$',
         '\u2212':  r'$-$',
         '+':       r'$+$',
         '\u00d7':  r'$\times$',
         '\u00f7':  r'$\div$',
-        'avg':     r'$\frac{x+y}{2}$',
+        'avg':     r'$\smash{\frac{x\!+\!y}{2}}$',
         'x\u02b8': r'$x^y$',
-        'log_b':   r'$\log_x y$',
-        'hypot':   r'$\sqrt{x^2\!+\!y^2}$',
+        'log_b':   r'$\!\log_{\!x}\!y$',
+        'hypot':   r'$\smash{\sqrt{\!x^2\!\!+\!y^2}}$',
         'cosh':    r'$\cosh$',
         'sinh':    r'$\sinh$',
         'tanh':    r'$\tanh$',
@@ -418,6 +419,7 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
 
     lines = []
     lines.append(r'\documentclass[border=5mm]{standalone}')
+    lines.append(r'\usepackage{amsmath}')
     lines.append(r'\usepackage{tikz}')
     lines.append(r'\usetikzlibrary{arrows.meta}')
     lines.append(r'\pgfdeclarelayer{background}')
@@ -463,17 +465,25 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
         node_tikz_id[node] = tid
 
         if len(display) <= 2:
-            fontsize = r'\Large'
+            fontsize_pt = 29
         elif len(display) <= 4:
-            fontsize = r'\large'
-        elif len(display) <= 5:
-            fontsize = r'\normalsize'
+            fontsize_pt = 23
+        elif len(display) <= 6:
+            fontsize_pt = 18
         else:
-            fontsize = r'\small'
+            fontsize_pt = 14
 
-        lines.append(f'\\node[mynode, fill={fill_name}, draw={ec_name}] '
+        # Center on math axis: axis_height = 0.25 * fontsize (CM fonts).
+        # text_height = 2 * axis_height so bounding box center = axis.
+        th = fontsize_pt * 0.5
+        leading = fontsize_pt + 4
+        fontcmd = (f'\\fontsize{{{fontsize_pt}}}{{{leading}}}'
+                   r'\selectfont')
+
+        lines.append(f'\\node[mynode, fill={fill_name}, draw={ec_name}, '
+                     f'text height={th:.1f}pt, text depth=0pt] '
                      f'({tid}) at ({x:.3f},{y:.3f}) '
-                     f'{{{fontsize} {tex_display}}};')
+                     f'{{{fontcmd} {tex_display}}};')
 
     lines.append('')
 
@@ -524,7 +534,7 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
     Path(tikz_ts).write_text(tikz_text, encoding='utf-8')
     print(f"TikZ saved: {tikz_ts}")
 
-    tikz_canonical = outdir / 'graph_spiral.tex'
+    tikz_canonical = outdir / 'Fig1_graph_spiral.tex'
     Path(tikz_canonical).write_text(tikz_text, encoding='utf-8')
     print(f"TikZ saved: {tikz_canonical}")
 
@@ -615,16 +625,14 @@ def render_adjacency_matrix(primitives, discoveries, outdir, ts):
                 (j - 0.5, -0.5), 1.0, n_rows,
                 facecolor='#f0f0f0', edgecolor='none', zorder=0))
 
-    # Colored squares — pastel fill + saturated border, matching spiral nodes
-    sq = 0.92
-    offset = (1.0 - sq) / 2
+    # Colored squares — pastel fills matching spiral node fills, no frame
     for i in range(n_rows):
         for j in range(n_cols):
             if M_show[i, j]:
                 ax.add_patch(plt.Rectangle(
-                    (j - 0.5 + offset, i - 0.5 + offset), sq, sq,
-                    facecolor=col_fills[j], edgecolor=col_edges[j],
-                    linewidth=1.5, zorder=2))
+                    (j - 0.5, i - 0.5), 1.0, 1.0,
+                    facecolor=col_fills[j], edgecolor='none',
+                    zorder=2))
 
     # Grid
     for i in range(n_rows + 1):
@@ -652,8 +660,8 @@ def render_adjacency_matrix(primitives, discoveries, outdir, ts):
     for k, (fill, ec, label) in enumerate(legend_items):
         y = ly + k
         ax.add_patch(plt.Rectangle(
-            (lx - 0.5 + offset, y - 0.5 + offset), sq, sq,
-            facecolor=fill, edgecolor=ec, linewidth=1.5, zorder=4))
+            (lx - 0.5, y - 0.5), 1.0, 1.0,
+            facecolor=fill, edgecolor='none', zorder=4))
         ax.text(lx + 1, y, label, fontsize=28, fontfamily='serif',
                 va='center', ha='left', zorder=4)
 
@@ -682,13 +690,13 @@ def render_adjacency_matrix(primitives, discoveries, outdir, ts):
                     dpi=300 if suffix == 'png' else None, bbox_inches='tight')
         print(f"Saved: {path}")
 
-    fig.savefig(str(outdir / 'adjacency_matrix.png'), dpi=300,
+    fig.savefig(str(outdir / 'SI_adjacency_matrix.png'), dpi=300,
                 bbox_inches='tight')
     try:
-        fig.savefig(str(outdir / 'adjacency_matrix.pdf'), bbox_inches='tight')
-        print(f"Saved: {outdir / 'adjacency_matrix.pdf'}")
+        fig.savefig(str(outdir / 'SI_adjacency_matrix.pdf'), bbox_inches='tight')
+        print(f"Saved: {outdir / 'SI_adjacency_matrix.pdf'}")
     except PermissionError:
-        print(f"SKIPPED (locked): adjacency_matrix.pdf")
+        print(f"SKIPPED (locked): SI_adjacency_matrix.pdf")
     plt.close()
 
 
