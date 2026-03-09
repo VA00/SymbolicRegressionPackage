@@ -88,7 +88,7 @@ def INV(z):   return 1/z
 def SQR(z):   return z**2
 def AVG(a,b): return (a + b)/2
 def HYPOT(a,b): return sqrt(a**2 + b**2)
-def LOGISTIC_SIGMOID(z): return 1/(1 + exp(-z))
+def LOGISTIC_SIGMOID(z): return Rational(1, 2) * (1 + tanh(z / 2))
 
 def LOG_DISPATCH(*args):
     if len(args) == 1: return log(args[0])
