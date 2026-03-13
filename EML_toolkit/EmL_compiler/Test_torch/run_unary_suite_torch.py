@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -56,8 +57,8 @@ def parse_err(value: str) -> tuple[float, float]:
 def main() -> int:
     results = []
     for expr, name, xmin, xmax, step in CASES:
-        run(["python3", "./make_eml_torch.py", expr, name, str(xmin), str(xmax), str(step)])
-        out = parse_output(run(["python3", "./test_eml_torch.py"]))
+        run([sys.executable, "./make_eml_torch.py", expr, name, str(xmin), str(xmax), str(step)])
+        out = parse_output(run([sys.executable, "./test_eml_torch.py"]))
         re_err, re_x = parse_err(out["worst re err"])
         im_err, im_x = parse_err(out["worst im err"])
         results.append(

@@ -1,6 +1,6 @@
-# NumPy backend test
+# NumPy test
 
-This backend checks compiled EML expressions with `numpy` complex arithmetic.
+This test evaluates compiled EML expressions using `numpy` complex arithmetic.
 
 Platform:
 
