@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import math
+import os
 import subprocess
+import sys
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent
@@ -52,10 +54,12 @@ def parse_err(value: str) -> tuple[float, float]:
 
 
 def main() -> int:
+    make_cmd = [sys.executable, "./make_eml_c.py"]
+    test_program = DIR / ("test_eml.exe" if os.name == "nt" else "test_eml")
     results = []
     for expr, name, xmin, xmax, step in CASES:
-        run(["./make_eml_c.sh", expr, name, str(xmin), str(xmax), str(step)])
-        out = parse_output(run(["./test_eml"]))
+        run(make_cmd + [expr, name, str(xmin), str(xmax), str(step)])
+        out = parse_output(run([str(test_program)]))
         re_err, re_x = parse_err(out["worst re err"])
         im_err, im_x = parse_err(out["worst im err"])
         results.append({
