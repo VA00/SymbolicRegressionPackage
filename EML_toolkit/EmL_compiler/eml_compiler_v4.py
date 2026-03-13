@@ -52,7 +52,9 @@ def eml_const_I():
     #return eml_exp(eml_mul(eml_log(eml_neg("1")),eml_rational(1,2)))  # I = Exp[Log[-1]*(1/2)]
     #print(eml_neg("1"))
     #print(eml_log(eml_neg("1")))
-    return eml_neg(eml_exp(eml_div(eml_log("-1"),"2")))  # I = -Exp[Log[-1]/2]
+    minus_one = eml_neg("1")
+    two = eml_int(2)
+    return eml_neg(eml_exp(eml_div(eml_log(minus_one), two)))  # I = -Exp[Log[-1]/2]
 
 def eml_const_Pi():
     i_eml = eml_const_I()
@@ -288,10 +290,8 @@ def emit_test_wl_files(outdir):
         "ops_orig.wl": op_orig,
     }
 
-# =========================
-# CLI
-# =========================
-if __name__ == "__main__":
+
+def _build_arg_parser():
     ap = argparse.ArgumentParser(
         description="Standalone EML compiler. Default mode compiles one Wolfram Mathematica-style expression and prints EML."
     )
@@ -305,7 +305,24 @@ if __name__ == "__main__":
         action="store_true",
         help="write *.wl test lists to ./eml_tests_out",
     )
-    args = ap.parse_args()
+    return ap
+
+
+def parse_cli_args(argv=None):
+    ap = _build_arg_parser()
+    args, extra = ap.parse_known_args(argv)
+    if extra:
+        if args.expr is None and not args.emit_test and len(extra) == 1 and extra[0].startswith("-") and extra[0] != "--":
+            return ap.parse_args(["--", extra[0]])
+        ap.error(f"unrecognized arguments: {' '.join(extra)}")
+    return args
+
+# =========================
+# CLI
+# =========================
+if __name__ == "__main__":
+    ap = _build_arg_parser()
+    args = parse_cli_args()
 
     if args.emit_test:
         outdir = "eml_tests_out"

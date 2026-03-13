@@ -49,12 +49,12 @@ It will create `eml_tests_out/` directory with Wolfram Language `*.wl` files for
 Each test suite follows the same pattern:
 
 1. Compile a Wolfram-style expression to EML.
-2. Generate backend-specific source code from a template.
+2. Generate source code for the chosen language or library from a template.
 3. Evaluate the generated function on a real input grid.
-4. Compare the real part against a native backend reference function.
+4. Compare the real part against a reference function from the same language or library.
 5. Report the largest real and imaginary errors on that grid.
 
-The per-backend subdirectories are:
+The test subdirectories are:
 
 - `Test_C_math_h`
 - `Test_numpy`
@@ -68,7 +68,7 @@ The current suites cover unary expressions on real grids. They are intended as e
 Minimal tools:
 
 - Python 3.12 or newer
-- a C compiler available as `cc`
+- for the C tests: either a compiler available as `cc`, or on Windows 11 an activated Intel oneAPI environment providing `icx`
 
 Python packages:
 
@@ -77,7 +77,7 @@ Python packages:
 - `mpmath`
 - `torch`
 
-The compiler depends on `sympy`. The backend suites additionally depend on their own libraries.
+The compiler depends on `sympy`. The test suites additionally depend on their own libraries.
 
 ## Reproducible setup
 
@@ -107,7 +107,7 @@ Generate Wolfram lists used elsewhere in the toolkit:
 python eml_compiler_v4.py --emit-test
 ```
 
-## Run all four backend suites
+## Run all four test suites
 
 From this directory, with the virtual environment activated:
 
@@ -125,6 +125,14 @@ cd ../Test_mpmath
 python run_unary_suite_mpmath.py
 ```
 
+On Windows 11 for the C tests, first activate Intel oneAPI for `intel64` and re-enter PowerShell 7 so `icx` is on `PATH`:
+
+```powershell
+cmd.exe /K '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 && pwsh'
+```
+
+The `Program Files (x86)` part is the installation path of `setvars.bat`; it does not mean a 32-bit compiler target. The target architecture comes from the `intel64` argument and the initialized Visual Studio environment, which should report `x64`.
+
 Each suite writes a report in its own directory:
 
 - `Test_C_math_h/unary_suite_report_c.txt`
@@ -138,8 +146,21 @@ C:
 
 ```sh
 cd Test_C_math_h
-./make_eml_c.sh 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_c.py 'ArcCos[x]' eml_arccos -1 1 0.01
+```
+
+Then run the generated binary:
+
+```sh
 ./test_eml
+```
+
+On Windows 11 PowerShell 7, after activating oneAPI, use:
+
+```powershell
+cd Test_C_math_h
+python .\make_eml_c.py 'ArcCos[x]' eml_arccos -1 1 0.01
+.\test_eml.exe
 ```
 
 NumPy:
@@ -162,13 +183,13 @@ mpmath:
 
 ```sh
 cd Test_mpmath
-./make_eml_mpmath.sh 'ArcCos[x]' eml_arccos -1 1 0.01 64
+python make_eml_mpmath.py 'ArcCos[x]' eml_arccos -1 1 0.01 64
 python test_eml_mpmath.py
 ```
 
 ## Notes
 
-- The C backend uses C complex arithmetic, so the generated code includes both `<math.h>` and `<complex.h>`.
+- The C tests use C complex arithmetic, so the generated code includes both `<math.h>` and `<complex.h>`.
 - `torch` runs the full grid in parallel as a `torch.complex128` tensor.
 - `mpmath` supports higher precision; rerun its suite with `python run_unary_suite_mpmath.py --dps 128` to increase `mp.dps`.
-- Generated files such as `test_eml_numpy.py`, `test_eml_torch.py`, `test_eml_mpmath.py`, `test_eml.c`, `test_eml`, and `eml_math.h` are disposable build artifacts.
+- Generated files such as `test_eml_numpy.py`, `test_eml_torch.py`, `test_eml_mpmath.py`, `test_eml.c`, `test_eml`, `test_eml.exe`, and `eml_math.h` are disposable build artifacts.
