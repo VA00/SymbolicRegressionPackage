@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import math
 import subprocess
+import sys
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent
@@ -59,8 +60,8 @@ def main() -> int:
 
     results = []
     for expr, name, xmin, xmax, step in CASES:
-        run(["./make_eml_mpmath.sh", expr, name, str(xmin), str(xmax), str(step), str(args.dps)])
-        out = parse_output(run(["python3", "./test_eml_mpmath.py"]))
+        run([sys.executable, "./make_eml_mpmath.py", expr, name, str(xmin), str(xmax), str(step), str(args.dps)])
+        out = parse_output(run([sys.executable, "./test_eml_mpmath.py"]))
         re_err, re_x = parse_err(out["worst re err"])
         im_err, im_x = parse_err(out["worst im err"])
         results.append({

@@ -1,17 +1,18 @@
 # Arbitrary-precision mpmath test
 
-This test checks compiled EML expressions with arbitrary-precision complex arithmetic from `mpmath`. The `mpmath` (https://github.com/mpmath/mpmath) is industry-standard library for arbitrary precision numerical computations. 
+This test evaluates compiled EML expressions with arbitrary-precision complex arithmetic from `mpmath`.
 
 Platform:
 
-    Linux,macOS: yes; Windows 11 PowerShell 7: no, use WSL.
+- Linux, macOS: yes
+- Windows 11 PowerShell 7: yes
 
 Set up the shared Python environment first, see README from the parent directory.
 
 To test single function, e.g, ArcCos[x] in the range -1<=x<=1 with step 0.01 using 64-digit arithmetic (i.e., 4x machine precision):
 
 ```sh
-./make_eml_mpmath.sh 'ArcCos[x]' eml_arccos -1 1 0.01 64
+python make_eml_mpmath.py 'ArcCos[x]' eml_arccos -1 1 0.01 64
 python test_eml_mpmath.py
 ```
 
