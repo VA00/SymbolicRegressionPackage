@@ -34,6 +34,19 @@ Full unary suite:
 python run_unary_suite_numpy.py
 ```
 
+Single binary operation:
+
+```sh
+python make_eml_binary_numpy.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python test_eml_binary_numpy.py
+```
+
+Full binary suite:
+
+```sh
+python run_binary_suite_numpy.py
+```
+
 Input required from parent directory:
 
 - `../eml_compiler_v4.py`
@@ -41,4 +54,6 @@ Input required from parent directory:
 Generated here:
 
 - `test_eml_numpy.py`
+- `test_eml_binary_numpy.py`
 - `unary_suite_report_numpy.txt`
+- `binary_suite_report_numpy.txt`
