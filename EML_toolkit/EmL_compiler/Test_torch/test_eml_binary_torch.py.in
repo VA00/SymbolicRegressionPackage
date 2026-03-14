@@ -1,0 +1,144 @@
+import math
+import struct
+
+import torch
+
+
+DTYPE = torch.complex128
+RTYPE = torch.float64
+
+
+def tc(x):
+    if isinstance(x, torch.Tensor):
+        return x.to(dtype=DTYPE)
+    return torch.tensor(x, dtype=DTYPE)
+
+
+def tr(x):
+    if isinstance(x, torch.Tensor):
+        return x.to(dtype=RTYPE)
+    return torch.tensor(x, dtype=RTYPE)
+
+
+def sanitize_complex(z):
+    return torch.complex(
+        torch.nan_to_num(torch.real(z), nan=0.0, posinf=float("inf"), neginf=float("-inf")),
+        torch.nan_to_num(torch.imag(z), nan=0.0, posinf=float("inf"), neginf=float("-inf")),
+    )
+
+
+def eml(x, y):
+    x = tc(x)
+    y = tc(y)
+    return sanitize_complex(torch.exp(x) - torch.log(y))
+
+
+def @NAME@(x, y):
+    return @PY_EXPR@
+
+
+def ref_plus(x, y): return x + y
+def ref_times(x, y): return x * y
+def ref_subtract(x, y): return x - y
+def ref_divide(x, y): return x / y
+def ref_power(x, y): return torch.pow(x, y)
+def ref_logxy(x, y): return torch.log(y) / torch.log(x)
+def ref_avg(x, y): return (x + y) / 2.0
+def ref_hypot_xy(x, y): return torch.hypot(x, y)
+
+
+def ref_fn(x, y):
+    return @REF@(x, y)
+
+
+def ordered_u64(x):
+    bits = struct.unpack(">Q", struct.pack(">d", float(x)))[0]
+    if bits >> 63:
+        return (~bits) & 0xFFFFFFFFFFFFFFFF
+    return bits | (1 << 63)
+
+
+def ulp_distance(a, b):
+    ua = ordered_u64(a)
+    ub = ordered_u64(b)
+    return abs(ua - ub)
+
+
+ulp_floor = 1e-12
+x_min = float(@XMIN@)
+x_max = float(@XMAX@)
+x_step = float(@XSTEP@)
+y_min = float(@YMIN@)
+y_max = float(@YMAX@)
+y_step = float(@YSTEP@)
+x_steps = int(round((x_max - x_min) / x_step))
+y_steps = int(round((y_max - y_min) / y_step))
+x_grid = torch.linspace(x_min, x_max, x_steps + 1, dtype=RTYPE)
+y_grid = torch.linspace(y_min, y_max, y_steps + 1, dtype=RTYPE)
+x_mesh, y_mesh = torch.meshgrid(x_grid, y_grid, indexing="ij")
+
+with torch.no_grad():
+    z = @NAME@(tc(x_mesh), tc(y_mesh))
+    got = torch.real(z).to(dtype=RTYPE)
+    ref = ref_fn(x_mesh, y_mesh).to(dtype=RTYPE)
+    im_err = torch.imag(z).to(dtype=RTYPE)
+
+    finite_mask = torch.isfinite(got) & torch.isfinite(ref) & torch.isfinite(im_err)
+    n = x_mesh.numel()
+    n_valid = int(torch.count_nonzero(finite_mask).item())
+    n_nonfinite = int(n - n_valid)
+    worst_re_x = 0.0
+    worst_re_y = 0.0
+    worst_im_x = 0.0
+    worst_im_y = 0.0
+    worst_re_err = 0.0
+    worst_im_err = 0.0
+    sumsq_re = 0.0
+    sumsq_im = 0.0
+    min_ulp_re = None
+    max_ulp_re = 0
+    n_ulp = 0
+
+    if n_valid > 0:
+        got_valid = got[finite_mask]
+        ref_valid = ref[finite_mask]
+        im_valid = im_err[finite_mask]
+        x_valid = x_mesh[finite_mask]
+        y_valid = y_mesh[finite_mask]
+        re_err = got_valid - ref_valid
+
+        idx_re = int(torch.argmax(torch.abs(re_err)).item())
+        idx_im = int(torch.argmax(torch.abs(im_valid)).item())
+        worst_re_err = float(re_err[idx_re].item())
+        worst_re_x = float(x_valid[idx_re].item())
+        worst_re_y = float(y_valid[idx_re].item())
+        worst_im_err = float(im_valid[idx_im].item())
+        worst_im_x = float(x_valid[idx_im].item())
+        worst_im_y = float(y_valid[idx_im].item())
+        sumsq_re = float(torch.sum(re_err * re_err).item())
+        sumsq_im = float(torch.sum(im_valid * im_valid).item())
+
+        ulp_mask = torch.abs(ref_valid) >= ulp_floor
+        if bool(torch.any(ulp_mask)):
+            got_ulp = got_valid[ulp_mask].tolist()
+            ref_ulp = ref_valid[ulp_mask].tolist()
+            ulps = [ulp_distance(a, b) for a, b in zip(got_ulp, ref_ulp)]
+            min_ulp_re = min(ulps)
+            max_ulp_re = max(ulps)
+            n_ulp = len(ulps)
+
+print(f"expr        : @EXPR@")
+print(f"function    : @NAME@")
+print(f"reference   : @REF_LABEL@")
+print(f"range x     : [{x_min:g}, {x_max:g}], step={x_step:g}")
+print(f"range y     : [{y_min:g}, {y_max:g}], step={y_step:g}")
+print(f"samples     : {n}")
+print(f"valid       : {n_valid}")
+print(f"nonfinite   : {n_nonfinite}")
+print(f"worst re err: {worst_re_err:.17g} at x={worst_re_x:.17g}, y={worst_re_y:.17g}")
+print(f"worst im err: {worst_im_err:.17g} at x={worst_im_x:.17g}, y={worst_im_y:.17g}")
+if n_valid > 0:
+    print(f"rms re err  : {math.sqrt(sumsq_re / n_valid):.17g}")
+    print(f"rms im err  : {math.sqrt(sumsq_im / n_valid):.17g}")
+if n_ulp > 0:
+    print(f"ulp re      : min={min_ulp_re} max={max_ulp_re}  (|ref| >= {ulp_floor:.1e}, n={n_ulp})")
