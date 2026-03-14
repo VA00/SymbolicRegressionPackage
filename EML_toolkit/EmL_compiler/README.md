@@ -145,7 +145,7 @@ C:
 
 ```sh
 cd Test_C_math_h
-python make_eml_c.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_c.py ArcCos[x] -1 1 0.01
 ```
 
 Then run the generated binary:
@@ -158,7 +158,7 @@ On Windows 11 PowerShell 7, after activating oneAPI, use:
 
 ```powershell
 cd Test_C_math_h
-python .\make_eml_c.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python .\make_eml_c.py ArcCos[x] -1 1 0.01
 .\test_eml.exe
 ```
 
@@ -166,7 +166,7 @@ NumPy:
 
 ```sh
 cd Test_numpy
-python make_eml_numpy.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_numpy.py ArcCos[x] -1 1 0.01
 python test_eml_numpy.py
 ```
 
@@ -174,7 +174,7 @@ PyTorch:
 
 ```sh
 cd Test_torch
-python make_eml_torch.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_torch.py ArcCos[x] -1 1 0.01
 python test_eml_torch.py
 ```
 
@@ -182,7 +182,7 @@ mpmath:
 
 ```sh
 cd Test_mpmath
-python make_eml_mpmath.py 'ArcCos[x]' eml_arccos -1 1 0.01 64
+python make_eml_mpmath.py ArcCos[x] -1 1 0.01 64
 python test_eml_mpmath.py
 ```
 
