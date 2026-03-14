@@ -24,7 +24,7 @@ cd Test_numpy
 Single function:
 
 ```sh
-python make_eml_numpy.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_numpy.py ArcCos[x] -1 1 0.01
 python test_eml_numpy.py
 ```
 

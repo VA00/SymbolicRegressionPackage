@@ -11,27 +11,27 @@ DIR = Path(__file__).resolve().parent
 
 
 CASES = [
-    ("Half[x]", "eml_half", -4.0, 4.0, 0.125),
-    ("Minus[x]", "eml_minus", -4.0, 4.0, 0.125),
-    ("Log[x]", "eml_log", 0.125, 8.0, 0.125),
-    ("Exp[x]", "eml_exp", -4.0, 4.0, 0.125),
-    ("Inv[x]", "eml_inv", 0.125, 8.0, 0.125),
-    ("Sqrt[x]", "eml_sqrt", 0.0, 8.0, 0.125),
-    ("Sqr[x]", "eml_sqr", -4.0, 4.0, 0.125),
-    ("Cosh[x]", "eml_cosh", -4.0, 4.0, 0.125),
-    ("Cos[x]", "eml_cos", -20.0, 20.0, 0.125),
-    ("Sinh[x]", "eml_sinh", -4.0, 4.0, 0.125),
-    ("Sin[x]", "eml_sin", -20.0, 20.0, 0.125),
-    ("Tanh[x]", "eml_tanh", -4.0, 4.0, 0.125),
-    ("Tan[x]", "eml_tan", -1.25, 1.25, 0.03125),
-    ("ArcSinh[x]", "eml_arcsinh", -8.0, 8.0, 0.125),
-    ("ArcTanh[x]", "eml_arctanh", -0.95, 0.95, 0.01),
-    ("ArcSin[x]", "eml_arcsin", -1.0, 1.0, 0.01),
-    ("ArcCos[x]", "eml_arccos", -1.0, 1.0, 0.01),
-    ("ArcTan[x]", "eml_arctan", -8.0, 8.0, 0.125),
-    ("ArcCosh[x]", "eml_arccosh", 1.0, 9.0, 0.125),
-    ("LogisticSigmoid[x]", "eml_logistic_sigmoid", -8.0, 8.0, 0.125),
-    ("x", "eml_identity", -8.0, 8.0, 0.125),
+    ("Half[x]", -4.0, 4.0, 0.125),
+    ("Minus[x]", -4.0, 4.0, 0.125),
+    ("Log[x]", 0.125, 8.0, 0.125),
+    ("Exp[x]", -4.0, 4.0, 0.125),
+    ("Inv[x]", 0.125, 8.0, 0.125),
+    ("Sqrt[x]", 0.0, 8.0, 0.125),
+    ("Sqr[x]", -4.0, 4.0, 0.125),
+    ("Cosh[x]", -4.0, 4.0, 0.125),
+    ("Cos[x]", -20.0, 20.0, 0.125),
+    ("Sinh[x]", -4.0, 4.0, 0.125),
+    ("Sin[x]", -20.0, 20.0, 0.125),
+    ("Tanh[x]", -4.0, 4.0, 0.125),
+    ("Tan[x]", -1.25, 1.25, 0.03125),
+    ("ArcSinh[x]", -8.0, 8.0, 0.125),
+    ("ArcTanh[x]", -0.95, 0.95, 0.01),
+    ("ArcSin[x]", -1.0, 1.0, 0.01),
+    ("ArcCos[x]", -1.0, 1.0, 0.01),
+    ("ArcTan[x]", -8.0, 8.0, 0.125),
+    ("ArcCosh[x]", 1.0, 9.0, 0.125),
+    ("LogisticSigmoid[x]", -8.0, 8.0, 0.125),
+    ("x", -8.0, 8.0, 0.125),
 ]
 
 
@@ -56,8 +56,8 @@ def parse_err(value: str) -> tuple[float, float]:
 
 def main() -> int:
     results = []
-    for expr, name, xmin, xmax, step in CASES:
-        run([sys.executable, "./make_eml_numpy.py", expr, name, str(xmin), str(xmax), str(step)])
+    for expr, xmin, xmax, step in CASES:
+        run([sys.executable, "./make_eml_numpy.py", expr, str(xmin), str(xmax), str(step)])
         out = parse_output(run([sys.executable, "./test_eml_numpy.py"]))
         re_err, re_x = parse_err(out["worst re err"])
         im_err, im_x = parse_err(out["worst im err"])
