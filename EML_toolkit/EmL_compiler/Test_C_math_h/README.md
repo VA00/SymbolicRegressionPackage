@@ -1,6 +1,9 @@
 # C standard math test
 
-This test checks whether compiled EML expressions can be evaluated in C using `<math.h>`, `<complex.h>`, and a working C compiler. It generates `eml_math.h` and `test_eml.c`, then compiles them to `test_eml` on Linux and macOS, or `test_eml.exe` on Windows.
+This test checks whether compiled EML expressions can be evaluated in C using `<math.h>`, `<complex.h>`, and a working C compiler. It generates `eml_math.h` and `test_eml.c` from templates `eml_math.h.in` and `test_eml.c.in` for requested function.  Then compiles them to `test_eml` on Linux and macOS, or `test_eml.exe` on Windows. 
+
+
+You can edit templates manually as well (fill placeholders) and compile them using standard C compiler. Working C code files `eml_math.h` and `test_eml.c` for Sqrt test were included for convenience, in case of missing or defunct Python environment. 
 
 Platform:
 

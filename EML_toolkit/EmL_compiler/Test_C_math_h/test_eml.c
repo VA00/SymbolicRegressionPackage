@@ -1,0 +1,110 @@
+#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+#include "eml_math.h"
+
+static double ref_half(double x) { return x / 2.0; }
+static double ref_minus(double x) { return -x; }
+static double ref_inv(double x) { return 1.0 / x; }
+static double ref_sqr(double x) { return x * x; }
+static double ref_logistic_sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
+static double ref_identity(double x) { return x; }
+
+static double ref_fn(double x) {
+    return sqrt(x);
+}
+
+static uint64_t ordered_u64(double x) {
+    union {
+        double d;
+        uint64_t u;
+    } v = {x};
+    if (v.u >> 63) {
+        return ~v.u;
+    }
+    return v.u | (1ULL << 63);
+}
+
+static uint64_t ulp_distance(double a, double b) {
+    uint64_t ua = ordered_u64(a);
+    uint64_t ub = ordered_u64(b);
+    return ua > ub ? ua - ub : ub - ua;
+}
+
+int main(void) {
+    const double ulp_floor = 1e-12;
+    const double x_min = (double)(0.0);
+    const double x_max = (double)(256.0);
+    const double step = (double)(0.01);
+    const long long n_steps = llround((x_max - x_min) / step);
+    double worst_re_x = 0.0;
+    double worst_im_x = 0.0;
+    double worst_re_err = 0.0;
+    double worst_im_err = 0.0;
+    double sumsq_re = 0.0;
+    double sumsq_im = 0.0;
+    uint64_t min_ulp_re = UINT64_MAX;
+    uint64_t max_ulp_re = 0;
+    unsigned long long n = 0;
+    unsigned long long n_valid = 0;
+    unsigned long long n_ulp = 0;
+    unsigned long long n_nonfinite = 0;
+
+    for (long long i = 0; i <= n_steps; i++) {
+        double x = (i == n_steps) ? x_max : x_min + i * step;
+        double complex z = eml_sqrt(x + 0.0 * I);
+        double got = creal(z);
+        double ref = ref_fn(x);
+        double re_err = got - ref;
+        double im_err = cimag(z);
+
+        n++;
+
+        if (!isfinite(got) || !isfinite(ref) || !isfinite(im_err)) {
+            n_nonfinite++;
+            continue;
+        }
+
+        n_valid++;
+
+        if (fabs(re_err) > fabs(worst_re_err)) {
+            worst_re_err = re_err;
+            worst_re_x = x;
+        }
+        if (fabs(im_err) > fabs(worst_im_err)) {
+            worst_im_err = im_err;
+            worst_im_x = x;
+        }
+
+        sumsq_re += re_err * re_err;
+        sumsq_im += im_err * im_err;
+        if (fabs(ref) >= ulp_floor) {
+            uint64_t ulp_re = ulp_distance(got, ref);
+            if (ulp_re < min_ulp_re) min_ulp_re = ulp_re;
+            if (ulp_re > max_ulp_re) max_ulp_re = ulp_re;
+            n_ulp++;
+        }
+    }
+
+    printf("expr        : %s\n", "Sqrt[x]");
+    printf("function    : %s\n", "eml_sqrt");
+    printf("reference   : %s\n", "sqrt");
+    printf("range       : [%g, %g], step=%g\n", x_min, x_max, step);
+    printf("samples     : %llu\n", n);
+    printf("valid       : %llu\n", n_valid);
+    printf("nonfinite   : %llu\n", n_nonfinite);
+    printf("worst re err: %.17g at x=%.17g\n", worst_re_err, worst_re_x);
+    printf("worst im err: %.17g at x=%.17g\n", worst_im_err, worst_im_x);
+    if (n_valid > 0) {
+        printf("rms re err  : %.17g\n", sqrt(sumsq_re / (double)n_valid));
+        printf("rms im err  : %.17g\n", sqrt(sumsq_im / (double)n_valid));
+    }
+    if (n_ulp > 0) {
+        printf("ulp re      : min=%llu max=%llu  (|ref| >= %.1e, n=%llu)\n",
+               (unsigned long long)min_ulp_re,
+               (unsigned long long)max_ulp_re,
+               ulp_floor,
+               n_ulp);
+    }
+    return 0;
+}

@@ -131,7 +131,6 @@ On Windows 11 for the C tests, first activate Intel oneAPI for `intel64` and re-
 cmd.exe /K '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 && pwsh'
 ```
 
-The `Program Files (x86)` part is the installation path of `setvars.bat`; it does not mean a 32-bit compiler target. The target architecture comes from the `intel64` argument and the initialized Visual Studio environment, which should report `x64`.
 
 Each suite writes a report in its own directory:
 
@@ -191,5 +190,5 @@ python test_eml_mpmath.py
 
 - The C tests use C complex arithmetic, so the generated code includes both `<math.h>` and `<complex.h>`.
 - `torch` runs the full grid in parallel as a `torch.complex128` tensor.
-- `mpmath` supports higher precision; rerun its suite with `python run_unary_suite_mpmath.py --dps 128` to increase `mp.dps`.
+- `mpmath` supports higher precision; rerun its suite with `python run_unary_suite_mpmath.py --dps 256` to increase `mp.dps`.
 - Generated files such as `test_eml_numpy.py`, `test_eml_torch.py`, `test_eml_mpmath.py`, `test_eml.c`, `test_eml`, `test_eml.exe`, and `eml_math.h` are disposable build artifacts.
