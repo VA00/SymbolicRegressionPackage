@@ -12,7 +12,7 @@ Set up the shared Python environment first, see README from the parent directory
 Single function:
 
 ```sh
-python make_eml_torch.py 'ArcCos[x]' eml_arccos -1 1 0.01
+python make_eml_torch.py ArcCos[x] -1 1 0.01
 python test_eml_torch.py
 ```
 
