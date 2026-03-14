@@ -211,6 +211,11 @@ def wl_expr_to_sympy_source(s: str) -> str:
 
 def eml_compile_from_string(s: str):
     expr = sympify(wl_expr_to_sympy_source(s), locals=LOCALS)
+    if callable(expr) or not hasattr(expr, "rewrite"):
+        raise TypeError(
+            f"Input did not parse as a symbolic expression: {s!r}. "
+            "If you mean a function of x, write Sqrt[x] rather than Sqrt."
+        )
     expr = normalize_to_exp_log(expr, max_iter=8)
     return compile_to_eml(expr)
 

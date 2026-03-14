@@ -63,6 +63,8 @@ The test subdirectories are:
 
 The current suites cover unary and binary expressions on real grids. They are intended as explicit demonstration runs for the claim that compiled EML expressions can be evaluated in these environments.
 
+For the binary suites, all operations use the same `[-8, 8] x [-8, 8]` grid with step `0.5`. Points outside the real mathematical domain of a given operation are counted as `out_of_domain` and skipped. In-domain points that still produce `nan` or `inf` are reported as `nonfinite`.
+
 ## Requirements
 
 Minimal tools:
@@ -200,7 +202,7 @@ C:
 
 ```sh
 cd Test_C_math_h
-python make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python make_eml_binary_c.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 ./test_eml_binary
 ```
 
@@ -208,7 +210,7 @@ On Windows 11 PowerShell 7:
 
 ```powershell
 cd Test_C_math_h
-python .\make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python .\make_eml_binary_c.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 .\test_eml_binary.exe
 ```
 
@@ -216,7 +218,7 @@ NumPy:
 
 ```sh
 cd Test_numpy
-python make_eml_binary_numpy.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python make_eml_binary_numpy.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 python test_eml_binary_numpy.py
 ```
 
@@ -224,7 +226,7 @@ PyTorch:
 
 ```sh
 cd Test_torch
-python make_eml_binary_torch.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python make_eml_binary_torch.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 python test_eml_binary_torch.py
 ```
 
@@ -232,7 +234,7 @@ mpmath:
 
 ```sh
 cd Test_mpmath
-python make_eml_binary_mpmath.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25 64
+python make_eml_binary_mpmath.py Hypot[x,y] -4 4 0.25 -4 4 0.25 64
 python test_eml_binary_mpmath.py
 ```
 

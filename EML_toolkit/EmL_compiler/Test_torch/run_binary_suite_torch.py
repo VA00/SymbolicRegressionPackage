@@ -12,13 +12,13 @@ DIR = Path(__file__).resolve().parent
 
 CASES = [
     ("Plus[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
-    ("Times[x,y]", 0.25, 8.0, 0.25, 0.25, 8.0, 0.25),
+    ("Times[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
     ("Subtract[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
-    ("Divide[x,y]", 0.25, 8.0, 0.25, 0.25, 8.0, 0.25),
-    ("Power[x,y]", 0.25, 8.0, 0.25, 0.25, 3.0, 0.25),
-    ("Log[x,y]", 2.0, 8.0, 0.25, 0.25, 8.0, 0.25),
+    ("Divide[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
+    ("Power[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
+    ("Log[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
     ("Avg[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
-    ("Hypot[x,y]", 0.25, 8.0, 0.25, 0.25, 8.0, 0.25),
+    ("Hypot[x,y]", -8.0, 8.0, 0.5, -8.0, 8.0, 0.5),
 ]
 
 
@@ -65,6 +65,7 @@ def main() -> int:
             {
                 "expr": expr,
                 "samples": int(out["samples"]),
+                "out": int(out["out_of_domain"]),
                 "valid": int(out["valid"]),
                 "nonfinite": int(out["nonfinite"]),
                 "re": abs(re_err),
@@ -76,12 +77,14 @@ def main() -> int:
             }
         )
 
-    lines = ["Binary EML Suite: torch", ""]
+    grid_xmin, grid_xmax, grid_step = CASES[0][1], CASES[0][2], CASES[0][3]
+    lines = ["Binary EML Suite: torch", "", f"Testing on [{grid_xmin:g}, {grid_xmax:g}, {grid_step:g}]^2 grid", ""]
     for r in results:
+        in_domain = r["samples"] - r["out"]
         lines.append(
-            f"{r['expr']:<20} valid={r['valid']:>4}/{r['samples']:<4} nonfinite={r['nonfinite']:<3} "
-            f"max|re|={r['re']:.3e} @ ({r['re_x']:.6g}, {r['re_y']:.6g}) "
-            f"max|im|={r['im']:.3e} @ ({r['im_x']:.6g}, {r['im_y']:.6g})"
+            f"{r['expr']:<20} valid={r['valid']:>4}/{in_domain:<4} out-of-real-domain={r['out']:<4} nonfinite={r['nonfinite']:<3} "
+            f"max|re|={r['re']:>10.3e} @ ({r['re_x']:.6g}, {r['re_y']:.6g})  "
+            f"max|im|={r['im']:>10.3e} @ ({r['im_x']:.6g}, {r['im_y']:.6g})"
         )
     worst_re = max(results, key=lambda r: (math.inf if math.isnan(r["re"]) else r["re"]))
     worst_im = max(results, key=lambda r: (math.inf if math.isnan(r["im"]) else r["im"]))

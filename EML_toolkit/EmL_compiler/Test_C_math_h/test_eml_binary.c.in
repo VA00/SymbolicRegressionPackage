@@ -16,6 +16,14 @@ static double ref_fn(double x, double y) {
     return @REF@(x, y);
 }
 
+static int is_int_like(double x) {
+    return fabs(x - round(x)) <= 1e-12;
+}
+
+static int in_domain(double x, double y) {
+    return @DOMAIN@;
+}
+
 static uint64_t ordered_u64(double x) {
     union {
         double d;
@@ -54,6 +62,7 @@ int main(void) {
     uint64_t min_ulp_re = UINT64_MAX;
     uint64_t max_ulp_re = 0;
     unsigned long long n = 0;
+    unsigned long long n_out_of_domain = 0;
     unsigned long long n_valid = 0;
     unsigned long long n_ulp = 0;
     unsigned long long n_nonfinite = 0;
@@ -62,13 +71,18 @@ int main(void) {
         double x = (i == x_steps) ? x_max : x_min + i * x_step;
         for (long long j = 0; j <= y_steps; j++) {
             double y = (j == y_steps) ? y_max : y_min + j * y_step;
+            n++;
+
+            if (!in_domain(x, y)) {
+                n_out_of_domain++;
+                continue;
+            }
+
             double complex z = @NAME@(x + 0.0 * I, y + 0.0 * I);
             double got = creal(z);
             double ref = ref_fn(x, y);
             double re_err = got - ref;
             double im_err = cimag(z);
-
-            n++;
 
             if (!isfinite(got) || !isfinite(ref) || !isfinite(im_err)) {
                 n_nonfinite++;
@@ -105,6 +119,7 @@ int main(void) {
     printf("range x     : [%g, %g], step=%g\n", x_min, x_max, x_step);
     printf("range y     : [%g, %g], step=%g\n", y_min, y_max, y_step);
     printf("samples     : %llu\n", n);
+    printf("out_of_domain: %llu\n", n_out_of_domain);
     printf("valid       : %llu\n", n_valid);
     printf("nonfinite   : %llu\n", n_nonfinite);
     printf("worst re err: %.17g at x=%.17g, y=%.17g\n", worst_re_err, worst_re_x, worst_re_y);

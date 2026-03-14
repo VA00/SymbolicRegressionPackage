@@ -37,7 +37,7 @@ python run_unary_suite_numpy.py
 Single binary operation:
 
 ```sh
-python make_eml_binary_numpy.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python make_eml_binary_numpy.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 python test_eml_binary_numpy.py
 ```
 
@@ -46,6 +46,8 @@ Full binary suite:
 ```sh
 python run_binary_suite_numpy.py
 ```
+
+The binary suite uses the same `[-8, 8] x [-8, 8]` grid with step `0.5` for all operations. Points outside the real domain are counted as `out_of_domain`.
 
 Input required from parent directory:
 

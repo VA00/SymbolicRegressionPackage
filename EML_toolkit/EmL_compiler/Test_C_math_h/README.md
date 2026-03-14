@@ -45,17 +45,17 @@ Run full unary suite:
 python run_unary_suite_c.py
 ```
 
-To test a single binary operation, e.g, Hypot[x,y] on a positive grid:
+To test a single binary operation, e.g, Hypot[x,y] on a symmetric grid:
 
 ```sh
-python make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python make_eml_binary_c.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 ./test_eml_binary
 ```
 
 On Windows 11 PowerShell 7:
 
 ```powershell
-python .\make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python .\make_eml_binary_c.py Hypot[x,y] -4 4 0.25 -4 4 0.25
 .\test_eml_binary.exe
 ```
 
@@ -66,6 +66,8 @@ python run_binary_suite_c.py
 ```
 
 Use `make_eml_c.py` for unary tests and `make_eml_binary_c.py` for binary tests.
+
+The binary suite uses the same `[-8, 8] x [-8, 8]` grid with step `0.5` for all operations. Points outside the real domain are counted as `out_of_domain`.
 
 Input (EML compiler) required from parent directory:
 

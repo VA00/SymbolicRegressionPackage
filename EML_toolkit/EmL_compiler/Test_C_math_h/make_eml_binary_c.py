@@ -13,19 +13,27 @@ PARENT = DIR.parent
 FUNC_NAME = "eml_f"
 
 
-def infer_ref(expr: str) -> tuple[str, str]:
+def infer_ref(expr: str) -> tuple[str, str, str]:
     key = expr.replace(" ", "").lower()
     mapping = {
-        "plus[x,y]": ("ref_plus", "x + y"),
-        "times[x,y]": ("ref_times", "x * y"),
-        "subtract[x,y]": ("ref_subtract", "x - y"),
-        "divide[x,y]": ("ref_divide", "x / y"),
-        "power[x,y]": ("ref_power", "pow(x, y)"),
-        "log[x,y]": ("ref_logxy", "log(y) / log(x)"),
-        "avg[x,y]": ("ref_avg", "(x + y) / 2"),
-        "hypot[x,y]": ("ref_hypot_xy", "hypot(x, y)"),
+        "plus[x,y]": ("ref_plus", "x + y", "1"),
+        "times[x,y]": ("ref_times", "x * y", "1"),
+        "subtract[x,y]": ("ref_subtract", "x - y", "1"),
+        "divide[x,y]": ("ref_divide", "x / y", "(fabs(y) > 1e-12)"),
+        "power[x,y]": (
+            "ref_power",
+            "pow(x, y)",
+            "((x > 0.0) || (fabs(x) <= 1e-12 && y > 0.0) || (x < 0.0 && is_int_like(y)))",
+        ),
+        "log[x,y]": (
+            "ref_logxy",
+            "log(y) / log(x)",
+            "(x > 0.0 && y > 0.0 && fabs(x - 1.0) > 1e-12)",
+        ),
+        "avg[x,y]": ("ref_avg", "(x + y) / 2", "1"),
+        "hypot[x,y]": ("ref_hypot_xy", "hypot(x, y)", "1"),
     }
-    return mapping.get(key, ("ref_plus", "x + y"))
+    return mapping.get(key, ("ref_plus", "x + y", "1"))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -35,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Examples:\n"
             "  python make_eml_binary_c.py Plus[x,y]\n"
-            "  python make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25\n\n"
+            "  python make_eml_binary_c.py Hypot[x,y] -4 4 0.25 -4 4 0.25\n\n"
             "Defaults: xMin=-4.0, xMax=4.0, dx=0.5, yMin=-4.0, yMax=4.0, dy=0.5\n"
             "Write the expression in Wolfram form, for example Plus[x,y], not x + y."
         ),
@@ -98,7 +106,7 @@ def main() -> int:
     args = ap.parse_args()
 
     x_min, x_max, x_step, y_min, y_max, y_step = parse_ranges(ap, args.bounds)
-    ref, ref_label = infer_ref(args.expr)
+    ref, ref_label, domain = infer_ref(args.expr)
 
     namespace = load_compiler_namespace()
     try:
@@ -124,6 +132,7 @@ def main() -> int:
         "@NAME@": FUNC_NAME,
         "@REF@": ref,
         "@REF_LABEL@": ref_label,
+        "@DOMAIN@": domain,
         "@XMIN@": x_min,
         "@XMAX@": x_max,
         "@XSTEP@": x_step,

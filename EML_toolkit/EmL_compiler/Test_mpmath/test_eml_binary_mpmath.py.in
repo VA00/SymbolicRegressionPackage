@@ -25,6 +25,14 @@ def ref_fn(x, y):
     return @REF@(x, y)
 
 
+def is_int_like(x):
+    return abs(x - mp.nint(x)) <= mp.mpf("1e-30")
+
+
+def in_domain(x, y):
+    return @DOMAIN@
+
+
 x_step = mp.mpf("@XSTEP@")
 x_min = mp.mpf("@XMIN@")
 x_max = mp.mpf("@XMAX@")
@@ -43,6 +51,7 @@ worst_im_err = mp.mpf("0")
 sumsq_re = mp.mpf("0")
 sumsq_im = mp.mpf("0")
 n = 0
+n_out_of_domain = 0
 n_valid = 0
 n_nonfinite = 0
 
@@ -50,10 +59,13 @@ for i in range(x_steps + 1):
     x = x_max if i == x_steps else x_min + i * x_step
     for j in range(y_steps + 1):
         y = y_max if j == y_steps else y_min + j * y_step
+        n += 1
+        if not in_domain(x, y):
+            n_out_of_domain += 1
+            continue
         z = @NAME@(x, y)
         ref = ref_fn(x, y)
         if not (mp.isfinite(mp.re(z)) and mp.isfinite(mp.im(z)) and mp.isfinite(ref)):
-            n += 1
             n_nonfinite += 1
             continue
         re_err = mp.re(z) - ref
@@ -70,7 +82,6 @@ for i in range(x_steps + 1):
 
         sumsq_re += re_err * re_err
         sumsq_im += im_err * im_err
-        n += 1
         n_valid += 1
 
 print(f"expr        : @EXPR@")
@@ -80,6 +91,7 @@ print(f"range x     : [@XMIN@, @XMAX@], step=@XSTEP@")
 print(f"range y     : [@YMIN@, @YMAX@], step=@YSTEP@")
 print(f"mp.dps      : {mp.dps}")
 print(f"samples     : {n}")
+print(f"out_of_domain: {n_out_of_domain}")
 print(f"valid       : {n_valid}")
 print(f"nonfinite   : {n_nonfinite}")
 print(

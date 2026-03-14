@@ -31,6 +31,14 @@ def ref_fn(x, y):
         return @REF@(x, y)
 
 
+def is_int_like(x):
+    return math.isclose(x, round(x), abs_tol=1e-12)
+
+
+def in_domain(x, y):
+    return @DOMAIN@
+
+
 def ordered_u64(x):
     bits = struct.unpack(">Q", struct.pack(">d", float(x)))[0]
     if bits >> 63:
@@ -65,6 +73,7 @@ sumsq_im = 0.0
 min_ulp_re = None
 max_ulp_re = 0
 n = 0
+n_out_of_domain = 0
 n_valid = 0
 n_ulp = 0
 n_nonfinite = 0
@@ -73,11 +82,16 @@ for i in range(x_steps + 1):
     x = x_max if i == x_steps else x_min + i * x_step
     for j in range(y_steps + 1):
         y = y_max if j == y_steps else y_min + j * y_step
+        n += 1
+
+        if not in_domain(x, y):
+            n_out_of_domain += 1
+            continue
+
         z = @NAME@(np.complex128(x + 0.0j), np.complex128(y + 0.0j))
         got = float(np.real(z))
         ref = float(ref_fn(x, y))
         im_err = float(np.imag(z))
-        n += 1
 
         if not (math.isfinite(got) and math.isfinite(ref) and math.isfinite(im_err)):
             n_nonfinite += 1
@@ -109,6 +123,7 @@ print(f"reference   : @REF_LABEL@")
 print(f"range x     : [{x_min:g}, {x_max:g}], step={x_step:g}")
 print(f"range y     : [{y_min:g}, {y_max:g}], step={y_step:g}")
 print(f"samples     : {n}")
+print(f"out_of_domain: {n_out_of_domain}")
 print(f"valid       : {n_valid}")
 print(f"nonfinite   : {n_nonfinite}")
 print(f"worst re err: {worst_re_err:.17g} at x={worst_re_x:.17g}, y={worst_re_y:.17g}")

@@ -37,18 +37,22 @@ def @NAME@(x, y):
     return @PY_EXPR@
 
 
-def ref_plus(x, y): return x + y
-def ref_times(x, y): return x * y
-def ref_subtract(x, y): return x - y
-def ref_divide(x, y): return x / y
+def ref_plus(x, y): return torch.add(x, y)
+def ref_times(x, y): return torch.mul(x, y)
+def ref_subtract(x, y): return torch.sub(x, y)
+def ref_divide(x, y): return torch.div(x, y)
 def ref_power(x, y): return torch.pow(x, y)
 def ref_logxy(x, y): return torch.log(y) / torch.log(x)
-def ref_avg(x, y): return (x + y) / 2.0
+def ref_avg(x, y): return torch.div(torch.add(x, y), 2.0)
 def ref_hypot_xy(x, y): return torch.hypot(x, y)
 
 
 def ref_fn(x, y):
     return @REF@(x, y)
+
+
+def in_domain(x, y):
+    return @DOMAIN@
 
 
 def ordered_u64(x):
@@ -83,10 +87,12 @@ with torch.no_grad():
     ref = ref_fn(x_mesh, y_mesh).to(dtype=RTYPE)
     im_err = torch.imag(z).to(dtype=RTYPE)
 
-    finite_mask = torch.isfinite(got) & torch.isfinite(ref) & torch.isfinite(im_err)
+    domain_mask = in_domain(x_mesh, y_mesh)
+    finite_mask = domain_mask & torch.isfinite(got) & torch.isfinite(ref) & torch.isfinite(im_err)
     n = x_mesh.numel()
+    n_out_of_domain = int(n - torch.count_nonzero(domain_mask).item())
     n_valid = int(torch.count_nonzero(finite_mask).item())
-    n_nonfinite = int(n - n_valid)
+    n_nonfinite = int(torch.count_nonzero(domain_mask & ~finite_mask).item())
     worst_re_x = 0.0
     worst_re_y = 0.0
     worst_im_x = 0.0
@@ -133,6 +139,7 @@ print(f"reference   : @REF_LABEL@")
 print(f"range x     : [{x_min:g}, {x_max:g}], step={x_step:g}")
 print(f"range y     : [{y_min:g}, {y_max:g}], step={y_step:g}")
 print(f"samples     : {n}")
+print(f"out_of_domain: {n_out_of_domain}")
 print(f"valid       : {n_valid}")
 print(f"nonfinite   : {n_nonfinite}")
 print(f"worst re err: {worst_re_err:.17g} at x={worst_re_x:.17g}, y={worst_re_y:.17g}")

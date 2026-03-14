@@ -10,19 +10,27 @@ PARENT = DIR.parent
 FUNC_NAME = "eml_f"
 
 
-def infer_ref(expr: str) -> tuple[str, str]:
+def infer_ref(expr: str) -> tuple[str, str, str]:
     key = expr.replace(" ", "").lower()
     mapping = {
-        "plus[x,y]": ("ref_plus", "x + y"),
-        "times[x,y]": ("ref_times", "x * y"),
-        "subtract[x,y]": ("ref_subtract", "x - y"),
-        "divide[x,y]": ("ref_divide", "x / y"),
-        "power[x,y]": ("ref_power", "mp.power(x, y)"),
-        "log[x,y]": ("ref_logxy", "mp.log(y) / mp.log(x)"),
-        "avg[x,y]": ("ref_avg", "(x + y) / 2"),
-        "hypot[x,y]": ("ref_hypot_xy", "sqrt(x^2 + y^2)"),
+        "plus[x,y]": ("ref_plus", "x + y", "True"),
+        "times[x,y]": ("ref_times", "x * y", "True"),
+        "subtract[x,y]": ("ref_subtract", "x - y", "True"),
+        "divide[x,y]": ("ref_divide", "x / y", "(y != 0)"),
+        "power[x,y]": (
+            "ref_power",
+            "mp.power(x, y)",
+            "((x > 0) or (x == 0 and y > 0) or (x < 0 and is_int_like(y)))",
+        ),
+        "log[x,y]": (
+            "ref_logxy",
+            "mp.log(y) / mp.log(x)",
+            "(x > 0 and y > 0 and x != 1)",
+        ),
+        "avg[x,y]": ("ref_avg", "(x + y) / 2", "True"),
+        "hypot[x,y]": ("ref_hypot_xy", "sqrt(x^2 + y^2)", "True"),
     }
-    return mapping.get(key, ("ref_plus", "x + y"))
+    return mapping.get(key, ("ref_plus", "x + y", "True"))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -32,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Examples:\n"
             "  python make_eml_binary_mpmath.py Plus[x,y]\n"
-            "  python make_eml_binary_mpmath.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25 128\n\n"
+            "  python make_eml_binary_mpmath.py Hypot[x,y] -4 4 0.25 -4 4 0.25 128\n\n"
             "Defaults: xMin=-4.0, xMax=4.0, dx=0.5, yMin=-4.0, yMax=4.0, dy=0.5, digits=64\n"
             "Write the expression in Wolfram form, for example Plus[x,y], not x + y."
         ),
@@ -71,7 +79,7 @@ def main() -> int:
     args = ap.parse_args()
 
     x_min, x_max, x_step, y_min, y_max, y_step, digits = parse_ranges(ap, args.bounds)
-    ref, ref_label = infer_ref(args.expr)
+    ref, ref_label, domain = infer_ref(args.expr)
 
     namespace = load_compiler_namespace()
     try:
@@ -86,6 +94,7 @@ def main() -> int:
         "@NAME@": FUNC_NAME,
         "@REF@": ref,
         "@REF_LABEL@": ref_label,
+        "@DOMAIN@": domain,
         "@XMIN@": x_min,
         "@XMAX@": x_max,
         "@XSTEP@": x_step,

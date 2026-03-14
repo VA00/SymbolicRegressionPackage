@@ -33,9 +33,9 @@ static uint64_t ulp_distance(double a, double b) {
 
 int main(void) {
     const double ulp_floor = 1e-12;
-    const double x_min = (double)(0.0);
-    const double x_max = (double)(256.0);
-    const double step = (double)(0.01);
+    const double x_min = (double)(-4.0);
+    const double x_max = (double)(4.0);
+    const double step = (double)(0.0625);
     const long long n_steps = llround((x_max - x_min) / step);
     double worst_re_x = 0.0;
     double worst_im_x = 0.0;
@@ -52,7 +52,7 @@ int main(void) {
 
     for (long long i = 0; i <= n_steps; i++) {
         double x = (i == n_steps) ? x_max : x_min + i * step;
-        double complex z = eml_sqrt(x + 0.0 * I);
+        double complex z = eml_f(x + 0.0 * I);
         double got = creal(z);
         double ref = ref_fn(x);
         double re_err = got - ref;
@@ -87,7 +87,7 @@ int main(void) {
     }
 
     printf("expr        : %s\n", "Sqrt[x]");
-    printf("function    : %s\n", "eml_sqrt");
+    printf("function    : %s\n", "eml_f");
     printf("reference   : %s\n", "sqrt");
     printf("range       : [%g, %g], step=%g\n", x_min, x_max, step);
     printf("samples     : %llu\n", n);
