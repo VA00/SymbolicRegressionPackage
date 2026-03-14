@@ -20,7 +20,7 @@ cmd.exe /K '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 && pwsh'
 
 The `Program Files (x86)` part is only where Intel installs `setvars.bat`; it does not imply a 32-bit target. The requested target is `intel64`, and the initialization banner should confirm that the Visual Studio environment is configured for `x64`.
 
-To test single function, e.g, ArcCos[x] in the range -1<=x<=1 with step 0.01:
+To test a single unary function, e.g, ArcCos[x] in the range -1<=x<=1 with step 0.01:
 
 ```sh
 python make_eml_c.py ArcCos[x] -1 1 0.01
@@ -45,7 +45,27 @@ Run full unary suite:
 python run_unary_suite_c.py
 ```
 
-Use `make_eml_c.py` as the standard script on Windows, Linux, and macOS.
+To test a single binary operation, e.g, Hypot[x,y] on a positive grid:
+
+```sh
+python make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+./test_eml_binary
+```
+
+On Windows 11 PowerShell 7:
+
+```powershell
+python .\make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+.\test_eml_binary.exe
+```
+
+Run full binary suite:
+
+```sh
+python run_binary_suite_c.py
+```
+
+Use `make_eml_c.py` for unary tests and `make_eml_binary_c.py` for binary tests.
 
 Input (EML compiler) required from parent directory:
 
@@ -54,7 +74,12 @@ Input (EML compiler) required from parent directory:
 Generated files:
 
 - `eml_math.h`
+- `eml_math_binary.h`
 - `test_eml.c`
+- `test_eml_binary.c`
 - `test_eml`
 - `test_eml.exe`
+- `test_eml_binary`
+- `test_eml_binary.exe`
 - `unary_suite_report_c.txt`
+- `binary_suite_report_c.txt`

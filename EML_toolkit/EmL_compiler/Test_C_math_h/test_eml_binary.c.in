@@ -1,0 +1,124 @@
+#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+#include "eml_math_binary.h"
+
+static double ref_plus(double x, double y) { return x + y; }
+static double ref_times(double x, double y) { return x * y; }
+static double ref_subtract(double x, double y) { return x - y; }
+static double ref_divide(double x, double y) { return x / y; }
+static double ref_power(double x, double y) { return pow(x, y); }
+static double ref_logxy(double x, double y) { return log(y) / log(x); }
+static double ref_avg(double x, double y) { return (x + y) / 2.0; }
+static double ref_hypot_xy(double x, double y) { return hypot(x, y); }
+
+static double ref_fn(double x, double y) {
+    return @REF@(x, y);
+}
+
+static uint64_t ordered_u64(double x) {
+    union {
+        double d;
+        uint64_t u;
+    } v = {x};
+    if (v.u >> 63) {
+        return ~v.u;
+    }
+    return v.u | (1ULL << 63);
+}
+
+static uint64_t ulp_distance(double a, double b) {
+    uint64_t ua = ordered_u64(a);
+    uint64_t ub = ordered_u64(b);
+    return ua > ub ? ua - ub : ub - ua;
+}
+
+int main(void) {
+    const double ulp_floor = 1e-12;
+    const double x_min = (double)(@XMIN@);
+    const double x_max = (double)(@XMAX@);
+    const double x_step = (double)(@XSTEP@);
+    const double y_min = (double)(@YMIN@);
+    const double y_max = (double)(@YMAX@);
+    const double y_step = (double)(@YSTEP@);
+    const long long x_steps = llround((x_max - x_min) / x_step);
+    const long long y_steps = llround((y_max - y_min) / y_step);
+    double worst_re_x = 0.0;
+    double worst_re_y = 0.0;
+    double worst_im_x = 0.0;
+    double worst_im_y = 0.0;
+    double worst_re_err = 0.0;
+    double worst_im_err = 0.0;
+    double sumsq_re = 0.0;
+    double sumsq_im = 0.0;
+    uint64_t min_ulp_re = UINT64_MAX;
+    uint64_t max_ulp_re = 0;
+    unsigned long long n = 0;
+    unsigned long long n_valid = 0;
+    unsigned long long n_ulp = 0;
+    unsigned long long n_nonfinite = 0;
+
+    for (long long i = 0; i <= x_steps; i++) {
+        double x = (i == x_steps) ? x_max : x_min + i * x_step;
+        for (long long j = 0; j <= y_steps; j++) {
+            double y = (j == y_steps) ? y_max : y_min + j * y_step;
+            double complex z = @NAME@(x + 0.0 * I, y + 0.0 * I);
+            double got = creal(z);
+            double ref = ref_fn(x, y);
+            double re_err = got - ref;
+            double im_err = cimag(z);
+
+            n++;
+
+            if (!isfinite(got) || !isfinite(ref) || !isfinite(im_err)) {
+                n_nonfinite++;
+                continue;
+            }
+
+            n_valid++;
+
+            if (fabs(re_err) > fabs(worst_re_err)) {
+                worst_re_err = re_err;
+                worst_re_x = x;
+                worst_re_y = y;
+            }
+            if (fabs(im_err) > fabs(worst_im_err)) {
+                worst_im_err = im_err;
+                worst_im_x = x;
+                worst_im_y = y;
+            }
+
+            sumsq_re += re_err * re_err;
+            sumsq_im += im_err * im_err;
+            if (fabs(ref) >= ulp_floor) {
+                uint64_t ulp_re = ulp_distance(got, ref);
+                if (ulp_re < min_ulp_re) min_ulp_re = ulp_re;
+                if (ulp_re > max_ulp_re) max_ulp_re = ulp_re;
+                n_ulp++;
+            }
+        }
+    }
+
+    printf("expr        : %s\n", "@EXPR@");
+    printf("function    : %s\n", "@NAME@");
+    printf("reference   : %s\n", "@REF_LABEL@");
+    printf("range x     : [%g, %g], step=%g\n", x_min, x_max, x_step);
+    printf("range y     : [%g, %g], step=%g\n", y_min, y_max, y_step);
+    printf("samples     : %llu\n", n);
+    printf("valid       : %llu\n", n_valid);
+    printf("nonfinite   : %llu\n", n_nonfinite);
+    printf("worst re err: %.17g at x=%.17g, y=%.17g\n", worst_re_err, worst_re_x, worst_re_y);
+    printf("worst im err: %.17g at x=%.17g, y=%.17g\n", worst_im_err, worst_im_x, worst_im_y);
+    if (n_valid > 0) {
+        printf("rms re err  : %.17g\n", sqrt(sumsq_re / (double)n_valid));
+        printf("rms im err  : %.17g\n", sqrt(sumsq_im / (double)n_valid));
+    }
+    if (n_ulp > 0) {
+        printf("ulp re      : min=%llu max=%llu  (|ref| >= %.1e, n=%llu)\n",
+               (unsigned long long)min_ulp_re,
+               (unsigned long long)max_ulp_re,
+               ulp_floor,
+               n_ulp);
+    }
+    return 0;
+}
