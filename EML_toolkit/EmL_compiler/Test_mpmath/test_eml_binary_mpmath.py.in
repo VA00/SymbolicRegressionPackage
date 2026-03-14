@@ -1,0 +1,93 @@
+from mpmath import mp
+
+mp.dps = @DPS@
+
+
+def eml(x, y):
+    return mp.exp(x) - mp.log(y)
+
+
+def @NAME@(x, y):
+    return @C_EXPR@
+
+
+def ref_plus(x, y): return x + y
+def ref_times(x, y): return x * y
+def ref_subtract(x, y): return x - y
+def ref_divide(x, y): return x / y
+def ref_power(x, y): return mp.power(x, y)
+def ref_logxy(x, y): return mp.log(y) / mp.log(x)
+def ref_avg(x, y): return (x + y) / 2
+def ref_hypot_xy(x, y): return mp.sqrt(x * x + y * y)
+
+
+def ref_fn(x, y):
+    return @REF@(x, y)
+
+
+x_step = mp.mpf("@XSTEP@")
+x_min = mp.mpf("@XMIN@")
+x_max = mp.mpf("@XMAX@")
+y_step = mp.mpf("@YSTEP@")
+y_min = mp.mpf("@YMIN@")
+y_max = mp.mpf("@YMAX@")
+x_steps = int(mp.nint((x_max - x_min) / x_step))
+y_steps = int(mp.nint((y_max - y_min) / y_step))
+
+worst_re_x = mp.mpf("0")
+worst_re_y = mp.mpf("0")
+worst_im_x = mp.mpf("0")
+worst_im_y = mp.mpf("0")
+worst_re_err = mp.mpf("0")
+worst_im_err = mp.mpf("0")
+sumsq_re = mp.mpf("0")
+sumsq_im = mp.mpf("0")
+n = 0
+n_valid = 0
+n_nonfinite = 0
+
+for i in range(x_steps + 1):
+    x = x_max if i == x_steps else x_min + i * x_step
+    for j in range(y_steps + 1):
+        y = y_max if j == y_steps else y_min + j * y_step
+        z = @NAME@(x, y)
+        ref = ref_fn(x, y)
+        if not (mp.isfinite(mp.re(z)) and mp.isfinite(mp.im(z)) and mp.isfinite(ref)):
+            n += 1
+            n_nonfinite += 1
+            continue
+        re_err = mp.re(z) - ref
+        im_err = mp.im(z)
+
+        if abs(re_err) > abs(worst_re_err):
+            worst_re_err = re_err
+            worst_re_x = x
+            worst_re_y = y
+        if abs(im_err) > abs(worst_im_err):
+            worst_im_err = im_err
+            worst_im_x = x
+            worst_im_y = y
+
+        sumsq_re += re_err * re_err
+        sumsq_im += im_err * im_err
+        n += 1
+        n_valid += 1
+
+print(f"expr        : @EXPR@")
+print(f"function    : @NAME@")
+print(f"reference   : @REF_LABEL@")
+print(f"range x     : [@XMIN@, @XMAX@], step=@XSTEP@")
+print(f"range y     : [@YMIN@, @YMAX@], step=@YSTEP@")
+print(f"mp.dps      : {mp.dps}")
+print(f"samples     : {n}")
+print(f"valid       : {n_valid}")
+print(f"nonfinite   : {n_nonfinite}")
+print(
+    f"worst re err: {mp.nstr(worst_re_err, 25)} at x={mp.nstr(worst_re_x, 25)}, y={mp.nstr(worst_re_y, 25)}"
+)
+print(
+    f"worst im err: {mp.nstr(worst_im_err, 25)} at x={mp.nstr(worst_im_x, 25)}, y={mp.nstr(worst_im_y, 25)}"
+)
+if n_valid > 0:
+    print(f"rms re err  : {mp.nstr(mp.sqrt(sumsq_re / n_valid), 25)}")
+    print(f"rms im err  : {mp.nstr(mp.sqrt(sumsq_im / n_valid), 25)}")

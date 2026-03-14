@@ -22,6 +22,19 @@ Full unary suite:
 python run_unary_suite_mpmath.py
 ```
 
+Single binary operation:
+
+```sh
+python make_eml_binary_mpmath.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25 64
+python test_eml_binary_mpmath.py
+```
+
+Full binary suite:
+
+```sh
+python run_binary_suite_mpmath.py
+```
+
 
 Optional test with higher precision, 128 digits:
 
@@ -36,4 +49,6 @@ Input required from parent directory:
 Generated files:
 
 - `test_eml_mpmath.py`
+- `test_eml_binary_mpmath.py`
 - `unary_suite_report_mpmath.txt`
+- `binary_suite_report_mpmath.txt`
