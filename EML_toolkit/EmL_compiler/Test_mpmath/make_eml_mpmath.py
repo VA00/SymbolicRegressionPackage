@@ -7,6 +7,7 @@ from pathlib import Path
 
 DIR = Path(__file__).resolve().parent
 PARENT = DIR.parent
+FUNC_NAME = "eml_f"
 
 
 def infer_ref(expr: str) -> str:
@@ -43,54 +44,73 @@ def infer_ref(expr: str) -> str:
     return mapping.get(fn, "mp.sin")
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Generate a single-function mpmath EML test.")
-    ap.add_argument("expr")
-    ap.add_argument("name")
-    ap.add_argument("rest", nargs="*")
-    args = ap.parse_args()
+def build_parser() -> argparse.ArgumentParser:
+    return argparse.ArgumentParser(
+        description="Generate an mpmath test for one Wolfram-style expression.",
+        usage="%(prog)s F[x] [xMin xMax dx [digits]]",
+        epilog=(
+            "Examples:\n"
+            "  python make_eml_mpmath.py Sqrt[x] 0 4 0.1 64\n"
+            "  python make_eml_mpmath.py ArcCos[x] -1 1 0.01 128\n\n"
+            "Defaults: xMin=-4.0, xMax=4.0, dx=0.0625, digits=64\n"
+            "Write the expression in Wolfram form, for example Sqrt[x], not Sqrt."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
-    ref = infer_ref(args.expr)
+
+def parse_range(ap: argparse.ArgumentParser, bounds: list[str]) -> tuple[str, str, str, str]:
     x_min = "-4.0"
     x_max = "4.0"
     step = "0.0625"
-    dps = "64"
-    if args.rest:
-        if any(c.isalpha() for c in args.rest[0]):
-            ref = args.rest[0]
-            if len(args.rest) > 1:
-                x_min = args.rest[1]
-            if len(args.rest) > 2:
-                x_max = args.rest[2]
-            if len(args.rest) > 3:
-                step = args.rest[3]
-            if len(args.rest) > 4:
-                dps = args.rest[4]
-        else:
-            x_min = args.rest[0]
-            if len(args.rest) > 1:
-                x_max = args.rest[1]
-            if len(args.rest) > 2:
-                step = args.rest[2]
-            if len(args.rest) > 3:
-                dps = args.rest[3]
+    digits = "64"
+    if len(bounds) > 4:
+        ap.error("expected at most 4 values: xMin xMax dx digits")
+    if bounds:
+        x_min = bounds[0]
+    if len(bounds) > 1:
+        x_max = bounds[1]
+    if len(bounds) > 2:
+        step = bounds[2]
+    if len(bounds) > 3:
+        digits = bounds[3]
+    return x_min, x_max, step, digits
 
+
+def load_compiler_namespace() -> dict[str, object]:
     namespace: dict[str, object] = {}
     source = (PARENT / "eml_compiler_v4.py").read_text(encoding="utf-8")
     exec(compile(source, str(PARENT / "eml_compiler_v4.py"), "exec"), namespace)
-    eml_expr = namespace["eml_compile_from_string"](args.expr)
+    return namespace
+
+
+def main() -> int:
+    ap = build_parser()
+    ap.add_argument("expr", metavar="F[x]", help="expression to compile, for example Sqrt[x]")
+    ap.add_argument("bounds", nargs="*", help=argparse.SUPPRESS)
+    args = ap.parse_args()
+
+    x_min, x_max, step, digits = parse_range(ap, args.bounds)
+    ref = infer_ref(args.expr)
+
+    namespace = load_compiler_namespace()
+    try:
+        eml_expr = namespace["eml_compile_from_string"](args.expr)
+    except Exception as exc:
+        ap.error(str(exc))
+
     py_expr = eml_expr.replace("[", "(").replace("]", ")").replace("EML(", "eml(")
 
     text = (DIR / "test_eml_mpmath.py.in").read_text(encoding="utf-8")
     repl = {
-        "@NAME@": args.name,
+        "@NAME@": FUNC_NAME,
         "@REF@": ref,
         "@XMIN@": x_min,
         "@XMAX@": x_max,
         "@STEP@": step,
         "@EXPR@": args.expr,
         "@C_EXPR@": py_expr,
-        "@DPS@": dps,
+        "@DPS@": digits,
     }
     for key, value in repl.items():
         text = text.replace(key, value)

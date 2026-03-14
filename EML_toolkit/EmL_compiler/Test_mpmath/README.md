@@ -12,7 +12,7 @@ Set up the shared Python environment first, see README from the parent directory
 To test single function, e.g, ArcCos[x] in the range -1<=x<=1 with step 0.01 using 64-digit arithmetic (i.e., 4x machine precision):
 
 ```sh
-python make_eml_mpmath.py 'ArcCos[x]' eml_arccos -1 1 0.01 64
+python make_eml_mpmath.py ArcCos[x] -1 1 0.01 64
 python test_eml_mpmath.py
 ```
 
