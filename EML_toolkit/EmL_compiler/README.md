@@ -61,7 +61,7 @@ The test subdirectories are:
 - `Test_torch`
 - `Test_mpmath`
 
-The current suites cover unary expressions on real grids. They are intended as explicit demonstration runs for the claim that compiled EML expressions can be evaluated in these environments.
+The current suites cover unary and binary expressions on real grids. They are intended as explicit demonstration runs for the claim that compiled EML expressions can be evaluated in these environments.
 
 ## Requirements
 
@@ -107,22 +107,26 @@ Generate Wolfram lists used elsewhere in the toolkit:
 python eml_compiler_v4.py --emit-test
 ```
 
-## Run all four test suites
+## Run all numerical suites
 
 From this directory, with the virtual environment activated:
 
 ```sh
 cd Test_C_math_h
 python run_unary_suite_c.py
+python run_binary_suite_c.py
 
 cd ../Test_numpy
 python run_unary_suite_numpy.py
+python run_binary_suite_numpy.py
 
 cd ../Test_torch
 python run_unary_suite_torch.py
+python run_binary_suite_torch.py
 
 cd ../Test_mpmath
 python run_unary_suite_mpmath.py
+python run_binary_suite_mpmath.py
 ```
 
 On Windows 11 for the C tests, first activate Intel oneAPI for `intel64` and re-enter PowerShell 7 so `icx` is on `PATH`:
@@ -135,9 +139,13 @@ cmd.exe /K '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 && pwsh'
 Each suite writes a report in its own directory:
 
 - `Test_C_math_h/unary_suite_report_c.txt`
+- `Test_C_math_h/binary_suite_report_c.txt`
 - `Test_numpy/unary_suite_report_numpy.txt`
+- `Test_numpy/binary_suite_report_numpy.txt`
 - `Test_torch/unary_suite_report_torch.txt`
+- `Test_torch/binary_suite_report_torch.txt`
 - `Test_mpmath/unary_suite_report_mpmath.txt`
+- `Test_mpmath/binary_suite_report_mpmath.txt`
 
 ## Single-function examples
 
@@ -186,9 +194,51 @@ python make_eml_mpmath.py ArcCos[x] -1 1 0.01 64
 python test_eml_mpmath.py
 ```
 
+## Single binary-operation examples
+
+C:
+
+```sh
+cd Test_C_math_h
+python make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+./test_eml_binary
+```
+
+On Windows 11 PowerShell 7:
+
+```powershell
+cd Test_C_math_h
+python .\make_eml_binary_c.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+.\test_eml_binary.exe
+```
+
+NumPy:
+
+```sh
+cd Test_numpy
+python make_eml_binary_numpy.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python test_eml_binary_numpy.py
+```
+
+PyTorch:
+
+```sh
+cd Test_torch
+python make_eml_binary_torch.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25
+python test_eml_binary_torch.py
+```
+
+mpmath:
+
+```sh
+cd Test_mpmath
+python make_eml_binary_mpmath.py Hypot[x,y] 0.25 4 0.25 0.25 4 0.25 64
+python test_eml_binary_mpmath.py
+```
+
 ## Notes
 
 - The C tests use C complex arithmetic, so the generated code includes both `<math.h>` and `<complex.h>`.
 - `torch` runs the full grid in parallel as a `torch.complex128` tensor.
 - `mpmath` supports higher precision; rerun its suite with `python run_unary_suite_mpmath.py --dps 256` to increase `mp.dps`.
-- Generated files such as `test_eml_numpy.py`, `test_eml_torch.py`, `test_eml_mpmath.py`, `test_eml.c`, `test_eml`, `test_eml.exe`, and `eml_math.h` are disposable build artifacts.
+- Generated files such as `test_eml_numpy.py`, `test_eml_binary_numpy.py`, `test_eml_torch.py`, `test_eml_binary_torch.py`, `test_eml_mpmath.py`, `test_eml_binary_mpmath.py`, `test_eml_binary.c`, `test_eml_binary`, `test_eml_binary.exe`, `eml_math_binary.h`, and the suite reports are disposable build artifacts.
