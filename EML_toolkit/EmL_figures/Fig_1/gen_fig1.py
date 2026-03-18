@@ -424,11 +424,12 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
     lines.append(r'\usetikzlibrary{arrows.meta}')
     lines.append(r'\pgfdeclarelayer{background}')
     lines.append(r'\pgfsetlayers{background,main}')
+    lines.append(r'\newsavebox{\hypotbox}')
     lines.append(r'\begin{document}')
     lines.append(r'\begin{tikzpicture}[')
     lines.append(r'  scale=0.8, every node/.style={transform shape},')
     lines.append(r'  every node/.append style={font=\sffamily\bfseries},')
-    lines.append(r'  >=Stealth,')
+    lines.append(r'  >={Stealth[length=5pt,width=4pt]},')
     lines.append(r']')
     lines.append('')
 
@@ -442,9 +443,13 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
         lines.append(f'\\definecolor{{{name}}}{{RGB}}{{{r},{g},{b}}}')
     lines.append('')
 
-    node_diameter = 1.3
-    lines.append(f'\\tikzset{{mynode/.style={{circle, line width=1.0pt, '
-                 f'minimum size={node_diameter:.2f}cm, inner sep=0pt}}}}')
+    # Uniform node size: measure widest label (hypot), scale by 1.15
+    lines.append(r'\savebox{\hypotbox}{\fontsize{14}{18}\selectfont '
+                 r'$\smash{\sqrt{\!x^2\!\!+\!y^2}}$}')
+    lines.append(r'\pgfmathsetlengthmacro{\nodesize}'
+                 r'{1.15 * max(1.3cm, \wd\hypotbox)}')
+    lines.append(r'\tikzset{mynode/.style={circle, line width=1.0pt, '
+                 r'minimum size=\nodesize, inner sep=0pt}}')
     lines.append('')
 
     # Nodes (main layer, on top)
@@ -512,13 +517,13 @@ def render_spiral_tikz(G, ordered_nodes, positions, r_circle, outdir, ts):
         dst = node_tikz_id[v]
 
         if u == 'EML':
-            style = (f'black, line width=0.6pt, opacity=0.85, '
+            style = (f'black, line width=0.9pt, '
                      f'->, {bend_dir}={bend_angle}')
         elif u == '1':
-            style = (f'black, line width=0.6pt, opacity=0.85, dashed, '
+            style = (f'black, line width=0.9pt, dashed, '
                      f'->, {bend_dir}={bend_angle}')
         else:
-            style = (f'black!50, line width=0.3pt, opacity=0.45, '
+            style = (f'black!50, line width=0.5pt, opacity=0.45, '
                      f'->, {bend_dir}={bend_angle}')
 
         lines.append(f'\\draw[{style}] ({src}) to ({dst});')
@@ -718,7 +723,7 @@ def main():
     # Spiral layout with uniform arc-length spacing
     xs, ys, thetas, radii = archimedean_spiral_uniform(n)
     positions = {node: (xs[i], ys[i]) for i, node in enumerate(ordered_nodes)}
-    r_circle = 0.65
+    r_circle = 0.75
 
     # Generate all outputs
     render_spiral_mpl(G, ordered_nodes, positions, r_circle, outdir, ts)

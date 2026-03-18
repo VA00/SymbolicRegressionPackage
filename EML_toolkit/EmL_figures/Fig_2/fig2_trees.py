@@ -263,7 +263,6 @@ def render_panel(
                 f"\\draw[emlarc] ($({node.name}center)+(220:{eml_r:.3f}cm)$) arc[start angle=220,end angle=290,radius={eml_r:.3f}cm];",
                 f"\\draw[emlarrow] ($({node.name}center)+(290:{eml_r:.3f}cm)$) -- ($({node.name}center)+(308:{eml_r:.3f}cm)$);",
                 f"\\node[emldot, circle, inner sep=0pt, minimum size={eml_dot:.3f}cm] at ({node.name}out) {{}};",
-                f"\\node[emllabel] at ({node.name}center) {{$\\eml$}};",
             ]
         )
 
@@ -350,8 +349,8 @@ def build_document() -> str:
             r"\newdimen\EMLarrowfudge",
             r"\AtBeginDocument{\setbox0=\hbox{$\to$}\global\EMLarrowcenter=\dimexpr(\ht0-\dp0)/2\relax}",
             r"\EMLarrowfudge=1.3pt",
-            r"\definecolor{emlStroke}{RGB}{56,63,71}",
-            r"\definecolor{emlFill}{RGB}{247,243,235}",
+            r"\definecolor{emlStroke}{RGB}{0,0,0}",
+            r"\definecolor{emlFill}{RGB}{255,255,255}",
             r"\tikzset{",
             r"  emlbody/.style={draw=emlStroke, fill=emlFill, line width=0.46pt},",
             r"  emlarc/.style={draw=emlStroke, line width=0.46pt, line cap=round, line join=round},",
