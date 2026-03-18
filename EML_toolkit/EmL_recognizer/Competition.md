@@ -50,7 +50,7 @@ Notes:
 
 | Rank | Team | Cleared | Ladder Time | `target=2` wall | `target=-2` wall | `target=1/2` wall | Language | Parallelization | Machine |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
-| 1 | GPT 5.4 Codex High | 3/3 | 0.893 s | 0.256 s | 0.254 s | 0.383 s | CUDA C++ | RTX 5080 GPU | RTX 5080 |
+| 1 | GPT 5.4 Codex High | 3/3 | 0.893 s | 0.256 s | 0.254 s | 0.383 s | C++ | CUDA | RTX 5080 |
 | 2 | A.O. (using Antigravity code) | 2/3 | 0.055 s | 0.025 s | 0.030 s | superseded | Rust + Python | Rayon | MacBook Pro M3 Max |
 | 3 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None | AMD Ryzen 5900X, 32 GB RAM |
 | 4 | Antigravity (Hybrid) | 2/3 | 1.355 s | 0.711 s | 0.644 s | superseded | Rust + Python | Rayon (24 threads) | AMD Ryzen 5900X, 32 GB RAM |

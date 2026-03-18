@@ -13,8 +13,8 @@
 #define DEFAULT_THREADS 256
 #define DEFAULT_CHUNK_SIZE (1ULL << 26)
 #define DEFAULT_MAX_CANDIDATES (1 << 20)
-#define DEFAULT_THRESHOLD (1024.0f * FLT_EPSILON)
-#define DEFAULT_EXACT_TOL (64.0 * DBL_EPSILON)
+#define DEFAULT_THRESHOLD (512.0f * FLT_EPSILON)
+#define DEFAULT_EXACT_TOL (8.0 * DBL_EPSILON)
 
 #define CUDA_CHECK(call)                                                          \
     do {                                                                          \
@@ -541,8 +541,9 @@ int main(int argc, char** argv)
     for (int K = 1; K <= max_tokens; K += 2) {
         int leaves = (K + 1) / 2;
         unsigned long long total_shapes = h_shape_count[leaves];
-        int zero = 0;
-        CUDA_CHECK(cudaMemcpy(d_candidate_count, &zero, sizeof(int), cudaMemcpyHostToDevice));
+        unsigned long long level_candidates_total = 0;
+        int level_max_chunk_candidates = 0;
+        unsigned long long level_dropped_total = 0;
 
         cudaEvent_t level_start, level_stop;
         CUDA_CHECK(cudaEventCreate(&level_start));
@@ -550,6 +551,9 @@ int main(int argc, char** argv)
         CUDA_CHECK(cudaEventRecord(level_start));
 
         for (unsigned long long offset = 0; offset < total_shapes; offset += chunk_size) {
+            int zero = 0;
+            CUDA_CHECK(cudaMemcpy(d_candidate_count, &zero, sizeof(int), cudaMemcpyHostToDevice));
+
             unsigned long long count = total_shapes - offset;
             if (count > chunk_size) {
                 count = chunk_size;
@@ -561,6 +565,56 @@ int main(int argc, char** argv)
                 d_candidates, d_candidate_count, max_candidates
             );
             CUDA_CHECK(cudaGetLastError());
+            CUDA_CHECK(cudaDeviceSynchronize());
+
+            int candidate_count = 0;
+            CUDA_CHECK(cudaMemcpy(&candidate_count, d_candidate_count, sizeof(int),
+                                  cudaMemcpyDeviceToHost));
+            level_candidates_total += (unsigned long long)candidate_count;
+            if (candidate_count > level_max_chunk_candidates) {
+                level_max_chunk_candidates = candidate_count;
+            }
+
+            int copied_candidates = candidate_count;
+            if (copied_candidates > max_candidates) {
+                level_dropped_total += (unsigned long long)(copied_candidates - max_candidates);
+                copied_candidates = max_candidates;
+            }
+
+            if (copied_candidates > 0) {
+                CUDA_CHECK(cudaMemcpy(h_candidates, d_candidates,
+                                      (size_t)copied_candidates * sizeof(Candidate),
+                                      cudaMemcpyDeviceToHost));
+                qsort(h_candidates, copied_candidates, sizeof(Candidate), compare_candidates);
+            }
+
+            for (int i = 0; i < copied_candidates; ++i) {
+                double value = evaluate_rank_double(leaves, h_candidates[i].tree_idx);
+                if (!isfinite(value)) {
+                    continue;
+                }
+
+                double abs_err = fabs(value - target_double);
+                if (abs_err < best_abs_err) {
+                    best_abs_err = abs_err;
+                    best_value = value;
+                    best_leaves = leaves;
+                    best_rank = h_candidates[i].tree_idx;
+                }
+
+                if (exact_hit(value, target_double, exact_tol)) {
+                    found_exact = 1;
+                    best_abs_err = abs_err;
+                    best_value = value;
+                    best_leaves = leaves;
+                    best_rank = h_candidates[i].tree_idx;
+                    break;
+                }
+            }
+
+            if (found_exact) {
+                break;
+            }
         }
 
         CUDA_CHECK(cudaEventRecord(level_stop));
@@ -569,52 +623,14 @@ int main(int argc, char** argv)
         float level_ms = 0.0f;
         CUDA_CHECK(cudaEventElapsedTime(&level_ms, level_start, level_stop));
 
-        int candidate_count = 0;
-        CUDA_CHECK(cudaMemcpy(&candidate_count, d_candidate_count, sizeof(int),
-                              cudaMemcpyDeviceToHost));
-        int copied_candidates = candidate_count;
-        if (copied_candidates > max_candidates) {
-            copied_candidates = max_candidates;
-        }
-
-        if (copied_candidates > 0) {
-            CUDA_CHECK(cudaMemcpy(h_candidates, d_candidates,
-                                  (size_t)copied_candidates * sizeof(Candidate),
-                                  cudaMemcpyDeviceToHost));
-            qsort(h_candidates, copied_candidates, sizeof(Candidate), compare_candidates);
-        }
-
         total_evaluated += total_shapes;
-        printf("K=%2d  shapes=%12llu  gpu=%.3f s  candidates=%d",
-               K, total_shapes, level_ms / 1000.0f, candidate_count);
-        if (candidate_count > max_candidates) {
-            printf("  (overflow: dropped %d)", candidate_count - max_candidates);
+        printf("K=%2d  shapes=%12llu  gpu=%.3f s  candidates=%llu",
+               K, total_shapes, level_ms / 1000.0f, level_candidates_total);
+        printf("  max_chunk=%d", level_max_chunk_candidates);
+        if (level_dropped_total > 0) {
+            printf("  (overflow: dropped %llu)", level_dropped_total);
         }
         printf("\n");
-
-        for (int i = 0; i < copied_candidates; ++i) {
-            double value = evaluate_rank_double(leaves, h_candidates[i].tree_idx);
-            if (!isfinite(value)) {
-                continue;
-            }
-
-            double abs_err = fabs(value - target_double);
-            if (abs_err < best_abs_err) {
-                best_abs_err = abs_err;
-                best_value = value;
-                best_leaves = leaves;
-                best_rank = h_candidates[i].tree_idx;
-            }
-
-            if (exact_hit(value, target_double, exact_tol)) {
-                found_exact = 1;
-                best_abs_err = abs_err;
-                best_value = value;
-                best_leaves = leaves;
-                best_rank = h_candidates[i].tree_idx;
-                break;
-            }
-        }
 
         CUDA_CHECK(cudaEventDestroy(level_start));
         CUDA_CHECK(cudaEventDestroy(level_stop));
