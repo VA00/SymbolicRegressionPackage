@@ -48,13 +48,13 @@ Notes:
 
 ## Official Leaderboard
 
-| Rank | Team | Cleared | Ladder Time | `target=2` wall | `target=-2` wall | `target=1/2` wall | Language | Parallelization |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 1 | A.O. (using Antigravity code) | 3/3 | 0.691 s | 0.025 s | 0.030 s | 0.636 s | Rust + Python | Rayon |
-| 2 | Antigravity (Hybrid) | 3/3 | 4.110 s | 0.711 s | 0.644 s | 2.755 s | Rust + Python | Rayon (24 threads) |
-| 3 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None |
-| 4 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None |
-| 5 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None |
+| Rank | Team | Cleared | Ladder Time | `target=2` wall | `target=-2` wall | `target=1/2` wall | Language | Parallelization | Machine |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
+| 1 | A.O. (using Antigravity code) | 3/3 | 0.691 s | 0.025 s | 0.030 s | 0.636 s | Rust + Python | Rayon | MacBook Pro M3 Max |
+| 2 | Antigravity (Hybrid) | 3/3 | 4.110 s | 0.711 s | 0.644 s | 2.755 s | Rust + Python | Rayon (24 threads) | AMD Ryzen 5900X, 32 GB RAM |
+| 3 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None | AMD Ryzen 5900X, 32 GB RAM |
+| 4 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
+| 5 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
 
 ## Entry Details
 
