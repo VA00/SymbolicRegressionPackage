@@ -1,0 +1,25 @@
+Compiling Rust engine (release mode)...
+2026-03-18 10:05:53.706193
+DEBUG: Level 3 generated unique: 1
+DEBUG: Level 5 generated unique: 2
+DEBUG: Level 7 generated unique: 5
+DEBUG: Level 9 generated unique: 11
+DEBUG: Level 11 generated unique: 29
+DEBUG: Level 13 generated unique: 78
+DEBUG: Level 15 generated unique: 215
+DEBUG: Level 17 generated unique: 614
+DEBUG: Level 19 generated unique: 1766
+DEBUG: Level 21 generated unique: 5139
+DEBUG: Level 23 generated unique: 15155
+DEBUG: Level 25 generated unique: 45236
+DEBUG: Level 27 generated unique: 136052
+DEBUG: Level 29 generated unique: 412092
+DEBUG: Level 31 generated unique: 1255721
+DEBUG: Level 33 generated unique: 3845620
+DEBUG: Level 35 generated unique: 11826603
+rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, 1, EML, EML, 1, EML, EML, EML, 1, EML}]
+1/2
+tokens=37
+2026-03-18 10:05:55.983863
+2.277644300 Seconds
+Finished!
