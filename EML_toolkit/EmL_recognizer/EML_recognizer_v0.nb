@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     17981,        449]
-NotebookOptionsPosition[     16027,        418]
-NotebookOutlinePosition[     16423,        434]
-CellTagsIndexPosition[     16380,        431]
+NotebookDataLength[     20227,        501]
+NotebookOptionsPosition[     17828,        462]
+NotebookOutlinePosition[     18224,        478]
+CellTagsIndexPosition[     18181,        475]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -159,7 +159,7 @@ Cell[BoxData[
    RowBox[{"Log", "[", "y", "]"}]}]}]], "Input",
  CellChangeTimes->{{3.982801105747959*^9, 3.9828011187297115`*^9}, {
   3.9828039112221565`*^9, 3.9828039192167225`*^9}},
- CellLabel->"In[3]:=",ExpressionUUID->"4fc74139-3548-d048-9e61-b86bf212d27d"],
+ CellLabel->"In[1]:=",ExpressionUUID->"4fc74139-3548-d048-9e61-b86bf212d27d"],
 
 Cell[BoxData[{
  RowBox[{
@@ -169,7 +169,7 @@ Cell[BoxData[{
   RowBox[{"binaryOperations", "=", 
    RowBox[{"{", "EML", "}"}]}], ";"}]}], "Input",
  CellChangeTimes->{{3.9828010831131325`*^9, 3.9828011041036625`*^9}},
- CellLabel->"In[4]:=",ExpressionUUID->"ea510336-9967-6c4f-9bca-6a7d0cf2b6da"],
+ CellLabel->"In[2]:=",ExpressionUUID->"ea510336-9967-6c4f-9bca-6a7d0cf2b6da"],
 
 Cell[BoxData[
  RowBox[{
@@ -237,7 +237,51 @@ Cell[BoxData[
      "rest"}], ";"}]}]}]], "Input",
  CellChangeTimes->{{3.9828010668551807`*^9, 3.9828010668551807`*^9}, 
    3.982803889118353*^9},
- CellLabel->"In[6]:=",ExpressionUUID->"5335cd77-50ad-344a-a006-5466ff15aa64"],
+ CellLabel->"In[4]:=",ExpressionUUID->"5335cd77-50ad-344a-a006-5466ff15aa64"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"rpnRule", "[", 
+  RowBox[{"{", 
+   RowBox[{
+   "1", ",", "1", ",", "1", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",",
+     "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", "EML", ",", "1", ",", 
+    "1", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",", "EML", ",", "1", ",",
+     "EML", ",", "EML", ",", "1", ",", "1", ",", "EML", ",", "1", ",", "EML", 
+    ",", "1", ",", "EML", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",", 
+    "EML", ",", "1", ",", "EML"}], "}"}], "]"}]], "Input",
+ CellChangeTimes->{{3.9828137129461784`*^9, 3.9828137129461784`*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"17c49966-7ce2-df45-b668-75644bd2d1a9"],
+
+Cell[BoxData[
+ FractionBox["1", "2"]], "Output",
+ CellChangeTimes->{3.9828137135419254`*^9},
+ CellLabel->"Out[10]=",ExpressionUUID->"5dc37da1-aa54-b445-b988-a7239fbf759e"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"rpnRule", "[", 
+  RowBox[{"{", 
+   RowBox[{
+   "1", ",", "1", ",", "1", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",",
+     "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", "EML", ",", "1", ",", 
+    "1", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",", "EML", ",", "1", ",",
+     "EML", ",", "EML", ",", "1", ",", "1", ",", "EML", ",", "1", ",", "EML", 
+    ",", "1", ",", "EML", ",", "EML", ",", "1", ",", "EML", ",", "EML", ",", 
+    "EML", ",", "1", ",", "1", ",", "EML", ",", "EML"}], "}"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.98281424125539*^9, 3.98281424125539*^9}},
+ CellLabel->"In[11]:=",ExpressionUUID->"02ff46d4-6019-b14e-80d9-95dd2e977f8d"],
+
+Cell[BoxData[
+ RowBox[{"-", 
+  FractionBox["1", "2"]}]], "Output",
+ CellChangeTimes->{3.9828142427550335`*^9},
+ CellLabel->"Out[11]=",ExpressionUUID->"4df78ecd-1c66-4946-b3ec-d709cae19488"]
+}, Open  ]],
 
 Cell[BoxData[
  RowBox[{"rpnRule", "[", 
@@ -442,16 +486,26 @@ Cell[4520, 123, 1122, 27, 123, "Input",ExpressionUUID->"6d289ec4-b222-b74d-9b94-
 Cell[5645, 152, 390, 9, 28, "Input",ExpressionUUID->"4fc74139-3548-d048-9e61-b86bf212d27d"],
 Cell[6038, 163, 353, 8, 47, "Input",ExpressionUUID->"ea510336-9967-6c4f-9bca-6a7d0cf2b6da"],
 Cell[6394, 173, 2338, 66, 142, "Input",ExpressionUUID->"5335cd77-50ad-344a-a006-5466ff15aa64"],
-Cell[8735, 241, 266, 5, 28, "Input",ExpressionUUID->"5be4cd13-0954-1a4b-8ad0-97ade7b71fd9"],
-Cell[9004, 248, 1777, 44, 218, "Input",ExpressionUUID->"352ee8fe-f997-e649-b9ca-fe14d9a83b02"],
-Cell[10784, 294, 349, 5, 28, "Input",ExpressionUUID->"5100e7bc-9b66-9248-b105-3f3872a1a31c"],
-Cell[11136, 301, 2452, 59, 275, "Input",ExpressionUUID->"6a00c9be-5ebb-d646-a8a1-c4a720e8862c"],
-Cell[13591, 362, 373, 8, 28, "Input",ExpressionUUID->"a5ede720-897f-604d-861a-ab5e29a6628c"],
-Cell[13967, 372, 460, 9, 28, "Input",ExpressionUUID->"4c3fa725-45f3-0a46-b02b-187d47a167c5"],
-Cell[14430, 383, 459, 9, 28, "Input",ExpressionUUID->"de6dd372-784c-e04d-b1f0-77049eb489cf"],
-Cell[14892, 394, 432, 8, 28, "Input",ExpressionUUID->"6b072f19-e6a1-c54b-a218-50936660f89f"],
-Cell[15327, 404, 696, 12, 28, "Input",ExpressionUUID->"d9580a67-4a76-7a40-9bd2-99c9475f43a6"]
+Cell[CellGroupData[{
+Cell[8757, 243, 671, 11, 28, "Input",ExpressionUUID->"17c49966-7ce2-df45-b668-75644bd2d1a9"],
+Cell[9431, 256, 171, 3, 45, "Output",ExpressionUUID->"5dc37da1-aa54-b445-b988-a7239fbf759e"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9639, 264, 690, 12, 28, "Input",ExpressionUUID->"02ff46d4-6019-b14e-80d9-95dd2e977f8d"],
+Cell[10332, 278, 189, 4, 64, "Output",ExpressionUUID->"4df78ecd-1c66-4946-b3ec-d709cae19488"]
+}, Open  ]],
+Cell[10536, 285, 266, 5, 28, "Input",ExpressionUUID->"5be4cd13-0954-1a4b-8ad0-97ade7b71fd9"],
+Cell[10805, 292, 1777, 44, 218, "Input",ExpressionUUID->"352ee8fe-f997-e649-b9ca-fe14d9a83b02"],
+Cell[12585, 338, 349, 5, 28, "Input",ExpressionUUID->"5100e7bc-9b66-9248-b105-3f3872a1a31c"],
+Cell[12937, 345, 2452, 59, 275, "Input",ExpressionUUID->"6a00c9be-5ebb-d646-a8a1-c4a720e8862c"],
+Cell[15392, 406, 373, 8, 28, "Input",ExpressionUUID->"a5ede720-897f-604d-861a-ab5e29a6628c"],
+Cell[15768, 416, 460, 9, 28, "Input",ExpressionUUID->"4c3fa725-45f3-0a46-b02b-187d47a167c5"],
+Cell[16231, 427, 459, 9, 28, "Input",ExpressionUUID->"de6dd372-784c-e04d-b1f0-77049eb489cf"],
+Cell[16693, 438, 432, 8, 28, "Input",ExpressionUUID->"6b072f19-e6a1-c54b-a218-50936660f89f"],
+Cell[17128, 448, 696, 12, 28, "Input",ExpressionUUID->"d9580a67-4a76-7a40-9bd2-99c9475f43a6"]
 }
 ]
 *)
+
+(* End of internal cache information *)
 
