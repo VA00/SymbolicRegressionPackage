@@ -50,15 +50,56 @@ Notes:
 
 | Rank | Team | Cleared | Ladder Time | `target=2` wall | `target=-2` wall | `target=1/2` wall | Language | Parallelization | Machine |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
-| 1 | A.O. (using Antigravity code) | 3/3 | 0.691 s | 0.025 s | 0.030 s | 0.636 s | Rust + Python | Rayon | MacBook Pro M3 Max |
-| 2 | Antigravity (Hybrid) | 3/3 | 4.110 s | 0.711 s | 0.644 s | 2.755 s | Rust + Python | Rayon (24 threads) | AMD Ryzen 5900X, 32 GB RAM |
+| 1 | GPT 5.4 Codex High | 3/3 | 0.893 s | 0.256 s | 0.254 s | 0.383 s | CUDA C++ | RTX 5080 GPU | RTX 5080 |
+| 2 | A.O. (using Antigravity code) | 2/3 | 0.055 s | 0.025 s | 0.030 s | superseded | Rust + Python | Rayon | MacBook Pro M3 Max |
 | 3 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None | AMD Ryzen 5900X, 32 GB RAM |
-| 4 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
-| 5 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
+| 4 | Antigravity (Hybrid) | 2/3 | 1.355 s | 0.711 s | 0.644 s | superseded | Rust + Python | Rayon (24 threads) | AMD Ryzen 5900X, 32 GB RAM |
+| 5 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
+| 6 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None | AMD Ryzen 5900X, 32 GB RAM |
 
 ## Entry Details
 
-### 1. A.O. (using Antigravity code)
+### 1. A.O. (using GPT 5.4 Codex High CUDA code)
+
+- Language: CUDA C++
+- Commands:
+
+```powershell
+.\eml_cuda.exe --target 2
+.\eml_cuda.exe --target -2
+.\eml_cuda.exe --target 1/2
+```
+
+- Official wall-clock, measured locally with `Measure-Command`:
+  - `target=2`: `0.256213 Seconds`
+  - `target=-2`: `0.253590 Seconds`
+  - `target=1/2`: `0.383497 Seconds`
+- Solver-reported GPU timing from recorded runs:
+  - `target=2`: `gpu_seconds=0.001099`
+  - `target=-2`: `gpu_seconds=0.001822`
+  - `target=1/2`: `gpu_seconds=0.122205`
+- Tokens:
+  - `target=2`: `19`
+  - `target=-2`: `27`
+  - `target=1/2`: `35`
+- Notes:
+  - This entry uses the `eml_cuda.exe` / `eml_gpu_fp32_hybrid.cu` CUDA codebase on the local RTX 5080 machine.
+  - The `35`-token `target=1/2` exact hit is the current shortest known rung-3 result on the ladder.
+  - The previous `37`-token rung-3 entries are now superseded and no longer count as cleared rung 3.
+- Verified Mathematica-ready output for `target=1/2`:
+
+```wl
+rpnRule[{1, 1, 1, 1, 1, 1, 1, 1, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, EML, 1, EML, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, EML, 1, EML}]
+```
+
+- Source file:
+  - `eml_gpu_fp32_hybrid.cu`
+- OS: Windows 11
+- Shell: PowerShell 7
+- Machine: Windows 11 host with NVIDIA GeForce RTX 5080
+- Parallelization: RTX 5080 GPU
+
+### 2. A.O. (using Antigravity code)
 
 - Language: Rust + Python
 - Command family:
@@ -85,7 +126,7 @@ python3 eml_fast.py --target="1/2"
 - Notes:
   - This entry uses the Antigravity `eml_fast.py` / `eml_core` codebase on different hardware.
   - `MacBookPro_M3MAX.txt` contains two successful `target=2` runs; the leaderboard uses the faster later rerun at `2026-03-18 14:20:00`.
-  - The `37`-token `target=1/2` result was reproduced on macOS.
+  - The `37`-token `target=1/2` result was reproduced on macOS, but is now superseded by a `35`-token CUDA result.
 - Verified Mathematica-ready output for `target=1/2`:
 
 ```wl
@@ -98,45 +139,6 @@ rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, 
 - Shell: terminal prompt `%` from local macOS session
 - Machine: MacBook Pro M3 Max
 - Parallelization: Rayon
-
-### 2. Antigravity (Hybrid)
-
-- Language: Rust + Python
-- Commands:
-
-```powershell
-python .\eml_fast.py --target 2
-python .\eml_fast.py --target -2
-python .\eml_fast.py --target 1/2 --max-tokens=41
-```
-
-- Official wall-clock, measured locally with `Measure-Command`:
-  - `target=2`: `710,8399 ms`
-  - `target=-2`: `643,8220 ms`
-  - `target=1/2`: `2755,1809 ms`
-- Internal timing from recorded runs:
-  - `target=2`: `0.070674700 Seconds`
-  - `target=-2`: `0.066810700 Seconds`
-  - `target=1/2`: `2.277644300 Seconds`
-- Tokens:
-  - `target=2`: `19`
-  - `target=-2`: `27`
-  - `target=1/2`: `37`
-- `target=1/2` is currently the shortest verified exact result on the ladder.
-- Verified Mathematica-ready output for `target=1/2`:
-
-```wl
-rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, 1, EML, EML, 1, EML, EML, EML, 1, EML}]
-```
-
-- Source files:
-  - `walkthrough.md`
-  - `res_rung2.txt`
-  - `res_rung3.txt`
-- OS: Windows 11
-- Shell: PowerShell 7
-- Machine: AMD Ryzen 5900X, 32 GB RAM
-- Parallelization: Rayon (24 threads)
 
 ### 3. GPT 5.4 Codex High
 
@@ -164,7 +166,7 @@ python .\EML_recognizer_v2.py --target -2
   - Tokens: `39`
   - Start: `2026-03-18 08:59:45.402657`
   - End: `2026-03-18 09:06:54.100655`
-  - Status: no longer counts as a cleared rung because Antigravity found an exact `37`-token solution
+  - Status: no longer counts as a cleared rung because the current shortest known exact rung-3 result is `35` tokens
 - Historical Mathematica-ready output for `target=1/2`:
 
 ```wl
@@ -176,7 +178,47 @@ rpnRule[{1, 1, 1, 1, EML, 1, 1, 1, 1, 1, 1, EML, EML, EML, 1, EML, EML, 1, 1, EM
 - Machine: AMD Ryzen 5900X, 32 GB RAM
 - Parallelization: None
 
-### 4. GPT 5.4 Codex High
+### 4. Antigravity (Hybrid)
+
+- Language: Rust + Python
+- Commands:
+
+```powershell
+python .\eml_fast.py --target 2
+python .\eml_fast.py --target -2
+python .\eml_fast.py --target 1/2 --max-tokens=41
+```
+
+- Official wall-clock, measured locally with `Measure-Command`:
+  - `target=2`: `710,8399 ms`
+  - `target=-2`: `643,8220 ms`
+  - `target=1/2`: `2755,1809 ms`
+- Internal timing from recorded runs:
+  - `target=2`: `0.070674700 Seconds`
+  - `target=-2`: `0.066810700 Seconds`
+  - `target=1/2`: `2.277644300 Seconds`
+- Tokens:
+  - `target=2`: `19`
+  - `target=-2`: `27`
+  - `target=1/2`: `37`
+- Historical rung-3 result, now superseded by a shorter exact solution:
+  - Status: no longer counts as a cleared rung because the current shortest known exact rung-3 result is `35` tokens
+- Verified Mathematica-ready output for `target=1/2`:
+
+```wl
+rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, 1, EML, EML, 1, EML, EML, EML, 1, EML}]
+```
+
+- Source files:
+  - `walkthrough.md`
+  - `res_rung2.txt`
+  - `res_rung3.txt`
+- OS: Windows 11
+- Shell: PowerShell 7
+- Machine: AMD Ryzen 5900X, 32 GB RAM
+- Parallelization: Rayon (24 threads)
+
+### 5. GPT 5.4 Codex High
 
 - Language: Wolfram Mathematica
 - Command:
@@ -195,7 +237,7 @@ wolframscript.exe -f .\EML_recognizer_v1.wl
 - Machine: AMD Ryzen 5900X, 32 GB RAM
 - Parallelization: None
 
-### 5. A.O.
+### 6. A.O.
 
 - Language: Wolfram Mathematica
 - Command:
@@ -248,5 +290,6 @@ Candidates for expanding the public set:
 - The current board is small, so the main value is reproducibility.
 - Fastest recorded benchmark entry and original method authorship are separate concepts in this ladder. Reused code is allowed if disclosed.
 - Antigravity's walkthrough-reported ladder time is based on internal solver timing; the official leaderboard uses locally measured wall-clock command runtime.
+- The current shortest known exact rung-3 result is the `35`-token `target=1/2` CUDA hit on the RTX 5080 entry.
 - If the benchmark harness changes, older entries should be re-run on the same machine.
 - A future version can add separate public and private leaderboards if the target set grows.
