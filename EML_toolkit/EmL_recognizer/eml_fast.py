@@ -1,5 +1,7 @@
 import argparse
 import ast
+import os
+import pathlib
 import subprocess
 import time
 from datetime import datetime
@@ -44,6 +46,12 @@ def format_wolfram_rpn(code: list) -> str:
     formatted = ", ".join("EML" if token == "EML" else str(token) for token in code)
     return f"rpnRule[{{{formatted}}}]"
 
+
+def rust_executable_path(engine_dir: str) -> str:
+    exe_suffix = ".exe" if os.name == "nt" else ""
+    exe_name = f"eml_core{exe_suffix}"
+    return str(pathlib.Path(engine_dir) / "target" / "release" / exe_name)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", default="2")
@@ -57,15 +65,14 @@ def main():
 
     # Compile the Rust engine first
     print("Compiling Rust engine (release mode)...", flush=True)
-    subprocess.run("cargo build --release", cwd=args.engine_dir, shell=True, check=True)
+    subprocess.run(["cargo", "build", "--release"], cwd=args.engine_dir, check=True)
 
     wall_start = datetime.now()
     started = time.perf_counter()
     print(wall_start.isoformat(sep=" "), flush=True)
 
     # Run the Rust engine
-    import os
-    exe_path = os.path.abspath(os.path.join(args.engine_dir, "target", "release", "eml_core.exe"))
+    exe_path = os.path.abspath(rust_executable_path(args.engine_dir))
     rust_process = subprocess.Popen(
         [exe_path, "--target", str(target_float), "--max-tokens", str(args.max_tokens), "--tolerance", str(args.tolerance)],
         cwd=args.engine_dir,

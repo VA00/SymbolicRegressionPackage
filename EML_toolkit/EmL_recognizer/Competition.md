@@ -12,6 +12,7 @@ This is a runtime competition, not a code golf contest.
 
 - Any method is allowed: symbolic search, dynamic programming, brute force, pruning, compiled code, GPUs, clusters, custom hardware.
 - Any programming language is allowed.
+- Entries are benchmark submissions, not originality awards. Reusing an existing method or codebase is allowed if disclosed.
 - Exactness is mandatory. A candidate solution must evaluate to the requested target exactly.
 - Minimality is mandatory. The reported expression must be shortest for that target.
 - If a later entry finds a strictly shorter exact expression for the same target, earlier longer solutions no longer count as a cleared rung for that target.
@@ -49,14 +50,56 @@ Notes:
 
 | Rank | Team | Cleared | Ladder Time | `target=2` wall | `target=-2` wall | `target=1/2` wall | Language | Parallelization |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 1 | Antigravity (Hybrid) | 3/3 | 4.110 s | 0.711 s | 0.644 s | 2.755 s | Rust + Python | Rayon (24 threads) |
-| 2 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None |
-| 3 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None |
-| 4 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None |
+| 1 | A.O. (using Antigravity code) | 3/3 | 0.691 s | 0.025 s | 0.030 s | 0.636 s | Rust + Python | Rayon |
+| 2 | Antigravity (Hybrid) | 3/3 | 4.110 s | 0.711 s | 0.644 s | 2.755 s | Rust + Python | Rayon (24 threads) |
+| 3 | GPT 5.4 Codex High | 2/3 | 1.193 s | 0.491 s | 0.702 s | superseded | Python + SymPy | None |
+| 4 | GPT 5.4 Codex High | 2/3 | 42.700 s | 2.039 s | 40.661 s | not run | Wolfram Mathematica | None |
+| 5 | A.O. | 2/3 | 473.111 s | 6.869 s | 466.242 s | not run | Wolfram Mathematica | None |
 
 ## Entry Details
 
-### 1. Antigravity (Hybrid)
+### 1. A.O. (using Antigravity code)
+
+- Language: Rust + Python
+- Command family:
+
+```text
+python3 eml_fast.py
+python3 eml_fast.py --target="2"
+python3 eml_fast.py --target="-2"
+python3 eml_fast.py --target="1/2"
+```
+
+- Official wall-clock, derived from timestamps in `MacBookPro_M3MAX.txt`:
+  - `target=2`: `0.025444 Seconds`
+  - `target=-2`: `0.029677 Seconds`
+  - `target=1/2`: `0.635667 Seconds`
+- Internal timing from recorded runs:
+  - `target=2`: `0.025418834 Seconds`
+  - `target=-2`: `0.029661208 Seconds`
+  - `target=1/2`: `0.635650875 Seconds`
+- Tokens:
+  - `target=2`: `19`
+  - `target=-2`: `27`
+  - `target=1/2`: `37`
+- Notes:
+  - This entry uses the Antigravity `eml_fast.py` / `eml_core` codebase on different hardware.
+  - `MacBookPro_M3MAX.txt` contains two successful `target=2` runs; the leaderboard uses the faster later rerun at `2026-03-18 14:20:00`.
+  - The `37`-token `target=1/2` result was reproduced on macOS.
+- Verified Mathematica-ready output for `target=1/2`:
+
+```wl
+rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, 1, EML, EML, 1, EML, EML, EML, 1, EML}]
+```
+
+- Source file:
+  - `MacBookPro_M3MAX.txt`
+- OS: macOS on Apple Silicon
+- Shell: terminal prompt `%` from local macOS session
+- Machine: MacBook Pro M3 Max
+- Parallelization: Rayon
+
+### 2. Antigravity (Hybrid)
 
 - Language: Rust + Python
 - Commands:
@@ -95,7 +138,7 @@ rpnRule[{1, 1, 1, EML, 1, EML, EML, 1, 1, 1, 1, 1, EML, 1, 1, EML, 1, EML, EML, 
 - Machine: AMD Ryzen 5900X, 32 GB RAM
 - Parallelization: Rayon (24 threads)
 
-### 2. GPT 5.4 Codex High
+### 3. GPT 5.4 Codex High
 
 - Language: Python + SymPy
 - Commands:
@@ -133,7 +176,7 @@ rpnRule[{1, 1, 1, 1, EML, 1, 1, 1, 1, 1, 1, EML, EML, EML, 1, EML, EML, 1, 1, EM
 - Machine: AMD Ryzen 5900X, 32 GB RAM
 - Parallelization: None
 
-### 3. GPT 5.4 Codex High
+### 4. GPT 5.4 Codex High
 
 - Language: Wolfram Mathematica
 - Command:
@@ -152,7 +195,7 @@ wolframscript.exe -f .\EML_recognizer_v1.wl
 - Machine: AMD Ryzen 5900X, 32 GB RAM
 - Parallelization: None
 
-### 4. A.O.
+### 5. A.O.
 
 - Language: Wolfram Mathematica
 - Command:
@@ -203,6 +246,7 @@ Candidates for expanding the public set:
 ## Remarks
 
 - The current board is small, so the main value is reproducibility.
+- Fastest recorded benchmark entry and original method authorship are separate concepts in this ladder. Reused code is allowed if disclosed.
 - Antigravity's walkthrough-reported ladder time is based on internal solver timing; the official leaderboard uses locally measured wall-clock command runtime.
 - If the benchmark harness changes, older entries should be re-run on the same machine.
 - A future version can add separate public and private leaderboards if the target set grows.
