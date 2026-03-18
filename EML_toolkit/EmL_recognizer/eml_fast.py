@@ -82,12 +82,19 @@ def main():
     )
 
     found = False
+    last_completed_level = 1
     for line in iter(rust_process.stdout.readline, ''):
         line = line.strip()
         if not line:
             continue
         if line.startswith("DEBUG:"):
             print(line, flush=True)
+            if "Level " in line:
+                try:
+                    level_text = line.split("Level ", 1)[1].split(" ", 1)[0]
+                    last_completed_level = int(level_text)
+                except (IndexError, ValueError):
+                    pass
             continue
         if line.startswith("CANDIDATE:"):
             # CANDIDATE: [1, 1, 'EML', 1, 'EML']
@@ -120,11 +127,19 @@ def main():
                 pass
 
     if not found:
+        return_code = rust_process.wait()
         # Check stderr if nothing was found
         err = rust_process.stderr.read()
         if err:
             print("Rust engine error output:", err, flush=True)
-        print(f"no exact expression found for target={args.target} up to max_tokens={args.max_tokens}")
+        if return_code == 0:
+            print(f"no exact expression found for target={args.target} up to max_tokens={args.max_tokens}")
+        else:
+            print(
+                f"Rust engine exited early with code {return_code} after completing level {last_completed_level}; "
+                f"requested max_tokens={args.max_tokens}",
+                flush=True,
+            )
 
 if __name__ == "__main__":
     main()
