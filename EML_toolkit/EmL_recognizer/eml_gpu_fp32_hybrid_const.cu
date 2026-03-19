@@ -10,15 +10,12 @@
 
 #define MAX_TOKENS 47
 #define MAX_LEAVES ((MAX_TOKENS + 1) / 2)
-#define DEFAULT_MAX_TOKENS 33
+#define DEFAULT_MAX_TOKENS MAX_TOKENS
 #define DEFAULT_THREADS 256
 #define DEFAULT_CHUNK_SIZE (1ULL << 26)
 #define DEFAULT_MAX_CANDIDATES (1 << 20)
 #define DEFAULT_THRESHOLD (512.0f * FLT_EPSILON)
 #define DEFAULT_EXACT_TOL (8.0 * DBL_EPSILON)
-
-#define SYMBOL_NAME "EulerGamma"
-#define SYMBOL_VALUE 0.57721566490153286061
 
 #define CUDA_CHECK(call)                                                          \
     do {                                                                          \
@@ -32,16 +29,13 @@
 
 typedef struct {
     float fp32_error;
-    unsigned long long shape_idx;
-    unsigned int leaf_mask;
+    unsigned long long tree_idx;
     int K;
 } Candidate;
 
 __constant__ unsigned long long d_shape_count[MAX_LEAVES + 1];
-__constant__ float d_symbol_value_f;
 
 static unsigned long long h_shape_count[MAX_LEAVES + 1];
-static const double h_symbol_value = SYMBOL_VALUE;
 
 static void print_timestamp(void)
 {
@@ -204,82 +198,59 @@ static double eml_eval_double(double left_value, double right_value, int allow_i
     return isnan(out) ? NAN : out;
 }
 
-static double evaluate_expr_double(
-    int leaves,
-    unsigned long long shape_rank,
-    unsigned int leaf_mask,
-    int allow_inf
-)
+static double evaluate_rank_double(int leaves, unsigned long long rank, int allow_inf)
 {
     if (leaves == 1) {
-        return (leaf_mask & 1U) ? h_symbol_value : 1.0;
+        return 1.0;
     }
 
     int left_leaves = 0;
     unsigned long long left_rank = 0;
     unsigned long long right_rank = 0;
-    if (!choose_split_host(leaves, shape_rank, &left_leaves, &left_rank, &right_rank)) {
+    if (!choose_split_host(leaves, rank, &left_leaves, &left_rank, &right_rank)) {
         return NAN;
     }
 
     int right_leaves = leaves - left_leaves;
-    unsigned int left_mask = leaf_mask & ((1U << left_leaves) - 1U);
-    unsigned int right_mask = leaf_mask >> left_leaves;
-
-    double left_value = evaluate_expr_double(left_leaves, left_rank, left_mask, allow_inf);
-    double right_value = evaluate_expr_double(right_leaves, right_rank, right_mask, allow_inf);
+    double left_value = evaluate_rank_double(left_leaves, left_rank, allow_inf);
+    double right_value = evaluate_rank_double(right_leaves, right_rank, allow_inf);
     return eml_eval_double(left_value, right_value, allow_inf);
 }
 
 static void build_rpn_tokens(
     int leaves,
-    unsigned long long shape_rank,
-    unsigned int leaf_mask,
-    int* leaf_pos,
+    unsigned long long rank,
     int* tokens,
     int* len
 )
 {
     if (leaves == 1) {
-        int bit = (leaf_mask >> (*leaf_pos)) & 1U;
-        tokens[(*len)++] = bit ? 1 : 0;
-        (*leaf_pos)++;
+        tokens[(*len)++] = 0;
         return;
     }
 
     int left_leaves = 0;
     unsigned long long left_rank = 0;
     unsigned long long right_rank = 0;
-    choose_split_host(leaves, shape_rank, &left_leaves, &left_rank, &right_rank);
+    choose_split_host(leaves, rank, &left_leaves, &left_rank, &right_rank);
 
-    build_rpn_tokens(left_leaves, left_rank, leaf_mask, leaf_pos, tokens, len);
-    build_rpn_tokens(leaves - left_leaves, right_rank, leaf_mask, leaf_pos, tokens, len);
-    tokens[(*len)++] = 2;
+    build_rpn_tokens(left_leaves, left_rank, tokens, len);
+    build_rpn_tokens(leaves - left_leaves, right_rank, tokens, len);
+    tokens[(*len)++] = 1;
 }
 
-static void print_rpn_rule_from_expr(
-    int leaves,
-    unsigned long long shape_rank,
-    unsigned int leaf_mask
-)
+static void print_rpn_rule_from_rank(int leaves, unsigned long long rank)
 {
     int tokens[MAX_TOKENS];
     int len = 0;
-    int leaf_pos = 0;
-    build_rpn_tokens(leaves, shape_rank, leaf_mask, &leaf_pos, tokens, &len);
+    build_rpn_tokens(leaves, rank, tokens, &len);
 
     printf("rpnRule[{");
     for (int i = 0; i < len; ++i) {
         if (i) {
             printf(", ");
         }
-        if (tokens[i] == 0) {
-            printf("1");
-        } else if (tokens[i] == 1) {
-            printf("%s", SYMBOL_NAME);
-        } else {
-            printf("EML");
-        }
+        printf(tokens[i] == 0 ? "1" : "EML");
     }
     printf("}]\n");
 }
@@ -294,25 +265,14 @@ static int compare_candidates(const void* a, const void* b)
     if (ea > eb) {
         return 1;
     }
-
-    unsigned long long sa = ((const Candidate*)a)->shape_idx;
-    unsigned long long sb = ((const Candidate*)b)->shape_idx;
-    if (sa < sb) {
+    unsigned long long ia = ((const Candidate*)a)->tree_idx;
+    unsigned long long ib = ((const Candidate*)b)->tree_idx;
+    if (ia < ib) {
         return -1;
     }
-    if (sa > sb) {
+    if (ia > ib) {
         return 1;
     }
-
-    unsigned int ma = ((const Candidate*)a)->leaf_mask;
-    unsigned int mb = ((const Candidate*)b)->leaf_mask;
-    if (ma < mb) {
-        return -1;
-    }
-    if (ma > mb) {
-        return 1;
-    }
-
     return 0;
 }
 
@@ -398,12 +358,7 @@ __device__ __forceinline__ float eml_eval_fp32(float left_value, float right_val
     return isnan(out) ? nanf("") : out;
 }
 
-__device__ float evaluate_expr_fp32(
-    int leaves,
-    unsigned long long shape_rank,
-    unsigned int leaf_mask,
-    int allow_inf
-)
+__device__ float evaluate_rank_fp32(int leaves, unsigned long long rank, int allow_inf)
 {
     int node_leaves[MAX_LEAVES];
     int right_leaves[MAX_LEAVES];
@@ -414,10 +369,9 @@ __device__ float evaluate_expr_fp32(
 
     int sp = 0;
     int vsp = 0;
-    int leaf_pos = 0;
 
     node_leaves[sp] = leaves;
-    node_rank[sp] = shape_rank;
+    node_rank[sp] = rank;
     stage[sp] = 0;
     sp++;
 
@@ -426,9 +380,7 @@ __device__ float evaluate_expr_fp32(
         int current_leaves = node_leaves[top];
 
         if (current_leaves == 1) {
-            int bit = (leaf_mask >> leaf_pos) & 1U;
-            values[vsp++] = bit ? d_symbol_value_f : 1.0f;
-            leaf_pos++;
+            values[vsp++] = 1.0f;
             sp--;
             continue;
         }
@@ -476,12 +428,10 @@ __device__ float evaluate_expr_fp32(
     return vsp == 1 ? values[0] : nanf("");
 }
 
-__global__ void search_eml_unary_kernel(
+__global__ void search_eml_kernel(
     int leaves,
     unsigned long long count,
     unsigned long long offset,
-    unsigned long long assignment_count,
-    unsigned long long assignment_mask,
     float target,
     float candidate_threshold,
     int allow_inf,
@@ -495,11 +445,8 @@ __global__ void search_eml_unary_kernel(
         return;
     }
 
-    unsigned long long global_idx = offset + idx;
-    unsigned long long shape_idx = global_idx / assignment_count;
-    unsigned int leaf_mask = (unsigned int)(global_idx & assignment_mask);
-
-    float computed = evaluate_expr_fp32(leaves, shape_idx, leaf_mask, allow_inf);
+    unsigned long long rank = offset + idx;
+    float computed = evaluate_rank_fp32(leaves, rank, allow_inf);
     if (!isfinite(computed)) {
         return;
     }
@@ -509,8 +456,7 @@ __global__ void search_eml_unary_kernel(
         int slot = atomicAdd(candidate_count, 1);
         if (slot < max_candidates) {
             candidates[slot].fp32_error = rel_err;
-            candidates[slot].shape_idx = shape_idx;
-            candidates[slot].leaf_mask = leaf_mask;
+            candidates[slot].tree_idx = rank;
             candidates[slot].K = 2 * leaves - 1;
         }
     }
@@ -522,17 +468,18 @@ static void print_usage(const char* argv0)
     printf("Usage: %s [--target VALUE] [--max-tokens N] [--threshold X]\n", prog);
     printf("       [--max-candidates N] [--exact-tol X] [--chunk-size N] [--disable-inf]\n");
     printf("\n");
-    printf("Leaves are drawn from {1, %s}; targets are numeric only.\n", SYMBOL_NAME);
+    printf("Leaves are drawn from {1}; targets are numeric only.\n");
     printf("Extended-real semantics are enabled by default; use --disable-inf for finite-real mode.\n");
     printf("\n");
     printf("Examples:\n");
-    printf("  %s --target -0.57721566490153286060651209008240 --max-tokens 31\n", prog);
-    printf("  %s --target 0.57721566490153286060651209008240 --max-tokens 1\n", prog);
+    printf("  %s --target 2 --max-tokens 19\n", prog);
+    printf("  %s --target 0.5 --max-tokens 39 --threshold 1e-3\n", prog);
+    printf("  %s --target 1.4142135623730951 --max-tokens 47\n", prog);
 }
 
 int main(int argc, char** argv)
 {
-    const char* target_expr = "-0.57721566490153286060651209008240";
+    const char* target_expr = "2";
     int max_tokens = DEFAULT_MAX_TOKENS;
     float candidate_threshold = DEFAULT_THRESHOLD;
     int max_candidates = DEFAULT_MAX_CANDIDATES;
@@ -608,17 +555,14 @@ int main(int argc, char** argv)
         return 1;
     }
     float target_float = (float)target_double;
-    float symbol_value_f = (float)h_symbol_value;
 
     init_shape_counts();
     CUDA_CHECK(cudaMemcpyToSymbol(d_shape_count, h_shape_count, sizeof(h_shape_count)));
-    CUDA_CHECK(cudaMemcpyToSymbol(d_symbol_value_f, &symbol_value_f, sizeof(symbol_value_f)));
 
     cudaDeviceProp prop;
     CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
 
-    printf("=== EML Unary Search (FP32 GPU + FP64 CPU verification) ===\n");
-    printf("Leaf alphabet:       {1, %s}\n", SYMBOL_NAME);
+    printf("=== EML Constant Search (FP32 GPU + FP64 CPU verification) ===\n");
     printf("Target:              %s\n", target_expr);
     printf("Target value:        %.17g\n", target_double);
     printf("Max tokens:          %d\n", max_tokens);
@@ -648,8 +592,7 @@ int main(int argc, char** argv)
     double best_abs_err = HUGE_VAL;
     double best_value = NAN;
     int best_leaves = 0;
-    unsigned long long best_shape_idx = 0;
-    unsigned int best_leaf_mask = 0;
+    unsigned long long best_rank = 0;
     int found_exact = 0;
 
     cudaEvent_t overall_start, overall_stop;
@@ -659,10 +602,7 @@ int main(int argc, char** argv)
 
     for (int K = 1; K <= max_tokens; K += 2) {
         int leaves = (K + 1) / 2;
-        unsigned long long shape_count = h_shape_count[leaves];
-        unsigned long long assignment_count = 1ULL << leaves;
-        unsigned long long assignment_mask = assignment_count - 1ULL;
-        unsigned long long total_expr = shape_count * assignment_count;
+        unsigned long long total_shapes = h_shape_count[leaves];
         unsigned long long level_candidates_total = 0;
         int level_max_chunk_candidates = 0;
         unsigned long long level_dropped_total = 0;
@@ -672,19 +612,19 @@ int main(int argc, char** argv)
         CUDA_CHECK(cudaEventCreate(&level_stop));
         CUDA_CHECK(cudaEventRecord(level_start));
 
-        for (unsigned long long offset = 0; offset < total_expr; offset += chunk_size) {
+        for (unsigned long long offset = 0; offset < total_shapes; offset += chunk_size) {
             int zero = 0;
             CUDA_CHECK(cudaMemcpy(d_candidate_count, &zero, sizeof(int), cudaMemcpyHostToDevice));
 
-            unsigned long long count = total_expr - offset;
+            unsigned long long count = total_shapes - offset;
             if (count > chunk_size) {
                 count = chunk_size;
             }
 
             int blocks = (int)((count + DEFAULT_THREADS - 1) / DEFAULT_THREADS);
-            search_eml_unary_kernel<<<blocks, DEFAULT_THREADS>>>(
-                leaves, count, offset, assignment_count, assignment_mask, target_float,
-                candidate_threshold, allow_inf, d_candidates, d_candidate_count, max_candidates
+            search_eml_kernel<<<blocks, DEFAULT_THREADS>>>(
+                leaves, count, offset, target_float, candidate_threshold, allow_inf,
+                d_candidates, d_candidate_count, max_candidates
             );
             CUDA_CHECK(cudaGetLastError());
             CUDA_CHECK(cudaDeviceSynchronize());
@@ -711,9 +651,7 @@ int main(int argc, char** argv)
             }
 
             for (int i = 0; i < copied_candidates; ++i) {
-                double value = evaluate_expr_double(
-                    leaves, h_candidates[i].shape_idx, h_candidates[i].leaf_mask, allow_inf
-                );
+                double value = evaluate_rank_double(leaves, h_candidates[i].tree_idx, allow_inf);
                 if (!isfinite(value)) {
                     continue;
                 }
@@ -723,8 +661,7 @@ int main(int argc, char** argv)
                     best_abs_err = abs_err;
                     best_value = value;
                     best_leaves = leaves;
-                    best_shape_idx = h_candidates[i].shape_idx;
-                    best_leaf_mask = h_candidates[i].leaf_mask;
+                    best_rank = h_candidates[i].tree_idx;
                 }
 
                 if (exact_hit(value, target_double, exact_tol)) {
@@ -732,8 +669,7 @@ int main(int argc, char** argv)
                     best_abs_err = abs_err;
                     best_value = value;
                     best_leaves = leaves;
-                    best_shape_idx = h_candidates[i].shape_idx;
-                    best_leaf_mask = h_candidates[i].leaf_mask;
+                    best_rank = h_candidates[i].tree_idx;
                     break;
                 }
             }
@@ -749,10 +685,10 @@ int main(int argc, char** argv)
         float level_ms = 0.0f;
         CUDA_CHECK(cudaEventElapsedTime(&level_ms, level_start, level_stop));
 
-        total_evaluated += total_expr;
-        printf("K=%2d  shapes=%12llu  exprs=%16llu  gpu=%.3f s  candidates=%llu  max_chunk=%d",
-               K, shape_count, total_expr, level_ms / 1000.0f, level_candidates_total,
-               level_max_chunk_candidates);
+        total_evaluated += total_shapes;
+        printf("K=%2d  shapes=%12llu  gpu=%.3f s  candidates=%llu",
+               K, total_shapes, level_ms / 1000.0f, level_candidates_total);
+        printf("  max_chunk=%d", level_max_chunk_candidates);
         if (level_dropped_total > 0) {
             printf("  (overflow: dropped %llu)", level_dropped_total);
         }
@@ -774,7 +710,7 @@ int main(int argc, char** argv)
 
     printf("\n=== RESULT ===\n");
     if (best_leaves > 0) {
-        print_rpn_rule_from_expr(best_leaves, best_shape_idx, best_leaf_mask);
+        print_rpn_rule_from_rank(best_leaves, best_rank);
         printf("%.17g\n", best_value);
         printf("tokens=%d\n", 2 * best_leaves - 1);
         printf("abs_error=%.17e\n", best_abs_err);
@@ -784,7 +720,7 @@ int main(int argc, char** argv)
     }
 
     printf("\n=== PERFORMANCE ===\n");
-    printf("total_expressions=%llu\n", total_evaluated);
+    printf("total_shapes=%llu\n", total_evaluated);
     printf("gpu_seconds=%.6f\n", overall_ms / 1000.0f);
     if (overall_ms > 0.0f) {
         printf("throughput=%.3f M eval/s\n", total_evaluated / overall_ms / 1000.0f);
