@@ -646,11 +646,13 @@ class TeeStream:
 
 
 def _setup_loss_axis(ax, args, max_x, title):
-    ax.set_title(title)
-    ax.set_ylabel("RMSE")
+    ax.set_title(title, fontsize=args.plot_title_fontsize)
+    ax.set_ylabel("RMSE", fontsize=args.plot_label_fontsize)
     ax.set_yscale("log")
     ax.set_ylim(args.loss_y_min, args.loss_y_max)
     ax.set_xlim(0, max(10, max_x))
+    ax.tick_params(axis="both", which="major", labelsize=args.plot_tick_fontsize)
+    ax.tick_params(axis="both", which="minor", labelsize=args.plot_tick_fontsize - 1)
     ax.grid(True, which="major", alpha=0.30)
     ax.grid(True, which="minor", alpha=0.10)
 
@@ -669,20 +671,22 @@ def save_loss_plot(path, hist, title, args, hardening_iter):
         ax_loss.axvline(hardening_iter, linestyle="--", linewidth=1.0, color="#6c6c6c", alpha=0.8, label="harden start")
 
     _setup_loss_axis(ax_loss, args, (hist["iter"][-1] if hist["iter"] else 1) + 5, title)
-    ax_loss.legend(loc="upper right", fontsize=8)
+    ax_loss.legend(loc="lower left", fontsize=args.plot_legend_fontsize, framealpha=0.92)
 
     ax_aux.plot(hist["iter"], hist["tau"], linewidth=1.2, label="tau")
     ax_aux.plot(hist["iter"], hist["entropy"], linewidth=1.2, label="H")
     ax_aux.plot(hist["iter"], hist["binarity"], linewidth=1.2, label="B")
     if hardening_iter is not None:
         ax_aux.axvline(hardening_iter, linestyle="--", linewidth=1.0, color="#6c6c6c", alpha=0.8)
-    ax_aux.set_xlabel("Iteration")
-    ax_aux.set_ylabel("Aux")
+    ax_aux.set_xlabel("Iteration", fontsize=args.plot_label_fontsize)
+    ax_aux.set_ylabel("Aux", fontsize=args.plot_label_fontsize)
+    ax_aux.tick_params(axis="both", which="major", labelsize=args.plot_tick_fontsize)
+    ax_aux.tick_params(axis="both", which="minor", labelsize=args.plot_tick_fontsize - 1)
     ax_aux.grid(True, alpha=0.30)
-    ax_aux.legend(loc="upper right", fontsize=8)
+    ax_aux.legend(loc="upper right", fontsize=args.plot_legend_fontsize, framealpha=0.92)
 
     fig.tight_layout()
-    fig.savefig(path, dpi=150)
+    fig.savefig(path, dpi=args.plot_dpi)
     plt.close(fig)
 
 
@@ -1062,6 +1066,12 @@ def parse_args():
     a("--skip-plot", action="store_true")
     a("--loss-y-min", type=float, default=1e-16)
     a("--loss-y-max", type=float, default=1e1)
+    a("--plot-dpi", type=int, default=300)
+    a("--plot-title-fontsize", type=float, default=13.0)
+    a("--plot-label-fontsize", type=float, default=15.0)
+    a("--plot-tick-fontsize", type=float, default=12.0)
+    a("--plot-legend-fontsize", type=float, default=13.0)
+    a("--plot-title", type=str, default="")
 
     args = p.parse_args()
 
@@ -1147,10 +1157,11 @@ def main():
             tree.export_mathematica(f"{seed_base}_continuous.m", discretize=False)
 
             plot_path = png_dir / f"{seed_stem}_loss.png"
+            plot_title = args.plot_title if args.plot_title else f"EML v16_final | run {run_idx}/{len(run_plan)} seed={seed} ({strategy})"
             save_loss_plot(
                 str(plot_path),
                 hist,
-                title=f"EML v16_final | run {run_idx}/{len(run_plan)} seed={seed} ({strategy})",
+                title=plot_title,
                 args=args,
                 hardening_iter=summary["hardening_iter"],
             )
