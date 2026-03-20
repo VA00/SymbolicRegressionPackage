@@ -9,7 +9,7 @@
 #include <thrust/complex.h>
 #include <time.h>
 
-#define MAX_TOKENS 47
+#define MAX_TOKENS 63
 #define MAX_LEAVES ((MAX_TOKENS + 1) / 2)
 #define DEFAULT_MAX_TOKENS MAX_TOKENS
 #define DEFAULT_THREADS 256
