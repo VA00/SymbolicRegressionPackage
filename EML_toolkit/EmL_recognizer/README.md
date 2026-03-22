@@ -16,7 +16,14 @@ As of March 2026, this is the fastest method known to me.
 
 ## Compile on Windows 11
 
-Run in this directory:
+Open a Microsoft Visual Studio developer shell where the x64 MSVC host compiler is on `PATH`. 
+If you have an Intel oneAPI, use:
+
+```powershell
+cmd.exe /K '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 && pwsh'
+```
+
+Then run in this directory:
 
 ```powershell
 nvcc -std=c++17 -O3 eml_gpu_fp32_hybrid_const.cu -o eml_gpu_fp32_hybrid_const.exe
@@ -31,3 +38,12 @@ Each tool also supports `--help`. For real search, the important switch is `--di
 rpnRule[{1, 1, 1, 1, 1, EML, EML, EML, 1, EML, EML, 1, 1, EML, 1, EML, EML}]
 ```
 This can be pasted into `EML_symbolic_check.nb` in Wolfram Mathematica for symbolic verification.
+
+Minimal sanity check on Windows 11 after compilation:
+
+```powershell
+.\eml_gpu_fp32_hybrid_const.exe --target 2 --max-tokens 19
+```
+
+This should report an `exact-hit` witness for the constant `2`, together with the
+RPN form and a GPU timing summary.
