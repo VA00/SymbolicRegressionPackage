@@ -39,8 +39,14 @@ VerifyBaseSet[{1}, {}, {EML}]
 
 From this directory:
 
-```powershell
+```sh
 wolframscript -file verify_eml_symbolic_chain.wl
+```
+
+If `wolframscript` is not on `PATH` on macOS, use:
+
+```sh
+/Applications/Wolfram.app/Contents/MacOS/wolframscript -file verify_eml_symbolic_chain.wl
 ```
 
 The script checks the accepted symbolic witnesses and prints `PASS`/`FAIL`
