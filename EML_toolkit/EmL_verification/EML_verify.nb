@@ -10,14 +10,41 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[      1993,         62]
-NotebookOptionsPosition[      1460,         46]
-NotebookOutlinePosition[      1856,         62]
-CellTagsIndexPosition[      1813,         59]
+NotebookDataLength[      3530,        100]
+NotebookOptionsPosition[      2474,         75]
+NotebookOutlinePosition[      2870,         91]
+CellTagsIndexPosition[      2827,         88]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
+
+Cell[CellGroupData[{
+Cell["EML Verification", "Title",ExpressionUUID->"8b1f0d21-5115-4fc3-8f3c-1722f191ac6d"],
+
+Cell["\<\
+Minimal verification notebook for VerifyBaseSet using the EML Sheffer \
+operator and the public package entrypoint.\
+\>", "Text",ExpressionUUID->"76679426-65ff-423c-90d0-9c2abb96d0b1"],
+
+Cell["\<\
+Run the import first, then evaluate the verification call to reproduce the \
+package check. This is re-creation of the original run, which led to \
+discovery of  EML operator candidate. \
+\>", "Text",
+ CellChangeTimes->{{3.983246151593916*^9, 
+  3.9832462095182056`*^9}},ExpressionUUID->"c4b391e3-c0b7-4e10-b367-\
+324691adb2e7"],
+
+Cell[CellGroupData[{
+
+Cell["Package Import And Verification", "Section",ExpressionUUID->"2baea2a8-e4e4-4828-8555-edde7547688f"],
+
+Cell["\<\
+Loads the package from the public repository, defines the local EML operator, \
+and launches the base-set verification routine.\
+\>", "Text",ExpressionUUID->"a12eab0a-b64a-48dd-9ecc-6b0a6ae69375"],
+
 Cell[BoxData[
  RowBox[{"Import", 
   "[", "\"\<https://raw.githubusercontent.com/VA00/SymbolicRegressionPackage/\
@@ -43,6 +70,8 @@ Cell[BoxData[
    3.9812620838450375`*^9, 3.9812620847448044`*^9}, 
    3.9812666393087387`*^9},ExpressionUUID->"75f6380e-ff16-4780-aa0e-\
 7a86f78467c2"]
+}, Open  ]]
+}, Open  ]]
 },
 WindowSize->{1269, 721},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
@@ -61,10 +90,21 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 252, 4, 28, "Input",ExpressionUUID->"c4a262cb-17d4-40fc-8571-2131f134f1cb"],
-Cell[809, 26, 269, 7, 28, "Input",ExpressionUUID->"01e3f325-4b59-4f45-a595-9c970a0f079f"],
-Cell[1081, 35, 375, 9, 28, "Input",ExpressionUUID->"75f6380e-ff16-4780-aa0e-7a86f78467c2"]
+Cell[CellGroupData[{
+Cell[576, 22, 88, 0, 96, "Title",ExpressionUUID->"8b1f0d21-5115-4fc3-8f3c-1722f191ac6d"],
+Cell[667, 24, 194, 3, 33, "Text",ExpressionUUID->"76679426-65ff-423c-90d0-9c2abb96d0b1"],
+Cell[864, 29, 338, 7, 33, "Text",ExpressionUUID->"c4b391e3-c0b7-4e10-b367-324691adb2e7"],
+Cell[CellGroupData[{
+Cell[1227, 40, 105, 0, 66, "Section",ExpressionUUID->"2baea2a8-e4e4-4828-8555-edde7547688f"],
+Cell[1335, 42, 206, 3, 33, "Text",ExpressionUUID->"a12eab0a-b64a-48dd-9ecc-6b0a6ae69375"],
+Cell[1544, 47, 252, 4, 28, "Input",ExpressionUUID->"c4a262cb-17d4-40fc-8571-2131f134f1cb"],
+Cell[1799, 53, 269, 7, 28, "Input",ExpressionUUID->"01e3f325-4b59-4f45-a595-9c970a0f079f"],
+Cell[2071, 62, 375, 9, 28, "Input",ExpressionUUID->"75f6380e-ff16-4780-aa0e-7a86f78467c2"]
+}, Open  ]]
+}, Open  ]]
 }
 ]
 *)
+
+(* End of internal cache information *)
 
