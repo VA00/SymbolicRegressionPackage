@@ -117,10 +117,13 @@ LOCALS = {
     "sinh": sinh, "cosh": cosh, "tanh": tanh,
     "Sinh": sinh, "Cosh": cosh, "Tanh": tanh,
 
-    "asin": ASIN_LOG, "acos": ACOS_LOG, "atan": ATAN_LOG,
-    "asinh": ASINH_LOG, "acosh": ACOSH_LOG, "atanh": ATANH_LOG,
-    "ArcSin": ASIN_LOG, "ArcCos": ACOS_LOG, "ArcTan": ATAN_LOG,
-    "ArcSinh": ASINH_LOG, "ArcCosh": ACOSH_LOG, "ArcTanh": ATANH_LOG,
+    # Keep inverse functions symbolic while parsing. This avoids premature
+    # branch choices for constants (notably ArcCos[1/2]) and prevents decimal
+    # inputs from collapsing into large approximate constants before lowering.
+    "asin": asin, "acos": acos, "atan": atan,
+    "asinh": asinh, "acosh": acosh, "atanh": atanh,
+    "ArcSin": asin, "ArcCos": acos, "ArcTan": atan,
+    "ArcSinh": asinh, "ArcCosh": acosh, "ArcTanh": atanh,
 
     "asec": ASEC, "acsc": ACSC, "acot": ACOT,
     "ArcSec": ASEC, "ArcCsc": ACSC, "ArcCot": ACOT,
@@ -210,7 +213,10 @@ def wl_expr_to_sympy_source(s: str) -> str:
     return t
 
 def eml_compile_from_string(s: str):
-    expr = sympify(wl_expr_to_sympy_source(s), locals=LOCALS)
+    # Rationalize decimal literals during parsing so inputs like 0.5 lower to
+    # the same compact tree as 1/2 instead of producing enormous exact-decimal
+    # integer trees after premature numerical evaluation.
+    expr = sympify(wl_expr_to_sympy_source(s), locals=LOCALS, rational=True)
     if callable(expr) or not hasattr(expr, "rewrite"):
         raise TypeError(
             f"Input did not parse as a symbolic expression: {s!r}. "
