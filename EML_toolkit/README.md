@@ -1,6 +1,6 @@
-## PNAS Reproducibility Quick Start (EML Toolkit)
+## EML Toolkit Reproducibility Quick Start
 
-The PNAS reproducibility materials are in `EML_toolkit/`:
+The reproducibility materials are in `EML_toolkit/`:
 - `EmL_compiler/` (compiler + numeric backends)
 - `EmL_verification/` (Wolfram verification scripts/notebooks)
 - `EmL_training/` (PyTorch + Mathematica training artifacts)
@@ -17,7 +17,7 @@ pip install -r requirements.txt
 bash depth_2_to_6_headless.sh
 ```
 
-Outputs are written under `pnas_*` directories as:
+Outputs are written under `eml_*` directories as:
 - `*_stdout_*.log` (run logs)
 - `*_metrics_*.json` (structured summaries)
 - `.m`, `_continuous.m`, `.pt`, and `png/*_loss.png`

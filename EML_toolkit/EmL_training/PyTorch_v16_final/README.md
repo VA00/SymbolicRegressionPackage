@@ -1,6 +1,6 @@
 # EML Tree Training (PyTorch v16)
 
-This directory contains the PyTorch `v16` EML tree trainer used for the depth-2 to depth-6 experiments reported in the PNAS Supplementary Information.
+This directory contains the PyTorch `v16` EML tree trainer used for the depth-2 to depth-6 reproducibility experiments.
 
 Core files:
 - `tree_prototype_torch_v16_final.py`: single-run trainer and exporter
@@ -72,22 +72,22 @@ Each run writes:
 
 ## Full Headless Sweep
 
-The full batch used for the PNAS supplementary package is:
+The full reproducibility batch is:
 
 ```bash
 bash depth_2_to_6_headless.sh
 ```
 
-Current `pnas_*` jobs in `depth_2_to_6_headless.sh`:
-- `pnas_d2_random`: depth 2, `init-strategy all`, `seed0=137`, `seeds=8`
-- `pnas_d3_random`: depth 3, `init-strategy all`, `seed0=137`, `seeds=16`
-- `pnas_d4_random`: depth 4, `init-strategy all`, `seed0=137`, `seeds=16`
-- `pnas_d5_random64_random_hot`: depth 5, `init-strategy random_hot`, `seed0=137`, `seeds=64`
-- `pnas_d6_random64_random_hot`: depth 6, `init-strategy random_hot`, `seed0=137`, `seeds=64`
-- `pnas_d5_random64_uniform`: depth 5, `init-strategy uniform`, `seed0=1234`, `seeds=64`
-- `pnas_d6_random64_uniform`: depth 6, `init-strategy uniform`, `seed0=1234`, `seeds=64`
-- `pnas_d5_manual_noise12`: depth 5, manual exact tree + noise `12`, `seed0=2048`, `seeds=4`
-- `pnas_d6_manual_noise12`: depth 6, manual exact tree + noise `12`, `seed0=2048`, `seeds=4`
+Current `eml_*` jobs in `depth_2_to_6_headless.sh`:
+- `eml_d2_random`: depth 2, `init-strategy all`, `seed0=137`, `seeds=8`
+- `eml_d3_random`: depth 3, `init-strategy all`, `seed0=137`, `seeds=16`
+- `eml_d4_random`: depth 4, `init-strategy all`, `seed0=137`, `seeds=16`
+- `eml_d5_random64_random_hot`: depth 5, `init-strategy random_hot`, `seed0=137`, `seeds=64`
+- `eml_d6_random64_random_hot`: depth 6, `init-strategy random_hot`, `seed0=137`, `seeds=64`
+- `eml_d5_random64_uniform`: depth 5, `init-strategy uniform`, `seed0=1234`, `seeds=64`
+- `eml_d6_random64_uniform`: depth 6, `init-strategy uniform`, `seed0=1234`, `seeds=64`
+- `eml_d5_manual_noise12`: depth 5, manual exact tree + noise `12`, `seed0=2048`, `seeds=4`
+- `eml_d6_manual_noise12`: depth 6, manual exact tree + noise `12`, `seed0=2048`, `seeds=4`
 
 `--seeds N` means the contiguous seed range `seed0, seed0+1, ..., seed0+N-1`.
 
@@ -96,15 +96,15 @@ Current `pnas_*` jobs in `depth_2_to_6_headless.sh`:
 The completed March 20, 2026 run in this workspace took `2:25:17` wall-clock time from start to finish.
 
 Per-stage wall times:
-- `pnas_d2_random`: about `4m 49s`
-- `pnas_d3_random`: about `14m 01s`
-- `pnas_d4_random`: about `20m 25s`
-- `pnas_d5_random64_random_hot`: about `19m 22s`
-- `pnas_d6_random64_random_hot`: about `11m 35s`
-- `pnas_d5_random64_uniform`: about `31m 32s`
-- `pnas_d6_random64_uniform`: about `43m 14s`
-- `pnas_d5_manual_noise12`: about `12s`
-- `pnas_d6_manual_noise12`: about `16s`
+- `eml_d2_random`: about `4m 49s`
+- `eml_d3_random`: about `14m 01s`
+- `eml_d4_random`: about `20m 25s`
+- `eml_d5_random64_random_hot`: about `19m 22s`
+- `eml_d6_random64_random_hot`: about `11m 35s`
+- `eml_d5_random64_uniform`: about `31m 32s`
+- `eml_d6_random64_uniform`: about `43m 14s`
+- `eml_d5_manual_noise12`: about `12s`
+- `eml_d6_manual_noise12`: about `16s`
 
 On comparable hardware, the full script should be expected to take about `2.5 hours`.
 
@@ -113,22 +113,22 @@ On comparable hardware, the full script should be expected to take about `2.5 ho
 Results below are from the completed March 20, 2026 run with the current seeds listed above.
 
 Random-start runs:
-- `pnas_d2_random`: `32/32` successes
-- `pnas_d3_random`: `17/64` successes
+- `eml_d2_random`: `32/32` successes
+- `eml_d3_random`: `17/64` successes
   `biased 4/16`, `uniform 4/16`, `xy_biased 4/16`, `random_hot 5/16`
-- `pnas_d4_random`: `15/64` successes
+- `eml_d4_random`: `15/64` successes
   `biased 2/16`, `uniform 3/16`, `xy_biased 4/16`, `random_hot 6/16`
   `1` run was abandoned after reaching the maximum number of NaN restarts
-- `pnas_d5_random64_random_hot`: `1/64` successes
+- `eml_d5_random64_random_hot`: `1/64` successes
   `30` runs were abandoned after reaching the maximum number of NaN restarts
-- `pnas_d6_random64_random_hot`: `0/64` successes
+- `eml_d6_random64_random_hot`: `0/64` successes
   `56` runs were abandoned after reaching the maximum number of NaN restarts
-- `pnas_d5_random64_uniform`: `1/64` successes
-- `pnas_d6_random64_uniform`: `0/64` successes
+- `eml_d5_random64_uniform`: `1/64` successes
+- `eml_d6_random64_uniform`: `0/64` successes
 
 Manual-initialization runs:
-- `pnas_d5_manual_noise12`: `4/4` successes and `4/4` stable symbolic successes
-- `pnas_d6_manual_noise12`: `4/4` exact symbolic fits, but `0/4` stable symbolic successes
+- `eml_d5_manual_noise12`: `4/4` successes and `4/4` stable symbolic successes
+- `eml_d6_manual_noise12`: `4/4` exact symbolic fits, but `0/4` stable symbolic successes
   each run still had `1-2` uncertain weights at `snap_threshold=0.01`
 
 Short interpretation:
