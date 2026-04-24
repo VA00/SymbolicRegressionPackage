@@ -1,18 +1,18 @@
 # EML symbolic verification
 
 This directory contains the Wolfram Language materials used to verify the
-bootstrapped EML reconstruction chain reported in the PNAS Supplementary
-Information.
+bootstrapped EML reconstruction chain.
 
 ## Files
 
 - `verify_eml_symbolic_chain.wl`: headless Wolfram Language script for the
-  accepted witness chain used in Part II of the SI
+  witness chain generated from `rust_verify` and stored in `rust_verify.log`
 - `EML_verify.nb`: minimal notebook that imports `SymbolicRegression.m` and
   reruns `VerifyBaseSet[{1}, {}, {EML}]`
 - `EML_verify_evaluated.nb`: notebook with outputs already saved
-- `mathematica_verify.log`: plain-text record of the accepted verification run
+- `mathematica_verify.log`: plain-text record of the discovery verification run
 - `rust_verify.log`: Rust-side witness chain used as symbolic input
+- `Symbolic_Simplification_Discovery_Chain.nb` symbolic simplification of formulas from `rust_verify.log` 
 
 ## Requirements
 
@@ -50,7 +50,7 @@ If `wolframscript` is not on `PATH` on macOS, use:
 ```
 
 The script checks the accepted symbolic witnesses and prints `PASS`/`FAIL`
-lines for the identities used in the SI.
+lines for the identities.
 
 ## Reference outputs
 
