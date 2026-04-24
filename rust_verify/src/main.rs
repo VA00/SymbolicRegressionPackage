@@ -6,11 +6,10 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-
 const EULER_GAMMA: f64 = 0.577_215_664_901_532_9;
-const CATALAN:     f64 = 0.915_965_594_177_219_0;
-const GLAISHER:    f64 = 1.282_427_129_100_622_6;
-const KHINCHIN:    f64 = 2.685_452_001_065_306_4;
+const CATALAN: f64 = 0.915_965_594_177_219_0;
+const GLAISHER: f64 = 1.282_427_129_100_622_6;
+const KHINCHIN: f64 = 2.685_452_001_065_306_4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum EquivMode {
@@ -22,6 +21,12 @@ enum EquivMode {
 enum DomainMode {
     Complex,
     Real,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum WitnessBranchMode {
+    Discovery,
+    BranchAware,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -49,6 +54,7 @@ struct Args {
     involution_samples: usize,
     validate_witness: bool,
     validate_witness_highprec: bool,
+    witness_branch_mode: WitnessBranchMode,
     scan_family: bool,
     scan_g: String,
     scan_h: String,
@@ -274,6 +280,7 @@ fn parse_args() -> Args {
         involution_samples: 24,
         validate_witness: true,
         validate_witness_highprec: false,
+        witness_branch_mode: WitnessBranchMode::Discovery,
         scan_family: false,
         scan_g: "Half,Minus,Log,Exp,Inv,Sqrt,Sqr,Cosh,Cos,Sinh,Sin,Tanh,Tan,ArcSinh,ArcTanh,ArcSin,ArcCos,ArcTan,ArcCosh,LogisticSigmoid".to_string(),
         scan_h: "reflect,recip,mobius,powlog".to_string(),
@@ -424,6 +431,9 @@ fn parse_args() -> Args {
             "--validate-witness-highprec" => {
                 args.validate_witness_highprec = true;
             }
+            "--branch-aware-witness" => {
+                args.witness_branch_mode = WitnessBranchMode::BranchAware;
+            }
             "--scan-family" => {
                 args.scan_family = true;
             }
@@ -491,6 +501,7 @@ fn print_help() {
     println!("  --ulp N                     ULP tolerance for --equiv ulp");
     println!("  --no-validate-witness       Skip witness re-validation (faster, less safe)");
     println!("  --validate-witness-highprec Enable extra Python/mpmath witness check (opt-in)");
+    println!("  --branch-aware-witness      Reject branch-domain-invalid witnesses (slower)");
     println!();
     println!("Diagnostics / exploration:");
     println!("  --check-involution NAME     Test f(f(x)) ~= x for a unary function");
@@ -503,7 +514,9 @@ fn print_help() {
     println!();
     println!("Examples:");
     println!("  verify_base_set_rs --constants Pi --functions Exp,Log,Minus --operations Plus --max-k 10");
-    println!("  verify_base_set_rs --constants 1 --functions '' --operations EML --max-k 10 --explain");
+    println!(
+        "  verify_base_set_rs --constants 1 --functions '' --operations EML --max-k 10 --explain"
+    );
     println!("  verify_base_set_rs --check-involution ArcSinh");
 }
 
@@ -609,17 +622,38 @@ fn unary_catalog() -> HashMap<String, Unary> {
         ("ArcTan".to_string(), unary(|x| x.atan())),
         ("ArcCosh".to_string(), unary(|x| x.acosh())),
         ("LogisticSigmoid".to_string(), unary(logistic_sigmoid)),
-        ("LogReflect1".to_string(), unary(|x| involution_log_reflect(x, C::real(1.0)))),
-        ("LogReflect0".to_string(), unary(|x| involution_log_reflect(x, C::real(0.0)))),
-        ("LogReflectNeg1".to_string(), unary(|x| involution_log_reflect(x, C::real(-1.0)))),
-        ("LogReflect2".to_string(), unary(|x| involution_log_reflect(x, C::real(2.0)))),
+        (
+            "LogReflect1".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(1.0))),
+        ),
+        (
+            "LogReflect0".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(0.0))),
+        ),
+        (
+            "LogReflectNeg1".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(-1.0))),
+        ),
+        (
+            "LogReflect2".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(2.0))),
+        ),
         (
             "LogReflectE".to_string(),
             unary(|x| involution_log_reflect(x, C::real(std::f64::consts::E))),
         ),
-        ("LogReflectPi".to_string(), unary(|x| involution_log_reflect(x, C::real(PI)))),
-        ("LogReflectI".to_string(), unary(|x| involution_log_reflect(x, C::i()))),
-        ("LogRecip".to_string(), unary(|x| involution_log_recip(x, C::real(0.0)))),
+        (
+            "LogReflectPi".to_string(),
+            unary(|x| involution_log_reflect(x, C::real(PI))),
+        ),
+        (
+            "LogReflectI".to_string(),
+            unary(|x| involution_log_reflect(x, C::i())),
+        ),
+        (
+            "LogRecip".to_string(),
+            unary(|x| involution_log_recip(x, C::real(0.0))),
+        ),
         (
             "LogNegRecip".to_string(),
             unary(|x| {
@@ -628,33 +662,78 @@ fn unary_catalog() -> HashMap<String, Unary> {
                 Some(frac.exp())
             }),
         ),
-        ("LogRecipShift1".to_string(), unary(|x| involution_log_recip(x, C::real(1.0)))),
-        ("LogRecipShift0".to_string(), unary(|x| involution_log_recip(x, C::real(0.0)))),
+        (
+            "LogRecipShift1".to_string(),
+            unary(|x| involution_log_recip(x, C::real(1.0))),
+        ),
+        (
+            "LogRecipShift0".to_string(),
+            unary(|x| involution_log_recip(x, C::real(0.0))),
+        ),
         (
             "LogRecipShiftNeg1".to_string(),
             unary(|x| involution_log_recip(x, C::real(-1.0))),
         ),
-        ("LogRecipShift2".to_string(), unary(|x| involution_log_recip(x, C::real(2.0)))),
+        (
+            "LogRecipShift2".to_string(),
+            unary(|x| involution_log_recip(x, C::real(2.0))),
+        ),
         (
             "LogRecipShiftE".to_string(),
             unary(|x| involution_log_recip(x, C::real(std::f64::consts::E))),
         ),
-        ("LogRecipShiftPi".to_string(), unary(|x| involution_log_recip(x, C::real(PI)))),
-        ("LogRecipShiftI".to_string(), unary(|x| involution_log_recip(x, C::i()))),
-        ("AcosReflect1".to_string(), unary(|x| Some(C::real(1.0).sub(x.acos()?).cos()))),
+        (
+            "LogRecipShiftPi".to_string(),
+            unary(|x| involution_log_recip(x, C::real(PI))),
+        ),
+        (
+            "LogRecipShiftI".to_string(),
+            unary(|x| involution_log_recip(x, C::i())),
+        ),
+        (
+            "AcosReflect1".to_string(),
+            unary(|x| Some(C::real(1.0).sub(x.acos()?).cos())),
+        ),
         (
             "AcosReflectPi3".to_string(),
             unary(|x| Some(C::real(PI / 3.0).sub(x.acos()?).cos())),
         ),
-        ("AcosReflectI".to_string(), unary(|x| Some(C::i().sub(x.acos()?).cos()))),
-        ("AsinhRecip1".to_string(), unary(|x| Some(C::real(1.0).div(x.asinh()?)?.sinh()))),
-        ("AsinhRecipI".to_string(), unary(|x| Some(C::i().div(x.asinh()?)?.sinh()))),
-        ("AcoshReflect1".to_string(), unary(|x| Some(C::real(1.0).sub(x.acosh()?).cosh()))),
-        ("AcoshReflectI".to_string(), unary(|x| Some(C::i().sub(x.acosh()?).cosh()))),
-        ("AcoshRecip1".to_string(), unary(|x| Some(C::real(1.0).div(x.acosh()?)?.cosh()))),
-        ("AcoshRecipI".to_string(), unary(|x| Some(C::i().div(x.acosh()?)?.cosh()))),
-        ("AtanhReflect1".to_string(), unary(|x| C::real(1.0).sub(x.atanh()?).tanh())),
-        ("AtanhRecip1".to_string(), unary(|x| C::real(1.0).div(x.atanh()?)?.tanh())),
+        (
+            "AcosReflectI".to_string(),
+            unary(|x| Some(C::i().sub(x.acos()?).cos())),
+        ),
+        (
+            "AsinhRecip1".to_string(),
+            unary(|x| Some(C::real(1.0).div(x.asinh()?)?.sinh())),
+        ),
+        (
+            "AsinhRecipI".to_string(),
+            unary(|x| Some(C::i().div(x.asinh()?)?.sinh())),
+        ),
+        (
+            "AcoshReflect1".to_string(),
+            unary(|x| Some(C::real(1.0).sub(x.acosh()?).cosh())),
+        ),
+        (
+            "AcoshReflectI".to_string(),
+            unary(|x| Some(C::i().sub(x.acosh()?).cosh())),
+        ),
+        (
+            "AcoshRecip1".to_string(),
+            unary(|x| Some(C::real(1.0).div(x.acosh()?)?.cosh())),
+        ),
+        (
+            "AcoshRecipI".to_string(),
+            unary(|x| Some(C::i().div(x.acosh()?)?.cosh())),
+        ),
+        (
+            "AtanhReflect1".to_string(),
+            unary(|x| C::real(1.0).sub(x.atanh()?).tanh()),
+        ),
+        (
+            "AtanhRecip1".to_string(),
+            unary(|x| C::real(1.0).div(x.atanh()?)?.tanh()),
+        ),
     ]
     .into_iter()
     .collect();
@@ -1232,13 +1311,29 @@ fn parse_expr(s: &str) -> Option<Expr> {
     }
 }
 
-fn eval_expr_c(
+fn unary_sample_domain_ok(name: &str, x: C, equiv: EquivCfg) -> bool {
+    if !x.is_finite() {
+        return false;
+    }
+    match name {
+        // Use the branch represented by 2 ArcSinh[Sqrt[(x - 1)/2]], whose
+        // real-axis domain includes the interval needed by ArcCos.
+        "ArcCosh" => imag_is_zero(x, equiv) && x.re > -1.0,
+        "ArcCos" | "ArcSin" => imag_is_zero(x, equiv) && x.re >= -1.0 && x.re <= 1.0,
+        "ArcTanh" => imag_is_zero(x, equiv) && x.re > -1.0 && x.re < 1.0,
+        _ => true,
+    }
+}
+
+fn eval_expr_c_for_witness(
     e: &Expr,
     env: &HashMap<String, C>,
     unary_all: &HashMap<String, Unary>,
     binary_all: &HashMap<&'static str, Binary>,
     ternary_all: &HashMap<&'static str, Ternary>,
     const_all: &HashMap<&'static str, C>,
+    equiv: EquivCfg,
+    branch_mode: WitnessBranchMode,
 ) -> Option<C> {
     match e {
         Expr::Atom(name) => {
@@ -1249,20 +1344,79 @@ fn eval_expr_c(
         }
         Expr::Call(name, args) => match args.len() {
             1 => {
-                let x = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
+                let x = eval_expr_c_for_witness(
+                    &args[0],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
+                if matches!(branch_mode, WitnessBranchMode::BranchAware)
+                    && !unary_sample_domain_ok(name, x, equiv)
+                {
+                    return None;
+                }
                 let u = unary_all.get(name)?;
                 (u.f)(x)
             }
             2 => {
-                let a = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
-                let b = eval_expr_c(&args[1], env, unary_all, binary_all, ternary_all, const_all)?;
+                let a = eval_expr_c_for_witness(
+                    &args[0],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
+                let b = eval_expr_c_for_witness(
+                    &args[1],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
                 let op = binary_all.get(name.as_str())?;
                 (op.f)(a, b)
             }
             3 => {
-                let a = eval_expr_c(&args[0], env, unary_all, binary_all, ternary_all, const_all)?;
-                let b = eval_expr_c(&args[1], env, unary_all, binary_all, ternary_all, const_all)?;
-                let c = eval_expr_c(&args[2], env, unary_all, binary_all, ternary_all, const_all)?;
+                let a = eval_expr_c_for_witness(
+                    &args[0],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
+                let b = eval_expr_c_for_witness(
+                    &args[1],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
+                let c = eval_expr_c_for_witness(
+                    &args[2],
+                    env,
+                    unary_all,
+                    binary_all,
+                    ternary_all,
+                    const_all,
+                    equiv,
+                    branch_mode,
+                )?;
                 let op = ternary_all.get(name.as_str())?;
                 (op.f)(a, b, c)
             }
@@ -1490,13 +1644,17 @@ fn validate_witness(
     kind: WitnessKind,
     witness_expr: &str,
     equiv: EquivCfg,
+    domain: DomainMode,
+    branch_mode: WitnessBranchMode,
     use_highprec_python: bool,
     unary_all: &HashMap<String, Unary>,
     binary_all: &HashMap<&'static str, Binary>,
     ternary_all: &HashMap<&'static str, Ternary>,
     const_all: &HashMap<&'static str, C>,
 ) -> bool {
-    let require_real_target_samples = !matches!(kind, WitnessKind::Constant(_));
+    let require_real_target_samples = !matches!(kind, WitnessKind::Constant(_))
+        && (matches!(branch_mode, WitnessBranchMode::Discovery)
+            || matches!(domain, DomainMode::Real));
     let target_expr = match &kind {
         WitnessKind::Constant(name) => name.clone(),
         WitnessKind::Unary(name) => format!("{name}[EulerGamma]"),
@@ -1512,7 +1670,9 @@ fn validate_witness(
 
     // Primary witness probes use only the four transcendental anchors
     // {EulerGamma, Catalan, Glaisher, Khinchin} with sign-reflected variants.
-    // Domain-invalid target samples are skipped below.
+    // Discovery mode keeps the original fast behavior: non-real target samples
+    // are skipped. Branch-aware mode tests branch-sensitive samples too unless
+    // the whole run is explicitly restricted to real-valued results.
     let sample_pairs: Vec<(f64, f64)> = vec![
         (EULER_GAMMA, GLAISHER),
         (-EULER_GAMMA, GLAISHER),
@@ -1537,13 +1697,31 @@ fn validate_witness(
         env_c.insert("Glaisher".to_string(), C::real(*y));
         env_c.insert("Catalan".to_string(), C::real(CATALAN));
         env_c.insert("Khinchin".to_string(), C::real(KHINCHIN));
-        let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+        let Some(tv) = eval_expr_c_for_witness(
+            &t_ast,
+            &env_c,
+            unary_all,
+            binary_all,
+            ternary_all,
+            const_all,
+            equiv,
+            branch_mode,
+        ) else {
             continue;
         };
         if require_real_target_samples && !imag_is_zero(tv, equiv) {
             continue;
         }
-        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+        let Some(wv) = eval_expr_c_for_witness(
+            &w_ast,
+            &env_c,
+            unary_all,
+            binary_all,
+            ternary_all,
+            const_all,
+            equiv,
+            branch_mode,
+        ) else {
             return false;
         };
         if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
@@ -1566,13 +1744,31 @@ fn validate_witness(
         env_c.insert("EulerGamma".to_string(), C::real(*x));
         env_c.insert("Glaisher".to_string(), C::real(*y));
         env_c.insert("Pi".to_string(), C::real(*z));
-        let Some(tv) = eval_expr_c(&t_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+        let Some(tv) = eval_expr_c_for_witness(
+            &t_ast,
+            &env_c,
+            unary_all,
+            binary_all,
+            ternary_all,
+            const_all,
+            equiv,
+            branch_mode,
+        ) else {
             continue;
         };
         if require_real_target_samples && !imag_is_zero(tv, equiv) {
             continue;
         }
-        let Some(wv) = eval_expr_c(&w_ast, &env_c, unary_all, binary_all, ternary_all, const_all) else {
+        let Some(wv) = eval_expr_c_for_witness(
+            &w_ast,
+            &env_c,
+            unary_all,
+            binary_all,
+            ternary_all,
+            const_all,
+            equiv,
+            branch_mode,
+        ) else {
             return false;
         };
         if !wv.is_finite() || !tv.is_finite() || !near(wv, tv, equiv) {
@@ -1594,6 +1790,9 @@ fn validate_witness(
 
     // Real-only witnesses may get extra high-precision confirmation using Python/mpmath.
     if !use_highprec_python {
+        return true;
+    }
+    if matches!(branch_mode, WitnessBranchMode::BranchAware) {
         return true;
     }
 
@@ -1642,9 +1841,9 @@ fn can_represent(
                     if value_ok(y, domain, equiv) {
                         let key = qkey(y);
                         if seen.insert(key) {
-                                            if near(y, target, equiv) {
-                                                return true;
-                                            }
+                            if near(y, target, equiv) {
+                                return true;
+                            }
                             next.push(y);
                         }
                     }
@@ -1808,9 +2007,8 @@ fn find_representation_with_skip(
                                 for (c, c_expr) in &levels[right_k] {
                                     if let Some(y) = (t.f)(*a, *b, *c) {
                                         if value_ok(y, domain, equiv) {
-                                            let expr = format!(
-                                                "{t_name}[{a_expr}, {b_expr}, {c_expr}]"
-                                            );
+                                            let expr =
+                                                format!("{t_name}[{a_expr}, {b_expr}, {c_expr}]");
                                             if near(y, target, equiv) {
                                                 if !skip_expr.contains(&expr) {
                                                     return Some((expr, k));
@@ -1914,6 +2112,9 @@ fn main() {
                 .arg(&args.scan_params);
             if matches!(args.domain, DomainMode::Real) {
                 cmd.arg("--domain").arg("real");
+            }
+            if matches!(args.witness_branch_mode, WitnessBranchMode::BranchAware) {
+                cmd.arg("--branch-aware-witness");
             }
             let output = match cmd.output() {
                 Ok(v) => v,
@@ -2057,7 +2258,20 @@ fn main() {
             println!("Domain mode: real (values with nonzero imaginary part are rejected).");
         }
     }
+    match args.witness_branch_mode {
+        WitnessBranchMode::Discovery => {
+            println!("Witness branch mode: discovery (branch-domain checks disabled).");
+        }
+        WitnessBranchMode::BranchAware => {
+            println!("Witness branch mode: branch-aware (branch-domain checks enabled).");
+        }
+    }
     print_remaining(&todo_constants, &todo_unary, &todo_binary, &todo_ternary);
+
+    let mut rejected_binary_by_name: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut rejected_ternary_by_name: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut rejected_constant_by_name: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut rejected_unary_by_name: HashMap<String, HashSet<String>> = HashMap::new();
 
     let mut k = 1usize;
     while k <= args.max_k
@@ -2075,7 +2289,12 @@ fn main() {
             .collect();
         let named_constants: Vec<(String, C)> = known_constants
             .iter()
-            .filter_map(|name| const_all.get(name.as_str()).copied().map(|v| (name.clone(), v)))
+            .filter_map(|name| {
+                const_all
+                    .get(name.as_str())
+                    .copied()
+                    .map(|v| (name.clone(), v))
+            })
             .collect();
         let unary_set: Vec<Unary> = known_unary
             .iter()
@@ -2083,7 +2302,12 @@ fn main() {
             .collect();
         let named_unary: Vec<(String, Unary)> = known_unary
             .iter()
-            .filter_map(|name| unary_all.get(name.as_str()).cloned().map(|u| (name.clone(), u)))
+            .filter_map(|name| {
+                unary_all
+                    .get(name.as_str())
+                    .cloned()
+                    .map(|u| (name.clone(), u))
+            })
             .collect();
         let binary_set: Vec<Binary> = known_binary
             .iter()
@@ -2091,7 +2315,12 @@ fn main() {
             .collect();
         let named_binary: Vec<(String, Binary)> = known_binary
             .iter()
-            .filter_map(|name| binary_all.get(name.as_str()).cloned().map(|b| (name.clone(), b)))
+            .filter_map(|name| {
+                binary_all
+                    .get(name.as_str())
+                    .cloned()
+                    .map(|b| (name.clone(), b))
+            })
             .collect();
         let ternary_set: Vec<Ternary> = known_ternary
             .iter()
@@ -2112,7 +2341,7 @@ fn main() {
             let op = binary_all.get(op_name.as_str()).unwrap();
             let target = (op.f)(C::real(EULER_GAMMA), C::real(GLAISHER)).unwrap();
             if args.explain {
-                let mut rejected: HashSet<String> = HashSet::new();
+                let rejected = rejected_binary_by_name.entry(op_name.clone()).or_default();
                 loop {
                     let Some(witness) = find_representation_with_skip(
                         target,
@@ -2123,7 +2352,7 @@ fn main() {
                         k,
                         args.equiv,
                         args.domain,
-                        &rejected,
+                        rejected,
                     ) else {
                         break;
                     };
@@ -2132,6 +2361,8 @@ fn main() {
                             WitnessKind::Binary(op_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.domain,
+                            args.witness_branch_mode,
                             args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
@@ -2186,14 +2417,9 @@ fn main() {
         let mut found_ternary: Option<(usize, Option<(String, usize)>)> = None;
         for (idx, op_name) in todo_ternary.iter().enumerate() {
             let op = ternary_all.get(op_name.as_str()).unwrap();
-            let target = (op.f)(
-                C::real(EULER_GAMMA),
-                C::real(GLAISHER),
-                C::real(PI),
-            )
-            .unwrap();
+            let target = (op.f)(C::real(EULER_GAMMA), C::real(GLAISHER), C::real(PI)).unwrap();
             if args.explain {
-                let mut rejected: HashSet<String> = HashSet::new();
+                let rejected = rejected_ternary_by_name.entry(op_name.clone()).or_default();
                 loop {
                     let Some(witness) = find_representation_with_skip(
                         target,
@@ -2204,7 +2430,7 @@ fn main() {
                         k,
                         args.equiv,
                         args.domain,
-                        &rejected,
+                        rejected,
                     ) else {
                         break;
                     };
@@ -2213,6 +2439,8 @@ fn main() {
                             WitnessKind::Ternary(op_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.domain,
+                            args.witness_branch_mode,
                             args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
@@ -2268,7 +2496,7 @@ fn main() {
         for (idx, c_name) in todo_constants.iter().enumerate() {
             let target = *const_all.get(c_name.as_str()).unwrap();
             if args.explain {
-                let mut rejected: HashSet<String> = HashSet::new();
+                let rejected = rejected_constant_by_name.entry(c_name.clone()).or_default();
                 loop {
                     let Some(witness) = find_representation_with_skip(
                         target,
@@ -2279,7 +2507,7 @@ fn main() {
                         k,
                         args.equiv,
                         args.domain,
-                        &rejected,
+                        rejected,
                     ) else {
                         break;
                     };
@@ -2288,6 +2516,8 @@ fn main() {
                             WitnessKind::Constant(c_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.domain,
+                            args.witness_branch_mode,
                             args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
@@ -2346,7 +2576,7 @@ fn main() {
                 continue;
             };
             if args.explain {
-                let mut rejected: HashSet<String> = HashSet::new();
+                let rejected = rejected_unary_by_name.entry(f_name.clone()).or_default();
                 loop {
                     let Some(witness) = find_representation_with_skip(
                         target,
@@ -2357,7 +2587,7 @@ fn main() {
                         k,
                         args.equiv,
                         args.domain,
-                        &rejected,
+                        rejected,
                     ) else {
                         break;
                     };
@@ -2366,6 +2596,8 @@ fn main() {
                             WitnessKind::Unary(f_name.clone()),
                             &witness.0,
                             args.equiv,
+                            args.domain,
+                            args.witness_branch_mode,
                             args.validate_witness_highprec,
                             &unary_all,
                             &binary_all,
@@ -2429,4 +2661,122 @@ fn main() {
     println!("Target ternary operations: {target_ternary:?}");
     print_remaining(&todo_constants, &todo_unary, &todo_binary, &todo_ternary);
     println!("Elapsed: {:.2?}", start.elapsed());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_equiv() -> EquivCfg {
+        EquivCfg {
+            mode: EquivMode::Rel,
+            eps: 16.0 * f64::EPSILON,
+            ulp_tol: 4,
+        }
+    }
+
+    #[test]
+    fn accepts_arccos_witness_on_wider_arccosh_branch() {
+        let unary_all = unary_catalog();
+        let binary_all = binary_catalog();
+        let ternary_all = ternary_catalog();
+        let const_all = constant_catalog();
+
+        assert!(validate_witness(
+            WitnessKind::Unary("ArcCos".to_string()),
+            "ArcCosh[Cos[ArcCosh[EulerGamma]]]",
+            test_equiv(),
+            DomainMode::Complex,
+            WitnessBranchMode::BranchAware,
+            false,
+            &unary_all,
+            &binary_all,
+            &ternary_all,
+            &const_all,
+        ));
+    }
+
+    #[test]
+    fn rejects_old_arccosh_witness_on_wider_branch() {
+        let unary_all = unary_catalog();
+        let binary_all = binary_catalog();
+        let ternary_all = ternary_catalog();
+        let const_all = constant_catalog();
+
+        assert!(!validate_witness(
+            WitnessKind::Unary("ArcCosh".to_string()),
+            "ArcSinh[Hypot[EulerGamma, Sqrt[-1]]]",
+            test_equiv(),
+            DomainMode::Complex,
+            WitnessBranchMode::BranchAware,
+            false,
+            &unary_all,
+            &binary_all,
+            &ternary_all,
+            &const_all,
+        ));
+    }
+
+    #[test]
+    fn discovery_mode_accepts_old_arccosh_witness() {
+        let unary_all = unary_catalog();
+        let binary_all = binary_catalog();
+        let ternary_all = ternary_catalog();
+        let const_all = constant_catalog();
+
+        assert!(validate_witness(
+            WitnessKind::Unary("ArcCosh".to_string()),
+            "ArcSinh[Hypot[EulerGamma, Sqrt[-1]]]",
+            test_equiv(),
+            DomainMode::Complex,
+            WitnessBranchMode::Discovery,
+            false,
+            &unary_all,
+            &binary_all,
+            &ternary_all,
+            &const_all,
+        ));
+    }
+
+    #[test]
+    fn accepts_wider_branch_arccosh_witness() {
+        let unary_all = unary_catalog();
+        let binary_all = binary_catalog();
+        let ternary_all = ternary_catalog();
+        let const_all = constant_catalog();
+
+        assert!(validate_witness(
+            WitnessKind::Unary("ArcCosh".to_string()),
+            "Log[Plus[EulerGamma, Hypot[EulerGamma, Sqrt[-1]]]]",
+            test_equiv(),
+            DomainMode::Complex,
+            WitnessBranchMode::BranchAware,
+            false,
+            &unary_all,
+            &binary_all,
+            &ternary_all,
+            &const_all,
+        ));
+    }
+
+    #[test]
+    fn accepts_full_complex_inv_witness() {
+        let unary_all = unary_catalog();
+        let binary_all = binary_catalog();
+        let ternary_all = ternary_catalog();
+        let const_all = constant_catalog();
+
+        assert!(validate_witness(
+            WitnessKind::Unary("Inv".to_string()),
+            "Exp[Minus[Log[EulerGamma]]]",
+            test_equiv(),
+            DomainMode::Complex,
+            WitnessBranchMode::Discovery,
+            false,
+            &unary_all,
+            &binary_all,
+            &ternary_all,
+            &const_all,
+        ));
+    }
 }
