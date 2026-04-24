@@ -1,7 +1,7 @@
 # Figure 2: EML trees
 
 This directory contains the script that generates the standalone LaTeX/TikZ
-source for Fig. 2 in the PNAS package.
+source for Fig. 2.
 
 ## Files
 
