@@ -17,13 +17,13 @@ EML[x_, y_] := Exp[x] - LogLower[y];
 
 
 failsafePoints[] := {
-  EulerGamma, -EulerGamma,
-  Catalan,    -Catalan,
-  1/Glaisher, -1/Glaisher,
-  1/Khinchin, -1/Khinchin,
-  Glaisher,   -Glaisher,
-  Khinchin, -Khinchin,
-  Khinchin^3, -Khinchin^3, (* This is to ensure |x| > Cosh[Pi]=11.592 is probed; some identities might fail beyond this range *)
+  EulerGamma,    -EulerGamma,
+  Catalan,       -Catalan,
+  Glaisher^(-1), -Glaisher^(-1),
+  Khinchin^(-1), -Khinchin^(-1),
+  Glaisher,      -Glaisher,
+  Khinchin,      -Khinchin,
+  Khinchin^3,    -Khinchin^3, (* This is to ensure |x| > Cosh[Pi]=11.592 is probed; some identities might fail beyond this range *)
 };
 
 $MaxExtraPrecision=1024;
@@ -259,7 +259,9 @@ result = Catch[
   (* 28. ArcCosh[x]
          Rust witness: ArcSinh[Hypot[x, Sqrt[-1]]]   uses proved ArcSinh, Hypot, Sqrt
          Sqrt[-1] = I; Hypot[x, I] = Sqrt[x^2 - 1]; ArcSinh[Sqrt[x^2-1]] = ArcCosh[x] *)
-  arcCoshEML[x_] := arcSinhW[hypotW[x, sqrtW[-1]]];
+  (* arcCoshEML[x_] := arcSinhW[hypotW[x, sqrtW[-1]]]; *)
+  arcCoshEML[x_] := timesW[2, arcSinhW[sqrtW[avgW[-1, x]]]]; 
+  (* arcCoshEML[x_] := logW[plusW[x,hypotW[x,sqrtW[-1]]]]; *)
   checkIdentity["Step 28: ArcCosh[x]", arcCoshEML[x], ArcCosh[x], {x}, x >= 1];
   arcCoshW[x_] := ArcCosh[x];
 
