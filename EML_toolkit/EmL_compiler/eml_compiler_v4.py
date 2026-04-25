@@ -25,6 +25,7 @@ def eml_pow(a, b):    return eml_exp(eml_mul(b, eml_log(a)))               # a^b
 
 def eml_one(): return "1"
 def eml_two(): return eml_add("1", "1")
+def eml_double(z): return eml_add(z, z)
 
 def eml_int(n:int):
     if n == 1: return "1"
@@ -66,6 +67,26 @@ def eml_const_GoldenRatio():
     sqrt5 = eml_pow(eml_int(5), eml_rational(1, 2))
     num   = eml_add("1", sqrt5)
     return eml_div(num, eml_int(2))
+
+def eml_sinh(z):
+    e2z = eml_exp(eml_double(z))
+    ez = eml_exp(z)
+    return eml_div(eml_sub(e2z, "1"), eml_mul(eml_int(2), ez))
+
+def eml_cosh(z):
+    e2z = eml_exp(eml_double(z))
+    ez = eml_exp(z)
+    return eml_div(eml_add(e2z, "1"), eml_mul(eml_int(2), ez))
+
+def eml_tanh(z):
+    e2z = eml_exp(eml_double(z))
+    return eml_div(eml_sub(e2z, "1"), eml_add(e2z, "1"))
+
+def eml_atan(z):
+    i_eml = eml_const_I()
+    ratio = eml_neg(eml_div(eml_sub(z, i_eml), eml_add(z, i_eml)))
+    coef = eml_div(eml_neg(i_eml), eml_int(2))
+    return eml_mul(coef, eml_log(ratio))
 
 # =========================
 # Helpers for sympify locals
@@ -142,8 +163,15 @@ LOCALS = {
 # =========================
 # Normalization & compiler
 # =========================
+def rewrite_real_atan(expr):
+    """Lower ArcTan with the quotient log identity before generic rewriting."""
+    return expr.replace(
+        lambda e: getattr(e, "func", None) is atan and len(e.args) == 1,
+        lambda e: ATAN_LOG(e.args[0]),
+    )
+
 def normalize_to_exp_log(expr, max_iter=8):
-    e = expr
+    e = rewrite_real_atan(expr)
     for _ in range(max_iter):
         e2 = e.rewrite(log).rewrite(exp).rewrite(Pow)
         if e2 == e: break
@@ -173,6 +201,15 @@ def compile_to_eml(expr):
 
     f = getattr(expr, 'func', None)
 
+    if f is sinh and len(expr.args) == 1:
+        return eml_sinh(compile_to_eml(expr.args[0]))
+    if f is cosh and len(expr.args) == 1:
+        return eml_cosh(compile_to_eml(expr.args[0]))
+    if f is tanh and len(expr.args) == 1:
+        return eml_tanh(compile_to_eml(expr.args[0]))
+    if f is atan and len(expr.args) == 1:
+        return eml_atan(compile_to_eml(expr.args[0]))
+
     if f is exp and len(expr.args) == 1:
         return eml_exp(compile_to_eml(expr.args[0]))
     if f is log and len(expr.args) == 1:
@@ -190,7 +227,7 @@ def compile_to_eml(expr):
         return acc
 
     if isinstance(expr, Add):
-        terms = list(expr.args)
+        terms = sorted(expr.args, key=lambda t: (bool(t.is_number), t.sort_key()))
         acc = compile_to_eml(terms[0])
         for t in terms[1:]:
             acc = eml_add(acc, compile_to_eml(t))
@@ -222,7 +259,6 @@ def eml_compile_from_string(s: str):
             f"Input did not parse as a symbolic expression: {s!r}. "
             "If you mean a function of x, write Sqrt[x] rather than Sqrt."
         )
-    expr = normalize_to_exp_log(expr, max_iter=8)
     return compile_to_eml(expr)
 
 # =========================
