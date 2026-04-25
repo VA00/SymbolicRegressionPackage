@@ -1,3 +1,7 @@
+This is log of verification/search procedure from rust_verify code.   
+
+PS C:\SymbolicRegressionPackage\rust_verify> cargo run --release -- --constants 1 --functions "" --operations EML --explain --branch-aware-witness >rust_verify_2.log
+
 Loaded base constants: ["1", "EulerGamma", "Glaisher"]
 Loaded base unary functions: []
 Loaded base binary operations: ["EML"]

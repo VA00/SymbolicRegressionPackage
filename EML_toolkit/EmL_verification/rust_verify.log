@@ -2,6 +2,7 @@ This is log of verification/search procedure from rust_verify code.
 
 PS C:\SymbolicRegressionPackage\rust_verify> cargo run --release -- --constants 1 --functions "" --operations EML --explain >rust_verify.log
 
+
 Loaded base constants: ["1", "EulerGamma", "Glaisher"]
 Loaded base unary functions: []
 Loaded base binary operations: ["EML"]
@@ -11,6 +12,7 @@ Target unary functions: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "Ar
 Target binary operations: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
 Target ternary operations: []
 Domain mode: complex (complex branches are allowed).
+Witness branch mode: discovery (branch-domain checks disabled).
 Remaining constants: ["-1", "2", "E", "Pi"]
 Remaining unary: ["ArcCos", "ArcCosh", "ArcSin", "ArcSinh", "ArcTan", "ArcTanh", "Cos", "Cosh", "Exp", "Half", "Inv", "Log", "LogisticSigmoid", "Minus", "Sin", "Sinh", "Sqr", "Sqrt", "Tan", "Tanh"]
 Remaining binary: ["Avg", "Divide", "Hypot", "Log", "Plus", "Power", "Subtract", "Times"]
@@ -436,7 +438,6 @@ Testing with K = 4
 Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
 No new items at K = 4
 Testing with K = 5
-Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
 Rejected flaky witness for unary function: ArcTan at k=5 -> ArcCos[Inv[Cosh[ArcSinh[EulerGamma]]]]
 Rejected flaky witness for unary function: ArcTanh at k=5 -> ArcCosh[Inv[Sin[ArcCos[EulerGamma]]]]
 Found unary function: ArcTanh
@@ -452,11 +453,8 @@ No new items at K = 2
 Testing with K = 3
 No new items at K = 3
 Testing with K = 4
-Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
 No new items at K = 4
 Testing with K = 5
-Rejected flaky witness for unary function: ArcSin at k=4 -> ArcCos[Sin[ArcCos[EulerGamma]]]
-Rejected flaky witness for unary function: ArcTan at k=5 -> ArcCos[Inv[Cosh[ArcSinh[EulerGamma]]]]
 Found unary function: ArcSin
   witness[k=5]: Subtract[Half[Pi], ArcCos[EulerGamma]]
 Remaining constants: []
@@ -488,4 +486,4 @@ Remaining constants: []
 Remaining unary: []
 Remaining binary: []
 Remaining ternary: []
-Elapsed: 33.68s
+Elapsed: 34.75s
