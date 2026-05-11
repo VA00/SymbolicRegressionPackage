@@ -990,6 +990,14 @@ fn binary_catalog() -> HashMap<&'static str, Binary> {
             },
         ),
         (
+            "InvSubtract",
+            Binary {
+                // InvSubtract[a,b] = 1 / (a - b)
+                f: |a, b| C::real(1.0).div(a.sub(b)),
+                commutative: false,
+            },
+        ),
+        (
             "Divide",
             Binary {
                 f: |a, b| a.div(b),
