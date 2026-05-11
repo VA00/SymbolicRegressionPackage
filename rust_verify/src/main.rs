@@ -606,6 +606,10 @@ fn unary_catalog() -> HashMap<String, Unary> {
         ("Minus".to_string(), unary(|x| Some(x.neg()))),
         ("Log".to_string(), unary(|x| x.ln())),
         ("Exp".to_string(), unary(|x| Some(x.exp()))),
+        (
+            "ExpPlusLog".to_string(),
+            unary(|x| Some(x.exp().add(x.ln()?))),
+        ),
         ("Inv".to_string(), unary(|x| C::real(1.0).div(x))),
         ("Sqrt".to_string(), unary(|x| Some(x.sqrt()))),
         ("Sqr".to_string(), unary(|x| Some(x.mul(x)))),
@@ -1077,6 +1081,7 @@ fn constant_catalog() -> HashMap<&'static str, C> {
         ("1", C::real(1.0)),
         ("-1", C::real(-1.0)),
         ("2", C::real(2.0)),
+        ("3", C::real(3.0)),
     ]
     .into_iter()
     .collect()
@@ -1522,6 +1527,7 @@ def const(name):
       '1': mp.mpf(1),
       '-1': mp.mpf(-1),
       '2': mp.mpf(2),
+      '3': mp.mpf(3),
       '0': mp.mpf(0),
     }
     return tbl.get(name)
@@ -1531,6 +1537,7 @@ def apply1(n, x):
     if n == 'Minus': return -x
     if n == 'Log': return mp.log(x) if x > 0 else None
     if n == 'Exp': return mp.exp(x)
+    if n == 'ExpPlusLog': return mp.exp(x)+mp.log(x) if x > 0 else None
     if n == 'Inv': return 1/x if x != 0 else None
     if n == 'Sqrt': return mp.sqrt(x) if x >= 0 else None
     if n == 'Sqr': return x*x
