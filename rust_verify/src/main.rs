@@ -1026,6 +1026,25 @@ fn binary_catalog() -> HashMap<&'static str, Binary> {
             },
         ),
         (
+            "Mean",
+            Binary {
+                f: |a, b| Some(a.add(b).mul(C::real(0.5))),
+                commutative: true,
+            },
+        ),
+        (
+            "HarmonicMean",
+            Binary {
+                // HarmonicMean[a,b] = 2 / (1/a + 1/b)
+                f: |a, b| {
+                    let inv_a = C::real(1.0).div(a)?;
+                    let inv_b = C::real(1.0).div(b)?;
+                    C::real(2.0).div(inv_a.add(inv_b))
+                },
+                commutative: true,
+            },
+        ),
+        (
             "Hypot",
             Binary {
                 f: |a, b| Some(a.mul(a).add(b.mul(b)).sqrt()),
@@ -1535,10 +1554,13 @@ def apply2(n,a,b):
     if n == 'Plus': return a+b
     if n == 'Times': return a*b
     if n == 'Subtract': return a-b
+    if n == 'InvSubtract': return 1/(a-b) if a != b else None
     if n == 'Divide': return a/b if b != 0 else None
     if n == 'Power': return mp.e**(b*mp.log(a)) if a > 0 else None
     if n == 'Log': return mp.log(b)/mp.log(a) if (a > 0 and a != 1 and b > 0) else None
     if n == 'Avg': return (a+b)/2
+    if n == 'Mean': return (a+b)/2
+    if n == 'HarmonicMean': return 2/(1/a + 1/b) if (a != 0 and b != 0 and (1/a + 1/b) != 0) else None
     if n == 'Hypot': return mp.sqrt(a*a+b*b)
     return None
 
