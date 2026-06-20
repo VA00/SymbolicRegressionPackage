@@ -21,6 +21,7 @@ Check out examples from `SymbolicRegressionPackage_Examples.nb`.
 - `SymbolicRegression.m` — main Mathematica package
 - `EML_toolkit/` — EML compiler (Python), numerical test harnesses (C, NumPy, PyTorch, mpmath), symbolic verification notebooks, PyTorch tree trainer, figure scripts, and CUDA shortest-expression search tools
 - `rust_*/` — Rust reimplementation of the bootstrapping procedure and search tools (~35 s vs ~40 min in Mathematica)
+- `rust_verify_parallel/` — parallel, single-probe numerical sieve for rapidly finding candidate reconstruction formulas; candidates require separate verification
 
 
 ## Requirements
