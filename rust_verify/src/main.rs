@@ -217,6 +217,11 @@ impl C {
     }
 
     fn asin(self) -> Option<C> {
+        // Use libm on its real principal branch to avoid extra ULP error from
+        // evaluating the equivalent complex log/sqrt formula.
+        if self.im == 0.0 && (-1.0..=1.0).contains(&self.re) {
+            return Some(C::real(self.re.asin()));
+        }
         let i = C::i();
         let one = C::real(1.0);
         let iz = i.mul(self);
@@ -227,10 +232,19 @@ impl C {
     }
 
     fn acos(self) -> Option<C> {
+        // Keep real-axis identities accurate under strict ULP comparisons;
+        // use the principal complex formula outside this real branch.
+        if self.im == 0.0 && (-1.0..=1.0).contains(&self.re) {
+            return Some(C::real(self.re.acos()));
+        }
         Some(C::real(FRAC_PI_2).sub(self.asin()?))
     }
 
     fn atan(self) -> Option<C> {
+        // Native real evaluation avoids avoidable rounding from complex logs.
+        if self.im == 0.0 {
+            return Some(C::real(self.re.atan()));
+        }
         let i = C::i();
         let one = C::real(1.0);
         let l1 = one.sub(i.mul(self)).ln()?;
@@ -240,17 +254,29 @@ impl C {
     }
 
     fn asinh(self) -> Option<C> {
+        // The log/sqrt representation can lose several ULPs on real inputs.
+        if self.im == 0.0 {
+            return Some(C::real(self.re.asinh()));
+        }
         let one = C::real(1.0);
         self.add(self.mul(self).add(one).sqrt()).ln()
     }
 
     fn acosh(self) -> Option<C> {
+        // Prefer the native real principal branch for ULP-stable comparisons.
+        if self.im == 0.0 && self.re >= 1.0 {
+            return Some(C::real(self.re.acosh()));
+        }
         let one = C::real(1.0);
         let term = self.add(one).sqrt().mul(self.sub(one).sqrt());
         self.add(term).ln()
     }
 
     fn atanh(self) -> Option<C> {
+        // Prefer the native real principal branch for ULP-stable comparisons.
+        if self.im == 0.0 && self.re.abs() < 1.0 {
+            return Some(C::real(self.re.atanh()));
+        }
         let one = C::real(1.0);
         let num = one.add(self).ln()?;
         let den = one.sub(self).ln()?;
@@ -1063,6 +1089,54 @@ fn binary_catalog() -> HashMap<&'static str, Binary> {
                 commutative: false,
             },
         ),
+        (
+            "EDL",
+            Binary {
+                // EDL[a,b] = Exp[a] / Log[b]
+                f: |a, b| a.exp().div(b.ln()?),
+                commutative: false,
+            },
+        ),
+        (
+            "LDE",
+            Binary {
+                // LDE[a,b] = Log[a] / Exp[b]
+                f: |a, b| a.ln()?.div(b.exp()),
+                commutative: false,
+            },
+        ),
+        (
+            "PLI",
+            Binary {
+                // PLI[a,b] = Log[a]^(1/b)
+                f: |a, b| a.ln()?.pow(C::real(1.0).div(b)?),
+                commutative: false,
+            },
+        ),
+        (
+            "PLM",
+            Binary {
+                // PLM[a,b] = Log[a]^(-b)
+                f: |a, b| a.ln()?.pow(b.neg()),
+                commutative: false,
+            },
+        ),
+        (
+            "CosArcCos",
+            Binary {
+                // Stachowiak Eq. (11): S[a,b] = Cos[a] - ArcCos[b]
+                f: |a, b| Some(a.cos().sub(b.acos()?)),
+                commutative: false,
+            },
+        ),
+        (
+            "SinhArcSinh",
+            Binary {
+                // Hyperbolic analogue: S[a,b] = Sinh[a] - ArcSinh[b], with c = 0.
+                f: |a, b| Some(a.sinh().sub(b.asinh()?)),
+                commutative: false,
+            },
+        ),
     ]
     .into_iter()
     .collect()
@@ -1558,6 +1632,12 @@ def apply1(n, x):
 
 def apply2(n,a,b):
     if n == 'EML': return mp.e**a - mp.log(b) if b > 0 else None
+    if n == 'EDL': return mp.e**a / mp.log(b) if b > 0 and b != 1 else None
+    if n == 'LDE': return mp.log(a) / mp.e**b if a > 0 else None
+    if n == 'PLI': return mp.power(mp.log(a), 1/b) if a > 0 and b != 0 else None
+    if n == 'PLM': return mp.power(mp.log(a), -b) if a > 0 else None
+    if n == 'CosArcCos': return mp.cos(a) - mp.acos(b) if -1 <= b <= 1 else None
+    if n == 'SinhArcSinh': return mp.sinh(a) - mp.asinh(b)
     if n == 'Plus': return a+b
     if n == 'Times': return a*b
     if n == 'Subtract': return a-b
@@ -2814,6 +2894,39 @@ mod tests {
             &binary_all,
             &ternary_all,
             &const_all,
+        ));
+    }
+
+    #[test]
+    fn eml_variants_match_their_definitions() {
+        let binary = binary_catalog();
+        let x = C::real(2.0);
+        let y = C::real(3.0);
+        let equiv = EquivCfg {
+            mode: EquivMode::Ulp,
+            eps: 0.0,
+            ulp_tol: 1,
+        };
+
+        assert!(near(
+            (binary["EDL"].f)(x, y).unwrap(),
+            x.exp().div(y.ln().unwrap()).unwrap(),
+            equiv
+        ));
+        assert!(near(
+            (binary["LDE"].f)(x, y).unwrap(),
+            x.ln().unwrap().div(y.exp()).unwrap(),
+            equiv
+        ));
+        assert!(near(
+            (binary["PLI"].f)(x, y).unwrap(),
+            x.ln().unwrap().pow(C::real(1.0).div(y).unwrap()).unwrap(),
+            equiv
+        ));
+        assert!(near(
+            (binary["PLM"].f)(x, y).unwrap(),
+            x.ln().unwrap().pow(y.neg()).unwrap(),
+            equiv
         ));
     }
 }
