@@ -52,7 +52,7 @@ RecognizeConstant::usage = " RecognizeConstant[1.38629] - attempt to find best a
 NextFunction::usage = "TODO"
 
 
-Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLength -> 11, Candidates -> 1, WriteToDisk -> False, Finalize->{Abs,Re,Im}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0, DisplayProgress->True};
+Options[RecognizeConstant] = { PrecisionGoal -> 16*$MachineEpsilon, MaxCodeLength -> 11, Candidates -> 1, WriteToDisk -> False, Finalize->{Identity,Re,Im,Abs}, MemoryLimit->131072, TimeLimit->8, StartCodeLength->1, StartCodeNumber->0, DisplayProgress->True};
 
 Options[RecognizeFunction] = { PrecisionGoal -> Sqrt@$MachineEpsilon, MaxCodeLength -> 13, WriteToDisk -> True,  MemoryLimit->64*131072, TimeLimit->64, StartCodeLength->1, StartCodeNumber->0};
 
@@ -280,7 +280,7 @@ RecognizeConstant[target_?NumericQ,
    constants_List : {-1, I, E, Pi, 2}, functions_List : {Log}, 
    binaryOperations_List : {Plus, Times, Power}, OptionsPattern[]] := 
   Module[{k, n, num, rule, rule2, funs, ops, language, symb, x, 
-    bestError, digits, code, formula, error, errors, final, formulaN, 
+    bestError, digits, code, formula, error, errors, final, finals, formulaN,
     rpnRule, currentBestFormula, candidates},(*RPN calculator*)
    funs = If[functions == {}, Null, functions /. List -> Alternatives];
    ops = binaryOperations /. List -> Alternatives;
@@ -297,7 +297,9 @@ RecognizeConstant[target_?NumericQ,
    rule = (# /. List -> Rule &) /@ 
      Transpose[{Range[0, num - 1], symb}];
   
-   
+
+   (* Operations allowed only as the last step: Finalize option *)
+   finals = Flatten[{OptionValue[Finalize]}];
    bestError = Infinity;
    candidates = {};
    If[OptionValue[DisplayProgress], Print["n=",Dynamic[n]," k=",Dynamic[k],"\t",Dynamic[code]];]; 
@@ -341,13 +343,16 @@ RecognizeConstant[target_?NumericQ,
               OptionValue[MemoryLimit], Infinity], 
              Infinity], _SystemException, Infinity &];
           (*Print[formulaN];Print["\n\n"];*)
-          errors = 
-           Table[{Abs[target - final[formulaN]], final}, {final, 
-              Flatten[{OptionValue[Finalize]}]}] // NumericalSort;
+          (* {error, position in Finalize}: the smallest error wins; on a
+             tie the finalizer listed first, so Identity beats Re[f] = f *)
+          errors =
+           Table[{Abs[target - finals[[i]][formulaN]], i}, {i,
+              Length[finals]}] // NumericalSort;
           error = errors[[1, 1]] // Chop;
+          final = finals[[errors[[1, 2]]]];
           If[error < bestError, bestError = error;
-           currentBestFormula = errors[[1, 2]][formula];
-           AppendTo[code, errors[[1, 2]]];
+           currentBestFormula = final[formula];
+           AppendTo[code, final];
            
            AppendTo[
             candidates, {currentBestFormula, error, code, target}];
@@ -359,7 +364,7 @@ RecognizeConstant[target_?NumericQ,
             
             Print[DateString["ISODateTime"], "\n", code, " err=", 
              error, " n=", n, " k=", k, "\t", currentBestFormula, 
-             " = ", errors[[1, 2]][formulaN]]];];
+             " = ", final[formulaN]]];];
           
           If[bestError <= OptionValue[PrecisionGoal], 
            Throw@Return[
