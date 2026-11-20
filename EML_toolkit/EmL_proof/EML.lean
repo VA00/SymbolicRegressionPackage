@@ -6,3 +6,9 @@ import EML.ExpLog
 import EML.Trig
 import EML.Theorem1
 import EML.CutPoints
+import EML.Complex.Semantics
+import EML.Complex.Arith
+import EML.Complex.PowLog
+import EML.Complex.Functions
+import EML.Theorem1a
+import EML.Complex.ZeroTest

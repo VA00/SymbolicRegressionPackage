@@ -15,7 +15,6 @@ Nothing depends on this file.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 /-- `H(0) = 1`. -/
 example : eval (H x₁) ![(0 : ℂ)] = some 1 := by
@@ -35,15 +34,15 @@ example : eval (Warcosh x₁) ![(1 : ℂ)] = some 0 := by
   simpa using eval_Warcosh (t := x₁) (a := ![(1 : ℂ)]) (x := 1) (by simp) le_rfl
 
 /-- `arcsin 1 = π/2`. -/
-example : eval (Warcsin x₁) ![(1 : ℂ)] = some ((π : ℂ) / 2) := by
+example : eval (Warcsin x₁) ![(1 : ℂ)] = some ((Real.pi : ℂ) / 2) := by
   simpa using eval_Warcsin (t := x₁) (a := ![(1 : ℂ)]) (x := 1) (by simp) (by norm_num) le_rfl
 
 /-- `arcsin (-1) = -π/2`. -/
-example : eval (Warcsin x₁) ![(-1 : ℂ)] = some (-((π : ℂ) / 2)) := by
+example : eval (Warcsin x₁) ![(-1 : ℂ)] = some (-((Real.pi : ℂ) / 2)) := by
   simpa using eval_Warcsin (t := x₁) (a := ![(-1 : ℂ)]) (x := -1) (by simp) le_rfl (by norm_num)
 
 /-- `arccos (-1) = π`. -/
-example : eval (Warccos x₁) ![(-1 : ℂ)] = some (π : ℂ) := by
+example : eval (Warccos x₁) ![(-1 : ℂ)] = some (Real.pi : ℂ) := by
   simpa using eval_Warccos (t := x₁) (a := ![(-1 : ℂ)]) (x := -1) (by simp) le_rfl (by norm_num)
 
 /-- `arccos 1 = 0`. -/

@@ -25,7 +25,6 @@ These conventions play no role: every statement is restricted to `P.dom`.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 /-- The 5 constants of Table 1. -/
 inductive Prim0

@@ -2,6 +2,10 @@ name = "EML"
 version = "0.1.0"
 defaultTargets = ["EML"]
 
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

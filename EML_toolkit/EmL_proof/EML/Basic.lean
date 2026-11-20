@@ -21,7 +21,6 @@ Mathlib also sets `Complex.log 0 = 0`. That convention is never used here:
 namespace EML
 
 open Complex
-open scoped Real
 
 /-- Definition 2. EML terms in the variables `x_0, …, x_{n-1}`. -/
 inductive Term (n : ℕ) : Type
@@ -81,32 +80,32 @@ theorem eval_congr (h : eval t a = some z) {z' : ℂ} (hz : z = z') : eval t a =
 theorem F1 (hz : z ≠ 0) : exp (log z) = z := exp_log hz
 
 /-- If `w - 2πik` lies in the strip `-π < Im ≤ π`, then `Log (exp w) = w - 2πik`. -/
-theorem log_exp_shift (w : ℂ) (k : ℤ) (h₁ : -π < w.im - 2 * π * k) (h₂ : w.im - 2 * π * k ≤ π) :
-    log (exp w) = w - k * (2 * π * I) := by
-  have hexp : exp w = exp (w - k * (2 * π * I)) := by
+theorem log_exp_shift (w : ℂ) (k : ℤ) (h₁ : -Real.pi < w.im - 2 * Real.pi * k) (h₂ : w.im - 2 * Real.pi * k ≤ Real.pi) :
+    log (exp w) = w - k * (2 * Real.pi * I) := by
+  have hexp : exp w = exp (w - k * (2 * Real.pi * I)) := by
     rw [exp_sub, exp_int_mul_two_pi_mul_I, div_one]
-  have him : (w - k * (2 * π * I)).im = w.im - 2 * π * k := by
+  have him : (w - k * (2 * Real.pi * I)).im = w.im - 2 * Real.pi * k := by
     simp; ring
   rw [hexp]
   exact log_exp (by rw [him]; exact h₁) (by rw [him]; exact h₂)
 
 /-- (F2): `Log (exp w) = w - 2πi·K(w)`, where `K(w) = ⌈(Im w - π)/(2π)⌉` is the unwinding number. -/
-theorem F2 (w : ℂ) : log (exp w) = w - (⌈(w.im - π) / (2 * π)⌉ : ℤ) * (2 * π * I) := by
-  have hpos : (0 : ℝ) < 2 * π := by positivity
+theorem F2 (w : ℂ) : log (exp w) = w - (⌈(w.im - Real.pi) / (2 * Real.pi)⌉ : ℤ) * (2 * Real.pi * I) := by
+  have hpos : (0 : ℝ) < 2 * Real.pi := by positivity
   apply log_exp_shift
-  · have h := Int.ceil_lt_add_one ((w.im - π) / (2 * π))
-    have h' : (⌈(w.im - π) / (2 * π)⌉ : ℝ) - 1 < (w.im - π) / (2 * π) := by linarith
+  · have h := Int.ceil_lt_add_one ((w.im - Real.pi) / (2 * Real.pi))
+    have h' : (⌈(w.im - Real.pi) / (2 * Real.pi)⌉ : ℝ) - 1 < (w.im - Real.pi) / (2 * Real.pi) := by linarith
     rw [lt_div_iff₀ hpos] at h'
     linarith
-  · have h := Int.le_ceil ((w.im - π) / (2 * π))
+  · have h := Int.le_ceil ((w.im - Real.pi) / (2 * Real.pi))
     rw [div_le_iff₀ hpos] at h
     linarith
 
 /-- (F2), exact case: `Log (exp w) = w` inside the strip `-π < Im w ≤ π`. -/
-theorem F2_strip {w : ℂ} (h₁ : -π < w.im) (h₂ : w.im ≤ π) : log (exp w) = w := log_exp h₁ h₂
+theorem F2_strip {w : ℂ} (h₁ : -Real.pi < w.im) (h₂ : w.im ≤ Real.pi) : log (exp w) = w := log_exp h₁ h₂
 
 /-- (F2), converse: `Log (exp w) = w` only inside the strip. -/
-theorem F2_strip_iff (w : ℂ) : log (exp w) = w ↔ -π < w.im ∧ w.im ≤ π := by
+theorem F2_strip_iff (w : ℂ) : log (exp w) = w ↔ -Real.pi < w.im ∧ w.im ≤ Real.pi := by
   constructor
   · intro h
     rw [← h, log_im]
@@ -130,16 +129,16 @@ theorem mem_slitPlane_of_im_ne_zero (h : z.im ≠ 0) : z ∈ slitPlane :=
 theorem I_mem_slitPlane : I ∈ slitPlane := mem_slitPlane_of_im_ne_zero (by simp)
 
 /-- Real numbers lie in the strip of (F2). -/
-theorem neg_pi_lt_ofReal_im (x : ℝ) : -π < (x : ℂ).im := by simp [Real.pi_pos]
+theorem neg_pi_lt_ofReal_im (x : ℝ) : -Real.pi < (x : ℂ).im := by simp [Real.pi_pos]
 
-theorem ofReal_im_le_pi (x : ℝ) : (x : ℂ).im ≤ π := by simp [Real.pi_pos.le]
+theorem ofReal_im_le_pi (x : ℝ) : (x : ℂ).im ≤ Real.pi := by simp [Real.pi_pos.le]
 
-theorem ofReal_im_lt_pi (x : ℝ) : (x : ℂ).im < π := by simp [Real.pi_pos]
+theorem ofReal_im_lt_pi (x : ℝ) : (x : ℂ).im < Real.pi := by simp [Real.pi_pos]
 
 /-- The number `i` lies in the strip of (F2): `Im i = 1`. -/
-theorem neg_pi_lt_I_im : -π < I.im := by rw [I_im]; linarith [Real.pi_pos]
+theorem neg_pi_lt_I_im : -Real.pi < I.im := by rw [I_im]; linarith [Real.pi_pos]
 
-theorem I_im_le_pi : I.im ≤ π := by rw [I_im]; linarith [Real.pi_gt_three]
+theorem I_im_le_pi : I.im ≤ Real.pi := by rw [I_im]; linarith [Real.pi_gt_three]
 
 /-- Two complex numbers with different real parts are different. -/
 theorem ne_of_re_lt {w : ℂ} (h : w.re < z.re) : z ≠ w := by

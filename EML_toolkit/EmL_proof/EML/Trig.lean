@@ -15,7 +15,6 @@ including the endpoints `arcsin(±1)`, `arccos(±1)`.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 variable {n : ℕ} {a : Fin n → ℂ} {s t : Term n} {u v : ℂ} {x y : ℝ}
 
@@ -24,8 +23,8 @@ def A (s t : Term n) : Term n := S (S (S const_3 (N s)) (N t)) const_3
 
 /-- **Lemma 22.** If `|Im u| < π`, `|Im v| < π`, `u ≠ -3` and `u + v ≠ -3`,
 then `A(u, v)` is defined and equals `u + v`. -/
-theorem eval_A (hs : eval s a = some u) (ht : eval t a = some v) (hu : |u.im| < π)
-    (hv : |v.im| < π) (h₁ : u ≠ -3) (h₂ : u + v ≠ -3) : eval (A s t) a = some (u + v) := by
+theorem eval_A (hs : eval s a = some u) (ht : eval t a = some v) (hu : |u.im| < Real.pi)
+    (hv : |v.im| < Real.pi) (h₁ : u ≠ -3) (h₂ : u + v ≠ -3) : eval (A s t) a = some (u + v) := by
   rw [abs_lt] at hu hv
   have hNu := eval_N hs hu.1 hu.2
   have hNv := eval_N ht hv.1 hv.2
@@ -95,8 +94,8 @@ including the endpoints `x = ±1`. -/
 theorem eval_Warcsin (ht : eval t a = some (x : ℂ)) (h₁ : -1 ≤ x) (h₂ : x ≤ 1) :
     eval (Warcsin t) a = some ((Real.arcsin x : ℝ) : ℂ) := by
   set θ : ℝ := Real.arcsin x with hθ
-  have hθ1 : -(π / 2) ≤ θ := Real.neg_pi_div_two_le_arcsin x
-  have hθ2 : θ ≤ π / 2 := Real.arcsin_le_pi_div_two x
+  have hθ1 : -(Real.pi / 2) ≤ θ := Real.neg_pi_div_two_le_arcsin x
+  have hθ2 : θ ≤ Real.pi / 2 := Real.arcsin_le_pi_div_two x
   have hsin : Real.sin θ = x := Real.sin_arcsin h₁ h₂
   have hcos : Real.cos θ = Real.sqrt (1 - x ^ 2) := Real.cos_arcsin x
   have hcos0 : 0 ≤ Real.cos θ := Real.cos_arcsin_nonneg x

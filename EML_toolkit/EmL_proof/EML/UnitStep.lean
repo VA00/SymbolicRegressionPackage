@@ -15,7 +15,6 @@ This is where the closed endpoints (`√0`, `hypot(0,0)`) are obtained.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 variable {n : ℕ} {a : Fin n → ℂ} {s t : Term n} {u v z : ℂ} {x y : ℝ}
 
@@ -36,11 +35,11 @@ theorem eval_X (ht : eval t a = some (x : ℂ)) : eval (X t) a = some (x * I) :=
 def T (t : Term n) : Term n := eml (L const_ipi) (E (eml (L const_ipi) t))
 
 /-- The value of `T` in Lemma 18: `Log z + 2πi` if `Im z < 0`, `Log z` otherwise. -/
-noncomputable def Tval (z : ℂ) : ℂ := if z.im < 0 then log z + 2 * π * I else log z
+noncomputable def Tval (z : ℂ) : ℂ := if z.im < 0 then log z + 2 * Real.pi * I else log z
 
 /-- The computation in the proof of Lemma 18. -/
-theorem Tval_eq (z : ℂ) : I * π - log (exp (I * π - log z)) = Tval z := by
-  have him : (I * π - log z).im = π - arg z := by simp [log_im]
+theorem Tval_eq (z : ℂ) : I * Real.pi - log (exp (I * Real.pi - log z)) = Tval z := by
+  have him : (I * Real.pi - log z).im = Real.pi - arg z := by simp [log_im]
   unfold Tval
   split_ifs with h
   · -- `Im z < 0`: `Arg z ∈ (-π, 0)`, so `Im q ∈ (π, 2π)`, unwinding number `1`
@@ -63,7 +62,7 @@ theorem exp_Tval (hz : z ≠ 0) : exp (Tval z) = z := by
 
 /-- **Lemma 18.** For every `z ≠ 0`, `T(z)` is defined and has the value `Tval z`. -/
 theorem eval_T (ht : eval t a = some z) (hz : z ≠ 0) : eval (T t) a = some (Tval z) := by
-  have hc : (I * π : ℂ) ≠ 0 := mul_ne_zero I_ne_zero (ofReal_ne_zero.mpr Real.pi_ne_zero)
+  have hc : (I * Real.pi : ℂ) ≠ 0 := mul_ne_zero I_ne_zero (ofReal_ne_zero.mpr Real.pi_ne_zero)
   have hL := eval_L (eval_const_ipi (a := a)) hc
   have h1 := eval_E (eval_eml hL ht hz)
   have h2 := eval_eml hL h1 (exp_ne_zero _)
@@ -72,7 +71,7 @@ theorem eval_T (ht : eval t a = some z) (hz : z ≠ 0) : eval (T t) a = some (Tv
 /-- **Lemma 18**, second formula: `T(z) - L(z)` is `2πi` if `Im z < 0` or `z` is a
 negative real, and `0` otherwise. -/
 theorem Tval_sub_Lval (z : ℂ) :
-    Tval z - Lval z = if z.im < 0 ∨ (z.re < 0 ∧ z.im = 0) then 2 * π * I else 0 := by
+    Tval z - Lval z = if z.im < 0 ∨ (z.re < 0 ∧ z.im = 0) then 2 * Real.pi * I else 0 := by
   unfold Tval Lval
   by_cases h1 : z.im < 0
   · have h2 : ¬(z.re < 0 ∧ z.im = 0) := fun h => by linarith [h.2]
@@ -97,11 +96,11 @@ theorem ne_zero_one_of_exp_eq {w c : ℂ} (hexp : exp c = w) (hre : w.re < 0) : 
     linarith [Real.exp_pos 1]
 
 /-- The imaginary part of `z / (2πi)` is `-Re z / (2π)`. -/
-theorem div_two_I_pi_im (z : ℂ) : (z / (2 * (I * π))).im = -z.re / (2 * π) := by
-  have h : z / (2 * (I * (π : ℂ))) = -(z * I) / ((2 * π : ℝ) : ℂ) := by
+theorem div_two_I_pi_im (z : ℂ) : (z / (2 * (I * Real.pi))).im = -z.re / (2 * Real.pi) := by
+  have h : z / (2 * (I * (Real.pi : ℂ))) = -(z * I) / ((2 * Real.pi : ℝ) : ℂ) := by
     rw [div_eq_div_iff (by simp [Real.pi_ne_zero]) (by simp [Real.pi_ne_zero])]
     push_cast
-    linear_combination (2 * (π : ℂ) * z) * I_sq
+    linear_combination (2 * (Real.pi : ℂ) * z) * I_sq
   rw [h, div_ofReal_im]
   simp
 
@@ -157,21 +156,21 @@ theorem eval_H (ht : eval t a = some (x : ℂ)) :
   obtain ⟨hT0, hT1⟩ := ne_zero_one_of_exp_eq (exp_Tval hw0) (by rw [hre]; norm_num)
   obtain ⟨hL0, hL1⟩ := ne_zero_one_of_exp_eq (exp_Lval hw0) (by rw [hre]; norm_num)
   -- the two divisions by `2πi`
-  have hc : (2 * (I * π) : ℂ) ∈ slitPlane :=
+  have hc : (2 * (I * Real.pi) : ℂ) ∈ slitPlane :=
     mem_slitPlane_of_im_ne_zero (by simp [Real.pi_ne_zero])
-  have hc0 : (2 * (I * π) : ℂ) ≠ 0 := slitPlane_ne_zero hc
+  have hc0 : (2 * (I * Real.pi) : ℂ) ≠ 0 := slitPlane_ne_zero hc
   have hDT := eval_D hT eval_const_2ipi hT0 hT1 hc
   have hDL := eval_D hL eval_const_2ipi hL0 hL1 hc
   -- the strip condition for the final subtraction: `Im b = -ln|w| / (2π)`
-  have h2π : (0 : ℝ) < 2 * π := by positivity
-  have hb : (Lval w / (2 * (I * π))).im = -Real.log ‖w‖ / (2 * π) := by
+  have h2pi : (0 : ℝ) < 2 * Real.pi := by positivity
+  have hb : (Lval w / (2 * (I * Real.pi))).im = -Real.log ‖w‖ / (2 * Real.pi) := by
     rw [div_two_I_pi_im, Lval_re]
-  have hb1 : -π < (Lval w / (2 * (I * π))).im := by
-    rw [hb, neg_div, neg_lt_neg_iff, div_lt_iff₀ h2π]
-    nlinarith [Real.pi_gt_three, mul_self_nonneg (π - 3)]
-  have hb2 : (Lval w / (2 * (I * π))).im ≤ π := by
-    have : -Real.log ‖w‖ / (2 * π) ≤ 0 :=
-      div_nonpos_of_nonpos_of_nonneg (by linarith) h2π.le
+  have hb1 : -Real.pi < (Lval w / (2 * (I * Real.pi))).im := by
+    rw [hb, neg_div, neg_lt_neg_iff, div_lt_iff₀ h2pi]
+    nlinarith [Real.pi_gt_three, mul_self_nonneg (Real.pi - 3)]
+  have hb2 : (Lval w / (2 * (I * Real.pi))).im ≤ Real.pi := by
+    have : -Real.log ‖w‖ / (2 * Real.pi) ≤ 0 :=
+      div_nonpos_of_nonpos_of_nonneg (by linarith) h2pi.le
     rw [hb]
     linarith [Real.pi_pos]
   have hS := eval_S hDT hDL (div_ne_zero hT0 hc0) hb1 hb2

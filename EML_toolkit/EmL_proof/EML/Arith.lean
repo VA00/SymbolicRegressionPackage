@@ -15,7 +15,6 @@ Real numbers appear as complex numbers `(x : ℂ)` with `x : ℝ`.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 variable {n : ℕ} {a : Fin n → ℂ} {s t : Term n} {u v z : ℂ} {x y : ℝ}
 

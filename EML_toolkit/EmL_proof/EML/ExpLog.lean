@@ -15,7 +15,6 @@ The real functions on the right-hand sides are those of Mathlib.
 namespace EML
 
 open Complex Term
-open scoped Real
 
 variable {n : ℕ} {a : Fin n → ℂ} {s t : Term n} {x y : ℝ}
 
