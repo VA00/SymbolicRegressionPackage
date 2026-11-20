@@ -48,19 +48,24 @@ def eml_rational(p:int, q:int):
 def eml_const_E():
     return eml_exp("1")  # e = Exp[1]
 
+def eml_minus_i_pi():
+    # -I*Pi = EML[1, -E^E] = E - Log[-E^E]: the principal Log of a negative real
+    # number has the imaginary part +Pi, and EML subtracts it.
+    # This is eml_log(-1) = EML[1, Exp[EML[1,-1]]] with the inner Exp[E - Log[-1]]
+    # replaced by -Exp[E]; both equal -E^E, and the size is the same. eml_log(-1)
+    # must not be used for this constant: in finite precision Exp[E - I*Pi] is not
+    # exactly real. It falls just above or just below the negative real axis,
+    # according to whether the working precision rounds Pi up or down, and
+    # eml_log(-1) is -I*Pi (e.g. complex64) or +I*Pi (e.g. complex128).
+    return EML("1", eml_neg(eml_exp(eml_const_E())))
+
 def eml_const_I():
-    #return eml_pow(eml_neg("1"), eml_rational(1, 2))  # I = (-1)^(1/2)
-    #return eml_exp(eml_mul(eml_log(eml_neg("1")),eml_rational(1,2)))  # I = Exp[Log[-1]*(1/2)]
-    #print(eml_neg("1"))
-    #print(eml_log(eml_neg("1")))
-    minus_one = eml_neg("1")
-    two = eml_int(2)
-    return eml_neg(eml_exp(eml_div(eml_log(minus_one), two)))  # I = -Exp[Log[-1]/2]
+    # Earlier forms, (-1)^(1/2), Exp[Log[-1]/2] and -Exp[Log[-1]/2], go through
+    # eml_log(-1); their sign depends on the arithmetic (see eml_minus_i_pi).
+    return eml_exp(eml_neg(eml_div(eml_minus_i_pi(), eml_int(2))))  # I = Exp[-(-I*Pi)/2]
 
 def eml_const_Pi():
-    i_eml = eml_const_I()
-    log_minus1 = eml_log(eml_neg("1"))
-    return eml_mul(i_eml, log_minus1)  # Pi = I*Log[-1]
+    return eml_mul(eml_const_I(), eml_minus_i_pi())  # Pi = I*(-I*Pi)
 
 def eml_const_GoldenRatio():
     # φ = (1 + sqrt(5))/2 = (1 + 5^(1/2)) / 2
