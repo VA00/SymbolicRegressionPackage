@@ -1,4 +1,4 @@
-## EmL_proof: Lean 4 proofs of Theorems 1, 1a, 1b and 1c
+## EML_lean_proofs: Lean 4 proofs of Theorems 1, 1a, 1b and 1c
 
 A machine-checked proof of Theorem 1 of the paper: each of the 33 real
 primitives of Table 1 (5 constants, 20 unary functions, 8 binary operations)

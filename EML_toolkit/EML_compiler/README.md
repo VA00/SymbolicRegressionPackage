@@ -86,7 +86,7 @@ The compiler depends on `sympy`. The test suites additionally depend on their ow
 Run everything from this directory:
 
 ```sh
-cd SymbolicRegressionPackage/EML_toolkit/EmL_compiler
+cd SymbolicRegressionPackage/EML_toolkit/EML_compiler
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip

@@ -1,0 +1,92 @@
+  done: exp
+  done: ln
+  done: minus
+  done: sqr
+  done: inv
+  done: half
+  done: sigma
+  done: sinh
+  done: cosh
+  done: tanh
+  done: arsinh
+  done: artanh
+  done: plus
+  done: subtract
+  done: times
+  done: avg
+  done: divide
+  done: power
+  done: logarithm
+  done: sqrt x>0 (strict)
+  done: arcosh x>1 (strict)
+  done: hypot off origin (strict)
+  done: sqrt x>=0 (ext)
+  done: sqrt P(x,1/2) (ext)
+  done: arcosh x>=1 (ext)
+  done: hypot (ext)
+  done: abs (ext)
+  done: relu (ext)
+  done: max (ext)
+  done: exp (ext)
+  done: ln (ext)
+  done: minus (ext)
+  done: sqr (ext)
+  done: inv (ext)
+  done: half (ext)
+  done: sigma (ext)
+  done: sinh (ext)
+  done: cosh (ext)
+  done: tanh (ext)
+  done: arsinh (ext)
+  done: artanh (ext)
+  done: plus (ext)
+  done: subtract (ext)
+  done: times (ext)
+  done: avg (ext)
+  done: divide (ext)
+  done: power (ext)
+  done: logarithm (ext)
+strict: Q(0) undefined      : True
+strict: sqrt_c(0) undefined : True
+  done: sqrt (C.2) on x>0 (strict)
+strict: inv(0) undefined    : True
+strict: L(0), L(-1) undefined: True True
+ext: L(0) = -inf   eml(1,0) = +inf   eml(1,+inf) = -inf
+checks: 576  worst abs error: 6.7104e-1000  failures: 0
+
+witness                                                        leaves                           K = 2*leaves - 1
+e = E(1)                                                            2                                          3
+0 = L(1)                                                            4                                          7
+-1                                                                 13                                         25
+2                                                                  10                                         19
+1/2                                                           3468778                                    6937555
+exp x                                                               2                                          3
+ln x                                                                4                                          7
+x + y                                                              10                                         19
+x - y                                                              10                                         19
+-x                                                                 13                                         25
+x y                                                               446                                        891
+x^2                                                               446                                        891
+1/x                                                             38442                                      76883
+x / y                                                         1076794                                    2153587
+x/2                                                           3468778                                    6937555
+avg                                                           3469534                                    6939067
+sigma                                                          247266                                     494531
+x^y                                                               531                                       1061
+log_x y                                                       1874374                                    3748747
+sinh                                                          3472894                                    6945787
+cosh                                                          3470878                                    6941755
+tanh                                                     922768605358                              1845537210715
+arsinh                                                        3507179                                    7014357
+artanh                                                        3473566                                    6947131
+sqrt x>0 : Q(x)                                               3469031                                    6938061
+hypot off 0 (1b)                                              3619307                                    7238613
+arcosh x>1 (1b)                                               3507179                                    7014357
+sqrt (1c), eq. (C.2)                                               67                                        133
+P(x,1/2), after Lemma C.2                                 32929138527                                65858277053
+hypot (1c)                                                       5434                                      10867
+arcosh (1c)                                                      1441                                       2881
+|x| (1c)                                                         1402                                       2803
++inf = eml(1,0)                                                     5                                          9
+-inf = eml(1,+inf)                                                  6                                         11
+distinct DAG nodes built in total: 1940

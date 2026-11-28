@@ -1,16 +1,16 @@
 ## EML Toolkit Reproducibility Quick Start
 
 The reproducibility materials are in `EML_toolkit/`:
-- `EmL_compiler/` (compiler + numeric backends)
-- `EmL_verification/` (Wolfram verification scripts/notebooks)
-- `EmL_training/` (PyTorch + Mathematica training artifacts)
-- `EmL_figures/` (figure generators)
-- `EmL_recognizer/` (CUDA recognizer tools)
+- `EML_lean_proofs/` (Lean 4 proofs)
+- `EML_compiler/` (compiler + numeric backends)
+- `EML_figures/` (figure generators)
+- `EML_tree_training/` (PyTorch + Mathematica training artifacts)
+- `EML_RPN_complexity/` (search tools for the shortest EML expressions; the CUDA recognizer tools are in `CUDA_recognizer/`)
 
 For the long PyTorch sweep used in the Supplementary Information:
 
 ```bash
-cd EML_toolkit/EmL_training/PyTorch_v16_final
+cd EML_toolkit/EML_tree_training/PyTorch_v16_final
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

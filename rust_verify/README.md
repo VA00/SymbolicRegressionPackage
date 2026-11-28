@@ -26,4 +26,4 @@ Times: 35 s and 30 minutes on an AMD Ryzen 9 5900X, 20 s and 14 minutes on an Ap
 Without `--explain` option it takes 2 to 4 s.
 
 The witnesses of the chain are checked symbolically in Wolfram Mathematica by
-`EML_toolkit/EmL_verification/verify_eml_symbolic_chain.wl`.
+`EML_verification/verify_eml_symbolic_chain.wl` in this directory.

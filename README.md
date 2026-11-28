@@ -19,8 +19,8 @@ Check out examples from `SymbolicRegressionPackage_Examples.nb`.
 ## Repository structure
 
 - `SymbolicRegression.m` — main Mathematica package
-- `EML_toolkit/` — EML compiler (Python), numerical test harnesses (C, NumPy, PyTorch, mpmath), symbolic verification notebooks, PyTorch tree trainer, figure scripts, and CUDA shortest-expression search tools
-- `rust_*/` — Rust reimplementation of the bootstrapping procedure and search tools (~35 s vs ~40 min in Mathematica)
+- `EML_toolkit/` — Lean 4 proofs, EML compiler (Python) with its numerical test harnesses (C, NumPy, PyTorch, mpmath), figure scripts, PyTorch tree trainer, and shortest-expression search tools
+- `rust_*/` — Rust reimplementation of the bootstrapping procedure and search tools (~35 s vs ~40 min in Mathematica); `rust_verify/EML_verification/` holds the symbolic verification notebooks
 - `rust_verify_parallel/` — parallel, single-probe numerical sieve for rapidly finding candidate reconstruction formulas; candidates require separate verification
 
 
@@ -30,7 +30,7 @@ Check out examples from `SymbolicRegressionPackage_Examples.nb`.
 - Python ≥3.9 with NumPy, PyTorch, mpmath (for EML toolkit)
 - Rust ≥1.70 (for rust tools)
 - C compiler (for Eml_verify)
-- CUDA toolkit (for EmL_recognizer)
+- CUDA toolkit (for `EML_toolkit/EML_RPN_complexity/CUDA_recognizer`)
 
 
 ## License

@@ -1,0 +1,104 @@
+=== Theorem 1b: strict real arithmetic (Definition B.1) ===
+--- auxiliary terms (Lemmas B.1, B.2, B.4) ---
+B(t) = ln(e^t - t)                                     5 points   all exact
+F(t,v) = e^t - v                                       9 points   all exact
+G(u,y) = y e^u                                         9 points   all exact
+
+General::ovfl: Overflow occurred in computation.
+
+General::ovfl: Overflow occurred in computation.
+
+General::ovfl: Overflow occurred in computation.
+
+General::stop: Further output of General::ovfl will be suppressed during this calculation.
+
+                                                                                               2        2
+                                                                                         4    E  (-2 + E )
+                                                                                       -E  + E
+N::meprec: Internal precision limit $MaxExtraPrecision = 50. reached while evaluating E                   .
+
+                                                                                               2        2
+                                                                                         4    E  (-2 + E )
+                                                                                       -E  + E
+N::meprec: Internal precision limit $MaxExtraPrecision = 50. reached while evaluating E                   .
+
+                                                                                               2        2
+                                                                                         4    E  (-2 + E )
+                                                                                       -E  + E
+N::meprec: Internal precision limit $MaxExtraPrecision = 50. reached while evaluating E                   .
+
+General::stop: Further output of N::meprec will be suppressed during this calculation.
+Q(t) = sqrt t, t > 0                                   4 points   all exact
+--- the 23 primitives of Table B.1 ---
+1, e, -1, 2 and 0                                      5 points   all exact
+exp                                                    7 points   all exact
+ln, x > 0                                              5 points   all exact
++                                                     16 points   all exact
+-                                                     16 points   all exact
+minus                                                  7 points   all exact
+x                                                     16 points   all exact
+sqr                                                    7 points   all exact
+inv, x != 0                                            6 points   all exact
+/, y != 0                                             12 points   all exact
+half                                                   7 points   all exact
+avg                                                   16 points   all exact
+sigma                                                  7 points   all exact
+pow, x > 0                                            16 points   all exact
+log_b y, b > 0, b != 1, y > 0                         12 points   all exact
+sinh                                                   7 points   all exact
+cosh                                                   7 points   all exact
+tanh                                                   7 points   all exact
+arsinh                                                 7 points   all exact
+artanh, -1 < x < 1                                     4 points   all exact
+--- Table B.2: witnesses on the restricted domains ---
+sqrt, x > 0                                            4 points   all exact
+hypot, (x,y) != (0,0)                                 15 points   all exact
+arcosh, x > 1                                          3 points   all exact
+--- the same three terms at the excluded points: undefined ---
+Q(0), hypot(0,0), arcosh(1)                            3 points   all exact
+--- outside the natural domains: undefined ---
+ln 0, ln(-1), inv 0, 1/0, (-2)^(1/3), 0^2, log_1 2     7 points   all exact
+
+=== Theorem 1c: extended real arithmetic (Definition C.1) ===
+--- the operator (Table C.1) ---
+15 cells of the table                                 15 points   all exact
+--- Lemma C.1 ---
++Infinity = eml(1,0), -Infinity = eml(1,+Infinity)     2 points   all exact
+E(-Inf) = 0, E(+Inf) = +Inf                            2 points   all exact
+L(0) = -Inf, L(+Inf) = +Inf                            2 points   all exact
+F(t,-Inf) = +Inf, F(t,+Inf) = -Inf                     2 points   all exact
+--- Step 1: the 23 primitives of Table B.1 ---
+1, e, -1, 2 and 0                                      5 points   all exact
+exp                                                    7 points   all exact
+ln, x > 0                                              5 points   all exact
++                                                     16 points   all exact
+-                                                     16 points   all exact
+minus                                                  7 points   all exact
+x                                                     16 points   all exact
+sqr                                                    7 points   all exact
+inv, x != 0                                            6 points   all exact
+/, y != 0                                             12 points   all exact
+half                                                   7 points   all exact
+avg                                                   16 points   all exact
+sigma                                                  7 points   all exact
+pow, x > 0                                            16 points   all exact
+log_b y, b > 0, b != 1, y > 0                         12 points   all exact
+sinh                                                   7 points   all exact
+cosh                                                   7 points   all exact
+tanh                                                   7 points   all exact
+arsinh                                                 7 points   all exact
+artanh, -1 < x < 1                                     4 points   all exact
+--- Step 2: Lemma C.2, Corollary C.3 ---
+sqrt on [0, oo), incl. 0                               5 points   all exact
+hypot on R^2, incl. (0,0)                             16 points   all exact
+arcosh on [1, oo), incl. 1                             4 points   all exact
+--- absolute value, ReLU, max ---
+|x|                                                    5 points   all exact
+ReLU                                                   5 points   all exact
+max                                                   16 points   all exact
+--- outside the natural domains ---
+ln(-1), sqrt(-1): undefined                            2 points   all exact
+
+eml nodes evaluated: 86761;  time 188 s
+checks: 509  (exact 509, numeric 0, failed 0)
+RESULT: no failure.

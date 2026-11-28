@@ -1,0 +1,35 @@
+eml nodes evaluated: 1285182
+  +             769
+  -             769
+  /             752
+  J              52
+  Log, Lean      52
+  Log, Wolfram     52
+  arccos        653
+  arcosh        653
+  arcsin        653
+  arctan        651
+  arsinh        653
+  artanh        651
+  avg           769
+  const          13
+  cos           632
+  cosh          623
+  exp           623
+  half          653
+  hypot         769
+  inv           652
+  inv, Lean      52
+  ln            652
+  log           720
+  minus         653
+  pow           352
+  sigma         619
+  sin           632
+  sinh          623
+  sqr           653
+  sqrt          653
+  tan           631
+  tanh          623
+  x             769
+checks: 18726  failures: 0  worst relative error: 2.1e-117

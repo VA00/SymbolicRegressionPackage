@@ -1,0 +1,83 @@
+--- the operator on C + {-Infinity, +Infinity} (Table A.1) ---
+
+Infinity::indet: Indeterminate expression -Infinity + Infinity encountered.
+
+Infinity::indet: Indeterminate expression -Infinity + Infinity encountered.
+12 cells of the table                            12 points   all exact
+--- constants (Section 2 and Lemma A.1) ---
+e, 0, -1, 2, 1/2                                  5 points   all exact
+-i Pi, i, Pi, Pi/2, 2i, i Pi, 2 Pi i, -i          8 points   all exact
++Infinity, -Infinity                              2 points   all exact
+--- Lemma A.2: E, L, S ---
+(a) E(-Inf) = 0, E(+Inf) = +Inf                   2 points   all exact
+(b) L(0) = -Inf, L(-Inf) = L(+Inf) = +Inf         3 points   all exact
+(b) exp(L(u)) = u                                11 points   all exact
+(c) S(u,v) = u - v + 2 Pi i K(v)                 57 points   all exact
+--- unary primitives on their domains (Table A.2) ---
+exp                                              55 points   all exact
+minus                                            55 points   all exact
+half                                             55 points   all exact
+sqr                                              55 points   all exact
+inv, z != 0                                      54 points   all exact
+sqrt, incl. 0 and the cut                        55 points   all exact
+ln, z != 0, incl. the cut                        54 points   all exact
+sigma, e^z != -1                                 51 points   all exact
+sinh                                             55 points   all exact
+cosh                                             55 points   all exact
+tanh, cosh z != 0                                58 points   all exact
+sin                                              55 points   all exact
+cos                                              55 points   all exact
+tan, cos z != 0                                  56 points   all exact
+arcsin, incl. +-1 and both cuts                  55 points   all exact
+arccos, incl. +-1 and both cuts                  55 points   all exact
+arctan, z != +-i, incl. both cuts                53 points   all exact
+arsinh, incl. +-i and both cuts                  55 points   all exact
+arcosh, incl. +-1 and the cut                    55 points   all exact
+
+                                                                                      I Pi + Log[3 - 2 Sqrt[2]]   -I Pi - Log[-1 + Sqrt[2]] + Log[1 + Sqrt[2]]
+N::meprec: Internal precision limit $MaxExtraPrecision = 50. reached while evaluating ------------------------- + --------------------------------------------.
+                                                                                                  2                                    2
+artanh, z != +-1, incl. both cuts                53 points   all exact
+--- binary primitives on their domains ---
++                                               289 points   all exact
+-                                               289 points   all exact
+x                                               289 points   all exact
+avg                                             289 points   all exact
+hypot = Sqrt[z^2 + w^2]                         289 points   all exact
+/, w != 0                                       272 points   all exact
+pow, z != 0 or Re w > 0                         278 points   all exact
+log_b z, b != 0, b != 1, z != 0                 208 points   all exact
+--- 200 random Gaussian rationals (seed 20261119) ---
+- (random)                                      200 points   all exact
++ (random)                                      200 points   all exact
+x (random)                                      200 points   all exact
+/ (random)                                      200 points   all exact
+pow (random)                                     60 points   all exact
+log (random)                                     60 points   all exact
+sqrt (random)                                    40 points   all exact
+ln (random)                                      40 points   all exact
+sin (random)                                     40 points   all exact
+cosh (random)                                    40 points   all exact
+arcsin (random)                                  40 points   all exact
+arccos (random)                                  40 points   all exact
+arctan (random)                                  40 points   all exact
+arsinh (random)                                  40 points   all exact
+arcosh (random)                                  40 points   all exact
+artanh (random)                                  40 points   all exact
+--- the formulas of Table A.2 against the built-in inverse functions, same points ---
+ArcSin                                           55 points   all exact
+ArcCos                                           55 points   all exact
+ArcTan, z != +-i                                 53 points   all exact
+ArcSinh                                          55 points   all exact
+ArcCosh                                          55 points   all exact
+ArcTanh, z != +-1                                53 points   all exact
+--- Section A.4: values at the exceptional points ---
+Lemma A.12: J(z) = 1 (z != 0), J(0) = 0          12 points   all exact
+inv with inv(0) = 0 (Lean)                       12 points   all exact
+Log with Log(0) = 0 (Lean)                       12 points   all exact
+Log with Log(0) = -Infinity (Wolfram)            12 points   all exact
+d(z) = 1 on the negative real axis, else 0       10 points   all exact
+
+eml nodes evaluated: 239005;  time 46 s
+checks: 5101  (exact 5101, numeric 0, failed 0)
+RESULT: no failure.
