@@ -999,7 +999,7 @@ fn main() {
     let verify_k = parse_usize_flag("--verify-k", verify_k_default);
     let max_keep_per_level = parse_usize_flag("--max-keep-per-level", max_keep_default);
     let require_full_deps = parse_require_full_deps(true);
-    let quotient_var_permutations = parse_quotient_var_permutations(true);
+    let quotient_var_permutations = parse_quotient_var_permutations(false);
     let gen_filter = parse_generation_language_filter();
     let families = select_families();
     //Profile 0: 0 const, 1 unary, 1 binary

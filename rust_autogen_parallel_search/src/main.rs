@@ -1001,7 +1001,7 @@ fn main() {
     let max_keep_per_level = parse_usize_flag("--max-keep-per-level", max_keep_default);
     let rayon_threads = parse_usize_flag("--rayon-threads", 0usize);
     let require_full_deps = parse_require_full_deps(true);
-    let quotient_var_permutations = parse_quotient_var_permutations(true);
+    let quotient_var_permutations = parse_quotient_var_permutations(false);
     let gen_filter = parse_generation_language_filter();
     let families = select_families();
     if rayon_threads > 0 {
