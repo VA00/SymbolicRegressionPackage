@@ -22,3 +22,7 @@ import EML.Real.Reduction
 import EML.Real.Continuity
 import EML.Real.Circular
 import EML.Theorem1c
+import EML.Rationals
+import EML.Theorem2
+import EML.Theorem2a
+import EML.CalkinWilf

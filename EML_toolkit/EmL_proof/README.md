@@ -25,6 +25,19 @@ the whole natural domain: the 23 of Theorem 1b, and `sqrt` on [0, infinity),
 `hypot` on R^2 and `arcosh` on [1, infinity) (Lemmas C.1, C.2, Corollary C.3).
 `sin`, `cos` and `tan` have none.
 
+Theorem 2: every calculator expression (Definition 3) has a term that is defined
+and equal to it at every point of its natural domain; the term is the expression
+with every primitive replaced by its term of Theorem 1. The same holds for
+expressions over the complex primitives of Table A.2 whose intermediate values are
+complex numbers, with the terms of Theorem 1a (the remark after Theorem 1a).
+
+Corollary 25 (All rationals): every rational number is the value of a closed term
+in which every node is real and every logarithm is applied to a positive number;
+one term gives the floor of every real number, one the ceiling, and one the map
+`R: x -> 1/(2 floor(x) - x + 1)` for `x != -1`; every positive rational number is the
+value of exactly one of the closed terms `1, R(1), R(R(1)), ...` (the theorem of
+Calkin, Wilf and Newman, proved here because Mathlib does not have it).
+
 Not checked in Lean: that `arctan`, `arcsin` and `arccos` have no real term
 (Appendix B uses Liouville's theorem, of which Mathlib has only the case of
 algebraic extensions), and the remark on Schanuel's conjecture.
@@ -59,7 +72,11 @@ Lean 4.35.0 with Mathlib 4.35.0.
 | `EML/Real/Continuity.lean` | "Absolute value, ReLU and the unit step": every extended real term is continuous on its domain; no unit step; abs, ReLU, max |
 | `EML/Real/Circular.lean` | Paragraph "Direct circular functions": for large x an extended real term in one variable is undefined, +infinity, -infinity, or finite and equal to a strict real term; hence no extended real term for sin, cos, tan |
 | `EML/Theorem1c.lean` | the witnesses of Theorem 1c and the statements `theorem1c`, `theorem1c_circular` |
-| `EML.lean` | imports the twenty-four files above |
+| `EML/Rationals.lean` | Corollary 25 (All rationals): every rational number from a closed term with real nodes only (`corollary25_a`); floor and ceiling (`eval_Wfloor`, `eval_Wceil`); `R(x) = 1/(2 floor(x) - x + 1)` (`eval_R`) |
+| `EML/CalkinWilf.lean` | Corollary 25 (c), second half: Stern's sequence `fusc`, the Calkin-Wilf sequence `cw`, Newman's formula (`cw_succ`), every positive rational exactly once (`exists_unique_cw`), and the terms `1, R(1), R(R(1)), ...` (`corollary25_c`) |
+| `EML/Theorem2.lean` | Theorem 2: calculator expressions (`CalcExpr`, Definition 3), substitution of terms (`eval_subst`), and the statement `theorem2` |
+| `EML/Theorem2a.lean` | Theorem 2 for the complex primitives of Table A.2 (the remark after Theorem 1a): `CalcExprC`, `evalX_subst`, `theorem2a` |
+| `EML.lean` | imports the twenty-eight files above |
 | `lean-toolchain`, `lakefile.toml`, `lake-manifest.json` | Lean version and the Mathlib version |
 
 ### What has to be read
@@ -167,7 +184,7 @@ lake build
 ```
 
 The first command downloads the compiled Mathlib into `.lake/` (about 7 GB,
-needed once). The second checks the twenty-four files. The output must contain
+needed once). The second checks the twenty-eight files. The output must contain
 the lines
 
 ```
@@ -177,11 +194,11 @@ info: EML/Theorem1b.lean:194:0: 'EML.theorem1b' depends on axioms: [propext, Cla
 info: EML/Theorem1c.lean:158:0: 'EML.theorem1c' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-(and ten more lines of this form, for the other statements of Theorems 1b and
-1c) and end with
+(and eighteen more lines of this form, for the other statements of Theorems 1b
+and 1c, for Corollary 25 and for Theorems 2 and 2a) and end with
 
 ```
-Build completed successfully (9072 jobs).
+Build completed successfully (9076 jobs).
 ```
 
 "Build completed successfully" means that Lean accepted every proof. The
